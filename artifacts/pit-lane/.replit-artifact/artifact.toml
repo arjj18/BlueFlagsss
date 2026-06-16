@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Pit Lane Fan Zone"
+version = "1.0.0"
+id = "artifacts/pit-lane"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19324
+
+[services.development]
+run = "pnpm --filter @workspace/pit-lane run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pit-lane", "run", "build" ]
+publicDir = "artifacts/pit-lane/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19324"
+BASE_PATH = "/"

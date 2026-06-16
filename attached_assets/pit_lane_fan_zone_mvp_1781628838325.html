@@ -1,0 +1,406 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.app{font-family:var(--font-sans);max-width:680px;width:100%}
+.header{background:#111;padding:14px 18px;border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0;display:flex;align-items:center;justify-content:space-between}
+.logo-title{font-size:20px;font-weight:500;color:#fff;letter-spacing:2px}
+.logo-sub{font-size:10px;color:#e10600;letter-spacing:2px;text-transform:uppercase}
+.race-badge{background:#e10600;color:#fff;font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-top:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg)}
+.game-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:18px 16px;cursor:pointer;position:relative;overflow:hidden;transition:border-color 0.15s}
+.game-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc)}
+.game-card:hover{border-color:var(--cc)}
+.card-icon{font-size:26px;margin-bottom:10px}
+.card-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.4}
+.card-tag{display:inline-block;margin-top:10px;font-size:10px;font-weight:500;padding:3px 8px;border-radius:20px;background:var(--cc);color:#fff}
+.game-screen{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-top:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg);padding:16px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);padding:0 0 14px;font-weight:500}
+.back-btn:hover{color:var(--color-text-primary)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:18px;margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-family:var(--font-sans);font-size:13px;font-weight:500;cursor:pointer;color:var(--color-text-primary)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-red{background:#e10600;color:#fff;border-color:#e10600}
+.btn-red:hover{background:#b00500;border-color:#b00500}
+.btn-full{width:100%;justify-content:center}
+.pill{display:inline-block;background:var(--color-background-secondary);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--color-text-secondary)}
+.pill strong{color:var(--color-text-primary)}
+.progress{height:3px;background:var(--color-border-tertiary);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.progress-fill{height:100%;background:#e10600;border-radius:2px;transition:width 0.3s}
+.q-text{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:18px;line-height:1.45}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.opt{padding:13px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);cursor:pointer;font-family:var(--font-sans);font-size:13px;font-weight:500;text-align:center;color:var(--color-text-primary);line-height:1.3;transition:all 0.12s}
+.opt:hover:not(.dis){border-color:#e10600;background:var(--color-background-primary)}
+.opt.correct{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+.opt.wrong{background:var(--color-background-danger);border-color:var(--color-border-danger);color:var(--color-text-danger)}
+.opt.dis{cursor:default}
+.result{padding:11px 14px;border-radius:var(--border-radius-md);font-size:13px;line-height:1.5;margin-bottom:12px}
+.result.good{background:var(--color-background-success);color:var(--color-text-success)}
+.result.bad{background:var(--color-background-danger);color:var(--color-text-danger)}
+.result.info{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.status{text-align:center;font-size:13px;color:var(--color-text-secondary);padding:9px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:14px;font-weight:500}
+.bingo-hdr{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-width:340px;margin:0 auto 4px}
+.bingo-hdr-cell{text-align:center;font-size:19px;font-weight:500;color:#e10600;letter-spacing:2px}
+.bingo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-width:340px;margin:0 auto 14px}
+.b-cell{aspect-ratio:1;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;font-size:9px;text-align:center;cursor:pointer;background:var(--color-background-secondary);color:var(--color-text-primary);line-height:1.2;padding:3px;font-weight:500;transition:all 0.12s}
+.b-cell:hover:not(.free){background:var(--color-background-tertiary)}
+.b-cell.called{background:#e10600;color:#fff;border-color:#e10600}
+.b-cell.free{background:#111;color:#fff;border-color:#111;cursor:default;font-size:10px}
+.b-cell.win{background:var(--color-background-success);color:var(--color-text-success);border-color:var(--color-border-success)}
+.ten-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:14px}
+.ten-slot{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary)}
+.ten-slot.found{background:var(--color-background-success);border-color:var(--color-border-success)}
+.ten-num{font-size:11px;font-weight:500;color:var(--color-text-tertiary);min-width:18px}
+.ten-val{font-size:12px;font-weight:500;color:var(--color-text-tertiary)}
+.ten-slot.found .ten-val{color:var(--color-text-success)}
+.timer{display:inline-flex;align-items:center;background:#111;color:#fff;padding:5px 12px;border-radius:20px;font-size:16px;font-weight:500;letter-spacing:1px}
+.timer.urgent{background:#e10600}
+.text-input{width:100%;padding:10px 13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);outline:none}
+.text-input:focus{border-color:#e10600}
+.loading{text-align:center;padding:40px 20px}
+.spinner{width:28px;height:28px;border:2.5px solid var(--color-border-tertiary);border-top-color:#e10600;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <div>
+        <div class="logo-title">PIT LANE</div>
+        <div class="logo-sub">Fan Zone</div>
+      </div>
+    </div>
+    <div class="race-badge">Monaco GP · Round 9</div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+const GAMES = [
+  {id:'bingo',title:'Race Bingo',icon:'⬛',desc:'Tick events as they happen during the race',tag:'Live Race',color:'#e10600'},
+  {id:'racequiz',title:'Post-Race Quiz',icon:'⚡',desc:'AI quiz generated from the race you just watched',tag:'After Race',color:'#1565c0'},
+  {id:'generalquiz',title:'General Quiz',icon:'❓',desc:'Test your F1 knowledge — history, drivers & more',tag:'Any time',color:'#2e7d32'},
+  {id:'tenabell',title:'F1 Tenabell',icon:'🔟',desc:'Name the top 10 in a category — timed or relaxed',tag:'Any time',color:'#e65100'},
+];
+
+const M = document.getElementById('main');
+let curGame = null;
+
+function home(){
+  curGame = null;
+  M.innerHTML = `<div class="home-grid">${GAMES.map(g=>`
+    <div class="game-card" style="--cc:${g.color}" onclick="launch('${g.id}')">
+      <div class="card-icon">${g.icon}</div>
+      <div class="card-title">${g.title}</div>
+      <div class="card-desc">${g.desc}</div>
+      <div class="card-tag" style="--cc:${g.color}">${g.tag}</div>
+    </div>`).join('')}</div>`;
+}
+
+function screen(html){
+  M.innerHTML=`<div class="game-screen"><button class="back-btn" onclick="home()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back to games</button><div id="gi">${html}</div></div>`;
+}
+function gi(){return document.getElementById('gi')}
+
+function launch(id){
+  curGame=id;
+  if(id==='bingo') initBingo();
+  else if(id==='generalquiz') initGenQuiz();
+  else if(id==='racequiz') initRaceQuiz();
+  else if(id==='tenabell') initTenabell();
+}
+
+// ======= BINGO =======
+const bingoSq = [
+  "Safety car deployed","DRS enabled","Sub 2s pit stop","Radio complaint","Overtake on lap 1",
+  "Virtual safety car","Fastest lap attempt","Spin on track","Rain starts","Team orders given",
+  "Tyre failure","Penalty given","FREE","Crash at turn 1","Early chequered flag",
+  "Driver swears","Podium surprise","Engine issue","Purple sector","Mechanical DNF",
+  "Wet tyres used","Pit lane speeding","Gap under 1s","Comeback drive","Dramatic last lap"
+];
+const bingoLines=[[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];
+let bCalled=new Set([12]),bWon=false;
+
+function initBingo(){
+  bCalled=new Set([12]);bWon=false;renderBingo();
+}
+function bToggle(i){
+  if(i===12||bWon)return;
+  bCalled.has(i)?bCalled.delete(i):bCalled.add(i);
+  bWon=bingoLines.some(l=>l.every(x=>bCalled.has(x)));
+  renderBingo();
+}
+function bWinLine(){for(const l of bingoLines)if(l.every(x=>bCalled.has(x)))return new Set(l);return new Set();}
+function renderBingo(){
+  const wl=bWon?bWinLine():new Set();
+  gi().innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><p style="font-size:15px;font-weight:500;color:var(--color-text-primary)">Race Bingo</p><p style="font-size:12px;color:var(--color-text-secondary)">Tap when it happens live</p></div>
+        <span class="pill"><strong>${bCalled.size-1}</strong> ticked</span>
+      </div>
+      ${bWon?`<div class="result good" style="text-align:center;font-weight:500;margin-bottom:14px">🏁 BINGO! You got a line!</div>`:''}
+      <div class="bingo-hdr">${['B','I','N','G','O'].map(l=>`<div class="bingo-hdr-cell">${l}</div>`).join('')}</div>
+      <div class="bingo-grid">${bingoSq.map((s,i)=>{
+        let c='b-cell';
+        if(i===12)c+=' free';
+        else if(wl.has(i))c+=' win';
+        else if(bCalled.has(i))c+=' called';
+        return`<div class="${c}" onclick="bToggle(${i})">${s}</div>`;
+      }).join('')}</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn" onclick="initBingo()"><i class="ti ti-refresh" aria-hidden="true"></i> New card</button>
+        <span style="font-size:12px;color:var(--color-text-tertiary)">${bWon?'Keep going for a full house!':'5 in a row wins!'}</span>
+      </div>
+    </div>`;
+}
+
+// ======= GENERAL QUIZ =======
+const GQ=[
+  {q:"Which driver has the most F1 World Championships?",opts:["Michael Schumacher","Lewis Hamilton","Sebastian Vettel","Ayrton Senna"],ans:1,fact:"Hamilton and Schumacher share the record with 7 titles each."},
+  {q:"What does DRS stand for?",opts:["Dynamic Race Speed","Drag Reduction System","Dual Rear Spoiler","Direct Racing System"],ans:1,fact:"DRS opens a flap in the rear wing to reduce drag on straights."},
+  {q:"Which circuit is nicknamed the Cathedral of Speed?",opts:["Monaco","Spa","Monza","Silverstone"],ans:2,fact:"Monza in Italy is famous for its high-speed layout and passionate tifosi fans."},
+  {q:"How many points does a race winner receive?",opts:["20","25","30","15"],ans:1,fact:"The current points system has awarded 25 points for a win since 2010."},
+  {q:"Which team has won the most Constructors' Championships?",opts:["McLaren","Mercedes","Williams","Ferrari"],ans:3,fact:"Ferrari leads with 16 Constructors' Championships."},
+  {q:"What colour flag signals a race has been stopped?",opts:["Yellow","Blue","Red","Black"],ans:2,fact:"A red flag means the race is immediately neutralised — drivers must return to the pit lane."},
+  {q:"Which driver is nicknamed The Iceman?",opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"],ans:2,fact:"Räikkönen earned the nickname for his cool, unemotional demeanour on and off the track."},
+  {q:"How many cars start a Formula 1 race?",opts:["16","18","20","22"],ans:2,fact:"10 teams × 2 drivers = 20 cars on the starting grid."},
+  {q:"Which country hosts the Suzuka circuit?",opts:["South Korea","China","Singapore","Japan"],ans:3,fact:"Suzuka is in Japan's Mie Prefecture and is one of the most challenging tracks on the calendar."},
+  {q:"What does a blue flag signal to a driver?",opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"],ans:1,fact:"A blue flag tells a driver they're about to be lapped and must let the faster car through."},
+];
+let gqIdx=0,gqScore=0,gqAns=null,gqShuffle=[];
+
+function initGenQuiz(){
+  gqShuffle=[...GQ].sort(()=>Math.random()-0.5);
+  gqIdx=0;gqScore=0;gqAns=null;renderGQ();
+}
+function gqAnswer(i){
+  if(gqAns!==null)return;
+  gqAns=i;
+  if(i===gqShuffle[gqIdx].ans)gqScore++;
+  renderGQ();
+}
+function gqNext(){
+  gqIdx++;gqAns=null;
+  if(gqIdx>=gqShuffle.length){renderGQEnd();return;}
+  renderGQ();
+}
+function renderGQ(){
+  const q=gqShuffle[gqIdx],ans=gqAns!==null,cor=gqAns===q.ans,prog=(gqIdx/gqShuffle.length)*100;
+  gi().innerHTML=`
+    <div class="card">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span class="pill">Question <strong>${gqIdx+1}/${gqShuffle.length}</strong></span>
+        <span class="pill">Score <strong>${gqScore}</strong></span>
+      </div>
+      <div class="progress"><div class="progress-fill" style="width:${prog}%"></div></div>
+      <p class="q-text">${q.q}</p>
+      <div class="opts">${q.opts.map((o,i)=>{
+        let c='opt';
+        if(ans){c+=' dis';if(i===q.ans)c+=' correct';else if(i===gqAns)c+=' wrong';}
+        return`<button class="${c}" onclick="gqAnswer(${i})">${o}</button>`;
+      }).join('')}</div>
+      ${ans?`<div class="result ${cor?'good':'bad'}">${cor?'✅ Correct!':'❌ Not quite!'} ${q.fact}</div>
+        <button class="btn btn-red" onclick="gqNext()">${gqIdx===gqShuffle.length-1?'See results':'Next question →'}</button>`:''}
+    </div>`;
+}
+function renderGQEnd(){
+  const pct=Math.round((gqScore/gqShuffle.length)*100);
+  const msg=gqScore>=9?'Outstanding — you clearly live and breathe F1! 🏆':gqScore>=6?'Solid effort — you know your racing 👍':'Keep watching the races! 📺';
+  gi().innerHTML=`<div class="card" style="text-align:center;padding:28px 20px">
+    <div style="font-size:52px;font-weight:500;color:#e10600;margin-bottom:6px">${gqScore}/${gqShuffle.length}</div>
+    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px">${msg}</p>
+    <button class="btn btn-red" onclick="initGenQuiz()">Play again</button>
+  </div>`;
+}
+
+// ======= POST-RACE AI QUIZ =======
+let rqQs=[],rqIdx=0,rqScore=0,rqAns=null,rqRace='',rqLoading=false,rqErr=null;
+
+function initRaceQuiz(){rqQs=[];rqIdx=0;rqScore=0;rqAns=null;rqRace='';rqLoading=false;rqErr=null;renderRQSetup();}
+function renderRQSetup(){
+  gi().innerHTML=`
+    <div class="card">
+      <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Post-Race AI Quiz</p>
+      <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:18px;line-height:1.5">Type the race you just watched — Claude will search the results and build a custom quiz for it.</p>
+      ${rqErr?`<div class="result bad" style="margin-bottom:12px">${rqErr}</div>`:''}
+      <label style="font-size:12px;font-weight:500;color:var(--color-text-secondary);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Race name</label>
+      <input type="text" id="rq-input" class="text-input" placeholder="e.g. Monaco Grand Prix 2025" value="${rqRace}" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')rqSubmit()"/>
+      <button class="btn btn-red btn-full" onclick="rqSubmit()">Generate quiz →</button>
+      <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:10px">Be specific — "Monaco Grand Prix 2025" works better than just "Monaco"</p>
+    </div>`;
+  setTimeout(()=>{const i=document.getElementById('rq-input');if(i)i.focus();},50);
+}
+async function rqSubmit(){
+  const inp=document.getElementById('rq-input');
+  if(!inp||!inp.value.trim())return;
+  rqRace=inp.value.trim();
+  gi().innerHTML=`<div class="card loading"><div class="spinner"></div><p style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Generating your quiz…</p><p style="font-size:13px;color:var(--color-text-secondary)">Searching ${rqRace} results and writing 6 questions</p></div>`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        tools:[{type:"web_search_20250305",name:"web_search"}],
+        messages:[{role:"user",content:`You are an F1 quiz master. Generate 6 multiple choice questions about the ${rqRace} Formula 1 Grand Prix. Cover: race winner, podium, key moments, strategy, fastest lap, championship impact. Return ONLY a JSON array, no other text:\n[{"q":"Question?","opts":["A","B","C","D"],"ans":0,"fact":"Brief fact."}]\nWhere ans is the index of the correct answer.`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean=text.replace(/```json|```/g,'').trim();
+    rqQs=JSON.parse(clean);
+    rqIdx=0;rqScore=0;rqAns=null;
+    renderRQ();
+  }catch(e){
+    rqErr="Couldn't generate quiz — please check your connection and try again.";
+    renderRQSetup();
+  }
+}
+function rqAnswer(i){
+  if(rqAns!==null)return;
+  rqAns=i;
+  if(i===rqQs[rqIdx].ans)rqScore++;
+  renderRQ();
+}
+function rqNext(){
+  rqIdx++;rqAns=null;
+  if(rqIdx>=rqQs.length){renderRQEnd();return;}
+  renderRQ();
+}
+function renderRQ(){
+  const q=rqQs[rqIdx],ans=rqAns!==null,cor=rqAns===q.ans,prog=(rqIdx/rqQs.length)*100;
+  gi().innerHTML=`
+    <div class="card">
+      <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
+        <span class="pill">Q <strong>${rqIdx+1}/${rqQs.length}</strong></span>
+        <span class="pill">Score <strong>${rqScore}</strong></span>
+        <span style="margin-left:auto;font-size:11px;color:var(--color-text-tertiary)">📍 ${rqRace}</span>
+      </div>
+      <div class="progress"><div class="progress-fill" style="width:${prog}%"></div></div>
+      <p class="q-text">${q.q}</p>
+      <div class="opts">${q.opts.map((o,i)=>{
+        let c='opt';
+        if(ans){c+=' dis';if(i===q.ans)c+=' correct';else if(i===rqAns)c+=' wrong';}
+        return`<button class="${c}" onclick="rqAnswer(${i})">${o}</button>`;
+      }).join('')}</div>
+      ${ans?`<div class="result ${cor?'good':'bad'}">${cor?'✅ Correct!':'❌ Not quite!'} ${q.fact}</div>
+        <button class="btn btn-red" onclick="rqNext()">Next question →</button>`:''}
+    </div>`;
+}
+function renderRQEnd(){
+  gi().innerHTML=`<div class="card" style="text-align:center;padding:28px 20px">
+    <div style="font-size:52px;font-weight:500;color:#e10600;margin-bottom:6px">${rqScore}/${rqQs.length}</div>
+    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px">${rqScore>=5?'Great effort — you were paying attention! 🏆':'Watch the highlights and try again! 📺'}</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-red" onclick="initRaceQuiz()">Try another race →</button>
+      <button class="btn" onclick="(){rqIdx=0;rqScore=0;rqAns=null;renderRQ()}">Replay this quiz</button>
+    </div>
+  </div>`;
+}
+
+// ======= TENABELL =======
+const TCATS=[
+  {q:"Name 10 drivers with the most race wins all time",answers:["Hamilton","Schumacher","Verstappen","Vettel","Prost","Senna","Alonso","Mansell","Clark","Stewart"],hint:"Think legends from every era of F1"},
+  {q:"Name 10 countries that have hosted a Formula 1 Grand Prix",answers:["UK","Italy","Germany","France","USA","Brazil","Japan","Spain","Belgium","Australia","Monaco","Canada","Hungary","Austria","Netherlands","Singapore","Bahrain"],hint:"Over 30 countries have hosted races across F1 history"},
+  {q:"Name 10 F1 World Champions from any era",answers:["Hamilton","Schumacher","Vettel","Senna","Prost","Lauda","Stewart","Clark","Fangio","Verstappen","Rosberg","Button","Raikkonen","Hill","Mansell","Piquet"],hint:"There have been around 34 different world champions"},
+  {q:"Name 10 circuits currently on the F1 calendar",answers:["Bahrain","Jeddah","Melbourne","Suzuka","Shanghai","Miami","Imola","Monaco","Montreal","Barcelona","Spielberg","Silverstone","Budapest","Spa","Zandvoort","Monza","Baku","Singapore","Austin","Mexico City","Sao Paulo","Las Vegas","Lusail","Abu Dhabi"],hint:"There are 24 race weekends in a modern season"},
+];
+let tCat=null,tFound=new Set(),tTimeLeft=120,tTimer=null,tDone=false,tMode=null;
+
+function initTenabell(){tCat=null;tFound=new Set();tTimeLeft=120;tTimer=null;tDone=false;tMode=null;renderTMode();}
+function renderTMode(){
+  gi().innerHTML=`<div class="card">
+    <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">F1 Tenabell</p>
+    <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:20px;line-height:1.5">Name 10 answers in a category. How do you want to play?</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-red btn-full" style="padding:14px;font-size:14px" onclick="tStart(120)"><i class="ti ti-clock" aria-hidden="true"></i> 2 minute timer</button>
+      <button class="btn btn-full" style="padding:14px;font-size:14px" onclick="tStart(0)"><i class="ti ti-mood-calm" aria-hidden="true"></i> Relaxed — no timer</button>
+    </div>
+  </div>`;
+}
+function tStart(mode){
+  tMode=mode;
+  tCat=TCATS[Math.floor(Math.random()*TCATS.length)];
+  tFound=new Set();tDone=false;tTimeLeft=mode||120;
+  if(tTimer)clearInterval(tTimer);
+  if(mode){
+    tTimer=setInterval(()=>{
+      tTimeLeft--;
+      const el=document.getElementById('t-timer');
+      if(el){el.textContent=tFmt();el.className='timer'+(tTimeLeft<=30?' urgent':'');}
+      if(tTimeLeft<=0){clearInterval(tTimer);tDone=true;renderTen();}
+    },1000);
+  }
+  renderTen();
+  setTimeout(()=>{const i=document.getElementById('t-input');if(i)i.focus();},50);
+}
+function tFmt(){const m=Math.floor(tTimeLeft/60),s=String(tTimeLeft%60).padStart(2,'0');return`${m}:${s}`;}
+function tGuess(){
+  const inp=document.getElementById('t-input');
+  if(!inp||tDone)return;
+  const val=inp.value.trim().toLowerCase();
+  if(!val){return;}
+  const match=tCat.answers.find(a=>{
+    const al=a.toLowerCase();
+    return al===val||(al.includes(val)&&val.length>=3)||(val.includes(al)&&al.length>=4);
+  });
+  if(match&&!tFound.has(match)){
+    tFound.add(match);
+    if(tFound.size>=10){tDone=true;if(tTimer)clearInterval(tTimer);}
+  }
+  inp.value='';
+  tRefreshBoard();
+  if(!tDone)inp.focus();
+  else renderTen();
+}
+function tRefreshBoard(){
+  const board=document.getElementById('t-board');
+  if(!board)return;
+  const arr=[...tFound];
+  board.innerHTML=Array.from({length:10},(_,i)=>`
+    <div class="ten-slot${arr[i]?' found':''}">
+      <span class="ten-num">${i+1}</span>
+      <span class="ten-val">${arr[i]||'???'}</span>
+    </div>`).join('');
+}
+function tGiveUp(){tDone=true;if(tTimer)clearInterval(tTimer);renderTen();}
+function renderTen(){
+  const arr=[...tFound];
+  gi().innerHTML=`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="pill"><strong>${tFound.size}</strong>/10 found</span>
+      ${tMode?`<span class="timer${tTimeLeft<=30?' urgent':''}" id="t-timer">${tFmt()}</span>`:`<span class="pill">No timer</span>`}
+    </div>
+    <p style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">${tCat.q}</p>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:14px">💡 ${tCat.hint}</p>
+    ${!tDone?`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="t-input" class="text-input" placeholder="Type an answer and press Enter…" onkeydown="if(event.key==='Enter')tGuess()"/>
+      <button class="btn btn-red" onclick="tGuess()"><i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>`:''}
+    <div class="ten-grid" id="t-board">
+      ${tDone
+        ?tCat.answers.slice(0,10).map((a,i)=>`<div class="ten-slot${tFound.has(a)?' found':''}" style="${!tFound.has(a)?'border-color:var(--color-border-danger);background:var(--color-background-danger);':''}">
+            <span class="ten-num">${i+1}</span>
+            <span class="ten-val" style="${!tFound.has(a)?'color:var(--color-text-danger)':''}">${a}</span>
+          </div>`).join('')
+        :Array.from({length:10},(_,i)=>`<div class="ten-slot${arr[i]?' found':''}">
+            <span class="ten-num">${i+1}</span>
+            <span class="ten-val">${arr[i]||'???'}</span>
+          </div>`).join('')
+      }
+    </div>
+    ${tDone?`<div class="result ${tFound.size>=10?'good':tFound.size>=6?'info':'bad'}" style="margin-top:10px">
+        ${tFound.size>=10?'🏆 Perfect 10! Outstanding F1 knowledge!':tFound.size>=6?`👍 You got ${tFound.size}/10 — solid effort!`:`You got ${tFound.size}/10 — keep watching those races!`}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-red" onclick="initTenabell()">Try another category</button>
+      </div>`
+    :`<button class="btn" style="margin-top:4px" onclick="tGiveUp()">Give up & reveal</button>`}
+  </div>`;
+  if(!tDone)setTimeout(()=>{const i=document.getElementById('t-input');if(i)i.focus();},50);
+}
+
+home();
+</script>
