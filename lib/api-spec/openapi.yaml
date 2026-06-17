@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: quiz
+    description: AI quiz generation
 paths:
   /healthz:
     get:
@@ -24,6 +26,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /quiz/generate:
+    post:
+      operationId: generateQuiz
+      tags: [quiz]
+      summary: Generate AI quiz for a race
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizInput"
+      responses:
+        "200":
+          description: Generated quiz questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "503":
+          description: AI service unavailable (API key not configured)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +65,48 @@ components:
           type: string
       required:
         - status
-
+    QuizInput:
+      type: object
+      properties:
+        race:
+          type: string
+          minLength: 1
+      required:
+        - race
+    QuizQuestion:
+      type: object
+      properties:
+        q:
+          type: string
+        opts:
+          type: array
+          items:
+            type: string
+        ans:
+          type: integer
+        fact:
+          type: string
+      required:
+        - q
+        - opts
+        - ans
+        - fact
+    QuizResult:
+      type: object
+      properties:
+        race:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+      required:
+        - race
+        - questions
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
