@@ -5,7 +5,10 @@ import { PostRaceQuiz } from './components/games/PostRaceQuiz';
 import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { Tenabell } from './components/games/Tenabell';
 import { ScoreHistory } from './components/ScoreHistory';
+import { getDailyCategory } from './lib/tenabellCategories';
 import React from 'react';
+
+const dailyCat = getDailyCategory();
 
 type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | null;
 
@@ -130,11 +133,18 @@ export default function App() {
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#e65100]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#e65100]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
-                  Any Time
+                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase flex items-center gap-1.5">
+                  <span className="text-[#e65100]">Daily</span>
                 </div>
                 <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#e65100] transition-colors">Tenabell</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">Name 10 answers in a category before the 2-minute timer runs out.</p>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">Name 10 answers in a category before the 2-minute timer runs out.</p>
+                <div className="mt-auto pt-2 border-t border-border/40 flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-bold">Today</span>
+                  <span className="text-xs font-semibold text-[#e65100]/90 truncate">{dailyCat.teaser}</span>
+                  {dailyCat.ordered && (
+                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 shrink-0">ordered</span>
+                  )}
+                </div>
               </button>
 
             </div>
