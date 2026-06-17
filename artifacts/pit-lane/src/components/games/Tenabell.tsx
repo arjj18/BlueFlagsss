@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, ChevronRight, CalendarDays, Trophy } from 'lucide-react';
+import { Clock, ChevronRight, CalendarDays, Trophy, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveScore } from '@/lib/scoreHistory';
@@ -8,6 +8,53 @@ import { getDailyCategory, getTodayKey } from '@/lib/tenabellCategories';
 function formatDateLong(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function formatDateShort(key: string): string {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function buildShareText(score: number, teaser: string, dateKey: string, playMode: "timed" | "relaxed"): string {
+  const squares = Array.from({ length: 10 }, (_, i) => i < score ? '🟩' : '⬛').join('');
+  const lines = [
+    'Pit Lane Tenabell',
+    `${teaser} · ${formatDateShort(dateKey)}`,
+    `${score}/10${playMode === 'timed' ? ' ⏱' : ''}`,
+    squares,
+  ];
+  return lines.join('\n');
+}
+
+function ShareButton({ score, teaser, dateKey, playMode }: { score: number; teaser: string; dateKey: string; playMode: "timed" | "relaxed" }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const text = buildShareText(score, teaser, dateKey, playMode);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Button
+      onClick={handleShare}
+      variant="outline"
+      className="gap-2 font-bold tracking-wider border-[#e65100]/40 text-[#e65100] hover:bg-[#e65100]/10 hover:text-[#e65100]"
+    >
+      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      {copied ? 'COPIED!' : 'SHARE RESULT'}
+    </Button>
+  );
 }
 
 type DailyState = {
@@ -121,7 +168,10 @@ export function Tenabell() {
           <p className="text-4xl font-black mb-1">
             {alreadyPlayed.score}<span className="text-muted-foreground text-xl font-normal">/10</span>
           </p>
-          <div className="w-full bg-secondary rounded-full h-2 mt-3">
+          <div className="text-lg tracking-widest my-2">
+            {Array.from({ length: 10 }, (_, i) => i < alreadyPlayed.score ? '🟩' : '⬛').join('')}
+          </div>
+          <div className="w-full bg-secondary rounded-full h-2 mt-1">
             <div className="h-2 rounded-full bg-[#e65100] transition-all" style={{ width: `${pct}%` }} />
           </div>
           <p className="text-xs text-muted-foreground mt-3">
@@ -129,6 +179,7 @@ export function Tenabell() {
             {" "}Played in {alreadyPlayed.playMode} mode.
           </p>
         </div>
+        <ShareButton score={alreadyPlayed.score} teaser={cat.teaser} dateKey={todayKey} playMode={alreadyPlayed.playMode} />
         <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
           <Trophy className="w-3 h-3" />
           Come back tomorrow for a new category
@@ -301,12 +352,21 @@ export function Tenabell() {
 
       {/* End screen */}
       {mode === "over" && (
-        <div className="text-center p-5 bg-secondary rounded-lg mt-2 space-y-2">
+        <div className="text-center p-5 bg-secondary rounded-lg mt-2 space-y-3">
           <p className="text-3xl font-black">{found.length}<span className="text-muted-foreground text-lg font-normal">/10</span></p>
+          <div className="text-lg tracking-widest">
+            {Array.from({ length: 10 }, (_, i) => i < found.length ? '🟩' : '⬛').join('')}
+          </div>
           <p className="text-sm text-muted-foreground">
             {found.length === 10 ? "Perfect — outstanding F1 knowledge!" : found.length >= 6 ? "Solid effort! Keep watching the races." : "Keep watching those races!"}
           </p>
-          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/50 text-xs pt-2">
+          <ShareButton
+            score={found.length}
+            teaser={cat.teaser}
+            dateKey={todayKey}
+            playMode={mode === "timed" ? "timed" : "relaxed"}
+          />
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/50 text-xs pt-1">
             <Trophy className="w-3 h-3" />
             Come back tomorrow for a new category
           </div>
