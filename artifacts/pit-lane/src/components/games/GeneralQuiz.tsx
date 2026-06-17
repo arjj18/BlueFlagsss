@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Clock, Timer, Trophy, Check, X, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { Trophy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { saveScore } from '@/lib/scoreHistory';
 
 export function GeneralQuiz() {
   const [questions, setQuestions] = useState(() => {
@@ -39,6 +38,8 @@ export function GeneralQuiz() {
       setCurrentIdx(currentIdx + 1);
       setAnswered(null);
     } else {
+      const finalScore = answered === q.ans ? score + 1 : score;
+      saveScore({ game: "quiz", label: "General Quiz", score: finalScore, total: questions.length });
       setGameOver(true);
     }
   };

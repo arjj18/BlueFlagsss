@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Clock, Timer, Trophy, Check, X, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { Trophy, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { saveScore } from '@/lib/scoreHistory';
 
 export function PostRaceQuiz() {
   const [raceInput, setRaceInput] = useState("");
@@ -61,6 +61,9 @@ export function PostRaceQuiz() {
       setCurrentIdx(currentIdx + 1);
       setAnswered(null);
     } else {
+      const q = quizData.questions[currentIdx];
+      const finalScore = answered === q.ans ? score + 1 : score;
+      saveScore({ game: "postRace", label: quizData.race, score: finalScore, total: quizData.questions.length });
       setGameOver(true);
     }
   };

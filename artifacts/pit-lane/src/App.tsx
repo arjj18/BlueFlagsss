@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, BarChart2 } from 'lucide-react';
 import { RaceBingo } from './components/games/RaceBingo';
 import { PostRaceQuiz } from './components/games/PostRaceQuiz';
 import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { Tenabell } from './components/games/Tenabell';
+import { ScoreHistory } from './components/ScoreHistory';
+import React from 'react';
 
-type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | null;
+type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
 
-  // Force dark mode
   React.useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
@@ -21,6 +22,7 @@ export default function App() {
       case "postRace": return <PostRaceQuiz />;
       case "quiz": return <GeneralQuiz />;
       case "tenabell": return <Tenabell />;
+      case "history": return <ScoreHistory onClose={() => setActiveGame(null)} />;
       default: return null;
     }
   };
@@ -28,9 +30,10 @@ export default function App() {
   const getGameTitle = () => {
     switch (activeGame) {
       case "bingo": return "RACE BINGO";
-      case "postRace": return "POST-RACE QUIZ";
+      case "postRace": return "AI RACE QUIZ";
       case "quiz": return "GENERAL QUIZ";
       case "tenabell": return "TENABELL";
+      case "history": return "SCORE HISTORY";
       default: return "";
     }
   };
@@ -42,7 +45,7 @@ export default function App() {
         <div className="max-w-[680px] mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {activeGame && (
-              <button 
+              <button
                 onClick={() => setActiveGame(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
                 aria-label="Back to hub"
@@ -55,11 +58,23 @@ export default function App() {
               <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] leading-tight mt-0.5">Fan Zone</p>
             </div>
           </div>
-          {!activeGame && (
-            <div className="bg-primary text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              Monaco GP &middot; Round 9
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {!activeGame && (
+              <div className="bg-primary text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                Monaco GP &middot; Round 9
+              </div>
+            )}
+            {!activeGame && (
+              <button
+                onClick={() => setActiveGame("history")}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Score history"
+                title="Score history"
+              >
+                <BarChart2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -69,9 +84,9 @@ export default function App() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-bold mb-6 text-white/90">Select a game</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
+
               {/* Game Card 1 */}
-              <button 
+              <button
                 onClick={() => setActiveGame("bingo")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-primary/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
               >
@@ -84,7 +99,7 @@ export default function App() {
               </button>
 
               {/* Game Card 2 */}
-              <button 
+              <button
                 onClick={() => setActiveGame("postRace")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#1565c0]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
               >
@@ -97,7 +112,7 @@ export default function App() {
               </button>
 
               {/* Game Card 3 */}
-              <button 
+              <button
                 onClick={() => setActiveGame("quiz")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#2e7d32]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
               >
@@ -110,7 +125,7 @@ export default function App() {
               </button>
 
               {/* Game Card 4 */}
-              <button 
+              <button
                 onClick={() => setActiveGame("tenabell")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#e65100]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
               >

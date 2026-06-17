@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { saveScore } from '@/lib/scoreHistory';
 
 type Category = {
   q: string;
@@ -61,6 +62,7 @@ export function Tenabell() {
       const t = setInterval(() => setTimeLeft(l => l - 1), 1000);
       return () => clearInterval(t);
     } else if (mode === "timed" && timeLeft === 0) {
+      saveScore({ game: "tenabell", label: cat.q, score: found.length, total: 10 });
       setMode("over");
       setRevealed(true);
     }
@@ -82,7 +84,10 @@ export function Tenabell() {
         const next = [...found, nextAnswer];
         setFound(next);
         setInputVal("");
-        if (next.length === 10) { setMode("over"); setRevealed(true); }
+        if (next.length === 10) {
+          saveScore({ game: "tenabell", label: cat.q, score: 10, total: 10 });
+          setMode("over"); setRevealed(true);
+        }
       } else {
         // Wrong — shake the active slot
         setInputVal("");
@@ -96,7 +101,10 @@ export function Tenabell() {
         const next = [...found, match];
         setFound(next);
         setInputVal("");
-        if (next.length === 10) { setMode("over"); setRevealed(true); }
+        if (next.length === 10) {
+          saveScore({ game: "tenabell", label: cat.q, score: 10, total: 10 });
+          setMode("over"); setRevealed(true);
+        }
       } else {
         setInputVal("");
         setShake(true);
@@ -238,7 +246,7 @@ export function Tenabell() {
       {/* Give up */}
       {mode !== "over" && (
         <button
-          onClick={() => { setRevealed(true); setMode("over"); }}
+          onClick={() => { saveScore({ game: "tenabell", label: cat.q, score: found.length, total: 10 }); setRevealed(true); setMode("over"); }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
           data-testid="button-give-up"
         >
