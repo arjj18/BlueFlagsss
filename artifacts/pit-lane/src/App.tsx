@@ -7,11 +7,13 @@ import { Tenabell } from './components/games/Tenabell';
 import { ScoreHistory } from './components/ScoreHistory';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
 import { MidnightCountdown } from './components/MidnightCountdown';
+import { getCurrentRaceStatus } from './lib/f1Calendar';
 import React from 'react';
 
 const dailyCat = getDailyCategory();
 const streakState = loadStreak();
 const todayKeyHub = getTodayKey();
+const raceStatus = getCurrentRaceStatus();
 
 type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | null;
 
@@ -65,9 +67,14 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!activeGame && (
-              <div className="bg-primary text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                Monaco GP &middot; Round 9
+            {!activeGame && raceStatus.kind !== "offseason" && (
+              <div className={`text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}>
+                {raceStatus.kind === "weekend" && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
+                )}
+                {raceStatus.race.shortName}
+                <span className="opacity-60">&middot;</span>
+                Round {raceStatus.race.round}
               </div>
             )}
             {!activeGame && (
