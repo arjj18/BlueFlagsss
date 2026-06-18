@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, BarChart2, CalendarDays } from 'lucide-react';
+import { ArrowLeft, BarChart2, CalendarDays, Zap } from 'lucide-react';
 import { RaceBingo } from './components/games/RaceBingo';
 import { PostRaceQuiz } from './components/games/PostRaceQuiz';
 import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { Tenabell } from './components/games/Tenabell';
 import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
+import { RacePredictor } from './components/games/RacePredictor';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
 import { MidnightCountdown } from './components/MidnightCountdown';
 import { getCurrentRaceStatus } from './lib/f1Calendar';
@@ -16,7 +17,7 @@ const streakState = loadStreak();
 const todayKeyHub = getTodayKey();
 const raceStatus = getCurrentRaceStatus();
 
-type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | "schedule" | null;
+type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | "schedule" | "predictor" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
@@ -33,6 +34,7 @@ export default function App() {
       case "tenabell": return <Tenabell />;
       case "history": return <ScoreHistory onClose={() => setActiveGame(null)} />;
       case "schedule": return <RaceSchedule onClose={() => setActiveGame(null)} />;
+      case "predictor": return <RacePredictor />;
       default: return null;
     }
   };
@@ -45,6 +47,7 @@ export default function App() {
       case "tenabell": return "TENABELL";
       case "history": return "SCORE HISTORY";
       case "schedule": return "2026 SCHEDULE";
+      case "predictor": return "RACE PREDICTOR";
       default: return "";
     }
   };
@@ -193,6 +196,30 @@ export default function App() {
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
                       <span className="uppercase tracking-wider font-bold">Next</span>
                       <MidnightCountdown className="font-mono font-semibold tabular-nums" />
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Game Card 5 — Race Predictor (full width) */}
+              <button
+                onClick={() => setActiveGame("predictor")}
+                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#7c3aed]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col sm:col-span-2"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#7c3aed]" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-[#7c3aed]/60" />
+                      Next Race
+                    </div>
+                    <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#7c3aed] transition-colors">Race Predictor</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">AI-powered predictions for the next Grand Prix — podium, top 10, key factors &amp; championship impact.</p>
+                  </div>
+                  {raceStatus.kind !== 'offseason' && (
+                    <div className="shrink-0 text-right mt-1">
+                      <p className="text-xs font-bold text-[#7c3aed]/80">{raceStatus.race.shortName}</p>
+                      <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Round {raceStatus.race.round}</p>
                     </div>
                   )}
                 </div>
