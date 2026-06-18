@@ -67,3 +67,40 @@ export function getTodayKey(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+function getYesterdayKey(): string {
+  const d = new Date(Date.now() - 86_400_000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export type StreakState = {
+  current: number;
+  best: number;
+  lastDate: string;
+};
+
+const STREAK_KEY = "pitlane-tenabell-streak";
+const STREAK_DEFAULT: StreakState = { current: 0, best: 0, lastDate: "" };
+
+export function loadStreak(): StreakState {
+  try {
+    const raw = localStorage.getItem(STREAK_KEY);
+    if (raw) return JSON.parse(raw) as StreakState;
+  } catch {}
+  return { ...STREAK_DEFAULT };
+}
+
+export function updateStreak(todayKey: string): StreakState {
+  const state = loadStreak();
+  if (state.lastDate === todayKey) return state; // already counted today
+  const next = state.lastDate === getYesterdayKey()
+    ? state.current + 1  // consecutive day
+    : 1;                 // streak broken or first play
+  const updated: StreakState = {
+    current: next,
+    best: Math.max(state.best, next),
+    lastDate: todayKey,
+  };
+  try { localStorage.setItem(STREAK_KEY, JSON.stringify(updated)); } catch {}
+  return updated;
+}

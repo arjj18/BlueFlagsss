@@ -3,7 +3,7 @@ import { Clock, ChevronRight, CalendarDays, Trophy, Copy, Check } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveScore } from '@/lib/scoreHistory';
-import { getDailyCategory, getTodayKey } from '@/lib/tenabellCategories';
+import { getDailyCategory, getTodayKey, updateStreak, loadStreak, type StreakState } from '@/lib/tenabellCategories';
 
 function formatDateLong(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
@@ -91,6 +91,7 @@ export function Tenabell() {
   const cat = getDailyCategory();
 
   const [alreadyPlayed] = useState<DailyState | null>(() => loadDailyState());
+  const [streak, setStreak] = useState<StreakState>(() => loadStreak());
   const [mode, setMode] = useState<"select" | "timed" | "relaxed" | "over">("select");
   const [timeLeft, setTimeLeft] = useState(120);
   const [found, setFound] = useState<string[]>([]);
@@ -119,6 +120,7 @@ export function Tenabell() {
     const playMode = mode === "timed" ? "timed" : "relaxed";
     saveScore({ game: "tenabell", label: `${cat.teaser} · ${todayKey}`, score, total: 10 });
     saveDailyState({ dateKey: todayKey, score, found: finalFound, playMode });
+    setStreak(updateStreak(todayKey));
     setRevealed(true);
     setMode("over");
   }
@@ -180,6 +182,15 @@ export function Tenabell() {
           </p>
         </div>
         <ShareButton score={alreadyPlayed.score} teaser={cat.teaser} dateKey={todayKey} playMode={alreadyPlayed.playMode} />
+        {streak.current >= 1 && (
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <span className="text-lg">🔥</span>
+            <span>{streak.current} day streak</span>
+            {streak.best > streak.current && (
+              <span className="text-xs font-normal text-muted-foreground/50">· best {streak.best}</span>
+            )}
+          </div>
+        )}
         <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
           <Trophy className="w-3 h-3" />
           Come back tomorrow for a new category
@@ -366,6 +377,15 @@ export function Tenabell() {
             dateKey={todayKey}
             playMode={mode === "timed" ? "timed" : "relaxed"}
           />
+          {streak.current >= 1 && (
+            <div className="flex items-center justify-center gap-2 text-sm font-bold">
+              <span className="text-lg">🔥</span>
+              <span>{streak.current} day streak</span>
+              {streak.best > streak.current && (
+                <span className="text-xs font-normal text-muted-foreground/50">· best {streak.best}</span>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-center gap-1.5 text-muted-foreground/50 text-xs pt-1">
             <Trophy className="w-3 h-3" />
             Come back tomorrow for a new category
