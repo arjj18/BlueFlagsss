@@ -68,13 +68,25 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             {!activeGame && raceStatus.kind !== "offseason" && (
-              <div className={`text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}>
+              <div
+                title={
+                  raceStatus.kind === "weekend"
+                    ? `Race weekend — ${raceStatus.race.name}`
+                    : `${raceStatus.daysUntil} day${raceStatus.daysUntil === 1 ? "" : "s"} until ${raceStatus.race.name}`
+                }
+                className={`cursor-default text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}
+              >
                 {raceStatus.kind === "weekend" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
                 )}
                 {raceStatus.race.shortName}
                 <span className="opacity-60">&middot;</span>
                 Round {raceStatus.race.round}
+                {raceStatus.kind === "upcoming" && (
+                  <span className="opacity-50 font-normal normal-case tracking-normal ml-0.5">
+                    &middot; {raceStatus.daysUntil}d
+                  </span>
+                )}
               </div>
             )}
             {!activeGame && (
