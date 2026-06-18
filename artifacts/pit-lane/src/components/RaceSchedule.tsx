@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Circle, Zap } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { CheckCircle2, Circle, Zap, RefreshCw } from 'lucide-react';
 import { CALENDAR_2026, getCurrentRaceStatus, type Race } from '@/lib/f1Calendar';
-import { DRIVERS_2026, CONSTRUCTORS_2026, STANDINGS_AFTER_ROUND } from '@/lib/f1Standings';
+import {
+  loadStandings, saveStandings, colorForTeam,
+  type StandingsData,
+} from '@/lib/f1Standings';
 
 function countryFlag(code: string): string {
   return [...code.toUpperCase()]
@@ -26,6 +29,12 @@ function isInPast(dateStr: string): boolean {
   return raceDay < today;
 }
 
+function formatUpdated(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
 type Tab = 'schedule' | 'drivers' | 'constructors';
 type Props = { onClose: () => void };
 
@@ -33,6 +42,9 @@ export function RaceSchedule({ onClose }: Props) {
   const status = getCurrentRaceStatus();
   const nextRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<Tab>('schedule');
+  const [standings, setStandings] = useState<StandingsData>(loadStandings);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState('');
 
   useEffect(() => {
     if (tab === 'schedule') {
@@ -40,9 +52,66 @@ export function RaceSchedule({ onClose }: Props) {
     }
   }, [tab]);
 
+  const refreshStandings = useCallback(async () => {
+    setRefreshing(true);
+    setRefreshError('');
+    try {
+      const res = await fetch('/api/standings/refresh', { method: 'POST' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as StandingsData;
+      const enriched: StandingsData = {
+        ...data,
+        drivers: data.drivers.map(d => ({ ...d, teamColor: colorForTeam(d.team) })),
+        constructors: data.constructors.map(c => ({ ...c, color: colorForTeam(c.name) })),
+      };
+      saveStandings(enriched);
+      setStandings(enriched);
+    } catch (e) {
+      setRefreshError(e instanceof Error ? e.message : 'Update failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   const nextRound = status.kind !== 'offseason' ? status.race.round : null;
-  const maxPoints = DRIVERS_2026[0].points;
-  const maxTeamPoints = CONSTRUCTORS_2026[0].points;
+  const maxPoints = standings.drivers[0]?.points ?? 1;
+  const maxTeamPoints = standings.constructors[0]?.points ?? 1;
+
+  const StandingsHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
+    <div className="flex items-start justify-between mb-3">
+      <div>
+        <h2 className="text-lg font-black tracking-widest text-white">{title}</h2>
+        <p className="text-xs text-muted-foreground/60">{subtitle}</p>
+        {standings.lastUpdated ? (
+          <p className="text-[10px] text-muted-foreground/40 mt-0.5">
+            AI updated · {formatUpdated(standings.lastUpdated)}
+          </p>
+        ) : (
+          <p className="text-[10px] text-muted-foreground/30 mt-0.5">Default data · tap ✦ to sync</p>
+        )}
+      </div>
+      <div className="flex flex-col items-end gap-1">
+        <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
+          After R{standings.afterRound}
+        </p>
+        <button
+          onClick={refreshStandings}
+          disabled={refreshing}
+          title="Update standings with AI"
+          className="flex items-center gap-1 text-[10px] font-bold text-primary/70 hover:text-primary transition-colors disabled:opacity-40 uppercase tracking-wider"
+        >
+          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Syncing…' : 'AI Sync'}
+        </button>
+        {refreshError && (
+          <p className="text-[10px] text-destructive/70 max-w-[140px] text-right">{refreshError}</p>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-0 animate-in fade-in">
@@ -53,9 +122,7 @@ export function RaceSchedule({ onClose }: Props) {
             key={t}
             onClick={() => setTab(t)}
             className={`flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors ${
-              tab === t
-                ? 'bg-primary text-white'
-                : 'text-muted-foreground hover:text-foreground'
+              tab === t ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t === 'schedule' ? 'Schedule' : t === 'drivers' ? 'Drivers' : 'Teams'}
@@ -63,7 +130,7 @@ export function RaceSchedule({ onClose }: Props) {
         ))}
       </div>
 
-      {/* ── SCHEDULE TAB ─────────────────────────────────────────────── */}
+      {/* ── SCHEDULE TAB ────────────────────────────────────────────── */}
       {tab === 'schedule' && (
         <div className="flex flex-col gap-1 py-1">
           <div className="flex items-center justify-between mb-3">
@@ -139,58 +206,39 @@ export function RaceSchedule({ onClose }: Props) {
         </div>
       )}
 
-      {/* ── DRIVERS TAB ──────────────────────────────────────────────── */}
+      {/* ── DRIVERS TAB ─────────────────────────────────────────────── */}
       {tab === 'drivers' && (
         <div className="flex flex-col gap-1 py-1">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-black tracking-widest text-white">DRIVERS</h2>
-              <p className="text-xs text-muted-foreground/60">Championship standings</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-bold text-muted-foreground/50 uppercase tracking-wider">After R{STANDINGS_AFTER_ROUND}</p>
-            </div>
-          </div>
-
+          <StandingsHeader title="DRIVERS" subtitle="Championship standings" />
           <div className="flex flex-col gap-1">
-            {DRIVERS_2026.map(d => {
+            {standings.drivers.map(d => {
               const barPct = Math.round((d.points / maxPoints) * 100);
               const isLeader = d.pos === 1;
               return (
                 <div
                   key={d.code}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'} transition-colors`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
                 >
-                  {/* Position */}
                   <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
                     {d.pos}
                   </span>
-
-                  {/* Flag */}
                   <span className="text-base leading-none shrink-0">{countryFlag(d.country)}</span>
-
-                  {/* Name + team */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1.5">
                       <span className={`text-sm font-bold leading-tight ${isLeader ? 'text-white' : 'text-white/90'}`}>
                         {d.name}
                       </span>
                       {d.wins > 0 && (
-                        <span className="text-[10px] font-bold text-primary/80">
-                          {d.wins}W
-                        </span>
+                        <span className="text-[10px] font-bold text-primary/80">{d.wins}W</span>
                       )}
                     </div>
-                    {/* Points bar */}
                     <div className="mt-1 h-1 rounded-full bg-secondary/60 overflow-hidden w-full">
                       <div
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${barPct}%`, backgroundColor: d.teamColor }}
                       />
                     </div>
                   </div>
-
-                  {/* Points */}
                   <div className="text-right shrink-0">
                     <span className={`text-sm font-black tabular-nums ${isLeader ? 'text-primary' : 'text-white/80'}`}>
                       {d.points}
@@ -204,27 +252,18 @@ export function RaceSchedule({ onClose }: Props) {
         </div>
       )}
 
-      {/* ── CONSTRUCTORS TAB ─────────────────────────────────────────── */}
+      {/* ── CONSTRUCTORS TAB ────────────────────────────────────────── */}
       {tab === 'constructors' && (
         <div className="flex flex-col gap-1 py-1">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-black tracking-widest text-white">TEAMS</h2>
-              <p className="text-xs text-muted-foreground/60">Constructors championship</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-bold text-muted-foreground/50 uppercase tracking-wider">After R{STANDINGS_AFTER_ROUND}</p>
-            </div>
-          </div>
-
+          <StandingsHeader title="TEAMS" subtitle="Constructors championship" />
           <div className="flex flex-col gap-2">
-            {CONSTRUCTORS_2026.map(c => {
+            {standings.constructors.map(c => {
               const barPct = Math.round((c.points / maxTeamPoints) * 100);
               const isLeader = c.pos === 1;
               return (
                 <div
                   key={c.name}
-                  className={`px-3 py-3 rounded-lg ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'} transition-colors`}
+                  className={`px-3 py-3 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
@@ -241,16 +280,14 @@ export function RaceSchedule({ onClose }: Props) {
                       <span className="text-[10px] text-muted-foreground/40 ml-0.5">pts</span>
                     </div>
                   </div>
-                  {/* Points bar */}
                   <div className="ml-8 h-1.5 rounded-full bg-secondary/60 overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all"
+                      className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${barPct}%`, backgroundColor: c.color }}
                     />
                   </div>
-                  {/* Drivers */}
                   <div className="ml-8 mt-1.5 flex gap-2">
-                    {DRIVERS_2026.filter(d => d.team === c.name).map(d => (
+                    {standings.drivers.filter(d => d.team === c.name).map(d => (
                       <span key={d.code} className="text-[10px] text-muted-foreground/50 font-bold">
                         {d.code} {d.points}
                       </span>
