@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveScore } from '@/lib/scoreHistory';
 import { getDailyCategory, getTodayKey, updateStreak, loadStreak, type StreakState } from '@/lib/tenabellCategories';
+import { MidnightCountdown } from '@/components/MidnightCountdown';
 
 function formatDateLong(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
@@ -191,9 +192,10 @@ export function Tenabell() {
             )}
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
-          <Trophy className="w-3 h-3" />
-          Come back tomorrow for a new category
+        <div className="flex items-center gap-2 text-xs text-muted-foreground/50">
+          <Trophy className="w-3 h-3 shrink-0" />
+          <span>Next puzzle in</span>
+          <MidnightCountdown className="font-mono font-semibold tabular-nums text-muted-foreground/70" />
         </div>
       </div>
     );
@@ -386,9 +388,10 @@ export function Tenabell() {
               )}
             </div>
           )}
-          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/50 text-xs pt-1">
-            <Trophy className="w-3 h-3" />
-            Come back tomorrow for a new category
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/50 pt-1">
+            <Trophy className="w-3 h-3 shrink-0" />
+            <span>Next puzzle in</span>
+            <MidnightCountdown className="font-mono font-semibold tabular-nums text-muted-foreground/70" />
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { Tenabell } from './components/games/Tenabell';
 import { ScoreHistory } from './components/ScoreHistory';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
+import { MidnightCountdown } from './components/MidnightCountdown';
 import React from 'react';
 
 const dailyCat = getDailyCategory();
@@ -153,6 +154,12 @@ export default function App() {
                       <span>🔥</span>
                       <span>{streakState.current} day streak</span>
                       {streakState.lastDate !== todayKeyHub && <span className="font-normal text-muted-foreground/50">— play today!</span>}
+                    </div>
+                  )}
+                  {streakState.lastDate === todayKeyHub && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
+                      <span className="uppercase tracking-wider font-bold">Next</span>
+                      <MidnightCountdown className="font-mono font-semibold tabular-nums" />
                     </div>
                   )}
                 </div>
