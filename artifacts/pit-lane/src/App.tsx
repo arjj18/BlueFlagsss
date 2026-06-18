@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, BarChart2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, CalendarDays } from 'lucide-react';
 import { RaceBingo } from './components/games/RaceBingo';
 import { PostRaceQuiz } from './components/games/PostRaceQuiz';
 import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { Tenabell } from './components/games/Tenabell';
 import { ScoreHistory } from './components/ScoreHistory';
+import { RaceSchedule } from './components/RaceSchedule';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
 import { MidnightCountdown } from './components/MidnightCountdown';
 import { getCurrentRaceStatus } from './lib/f1Calendar';
@@ -15,7 +16,7 @@ const streakState = loadStreak();
 const todayKeyHub = getTodayKey();
 const raceStatus = getCurrentRaceStatus();
 
-type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | null;
+type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | "schedule" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
@@ -31,6 +32,7 @@ export default function App() {
       case "quiz": return <GeneralQuiz />;
       case "tenabell": return <Tenabell />;
       case "history": return <ScoreHistory onClose={() => setActiveGame(null)} />;
+      case "schedule": return <RaceSchedule onClose={() => setActiveGame(null)} />;
       default: return null;
     }
   };
@@ -42,6 +44,7 @@ export default function App() {
       case "quiz": return "GENERAL QUIZ";
       case "tenabell": return "TENABELL";
       case "history": return "SCORE HISTORY";
+      case "schedule": return "2026 SCHEDULE";
       default: return "";
     }
   };
@@ -68,13 +71,14 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             {!activeGame && raceStatus.kind !== "offseason" && (
-              <div
+              <button
+                onClick={() => setActiveGame("schedule")}
                 title={
                   raceStatus.kind === "weekend"
                     ? `Race weekend — ${raceStatus.race.name}`
-                    : `${raceStatus.daysUntil} day${raceStatus.daysUntil === 1 ? "" : "s"} until ${raceStatus.race.name}`
+                    : `${raceStatus.daysUntil} day${raceStatus.daysUntil === 1 ? "" : "s"} until ${raceStatus.race.name} — view full schedule`
                 }
-                className={`cursor-default text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}
+                className={`text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 transition-opacity hover:opacity-80 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}
               >
                 {raceStatus.kind === "weekend" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
@@ -87,7 +91,17 @@ export default function App() {
                     &middot; {raceStatus.daysUntil}d
                   </span>
                 )}
-              </div>
+              </button>
+            )}
+            {!activeGame && (
+              <button
+                onClick={() => setActiveGame("schedule")}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Race schedule"
+                title="Race schedule"
+              >
+                <CalendarDays className="w-4 h-4" />
+              </button>
             )}
             {!activeGame && (
               <button
