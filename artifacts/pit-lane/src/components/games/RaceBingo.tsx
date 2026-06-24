@@ -1,21 +1,75 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Trophy, Pencil, Check, RotateCcw, Plus, Trash2 } from 'lucide-react';
+import { RefreshCw, Trophy, Check, RotateCcw, ChevronRight, X } from 'lucide-react';
 
-const DEFAULT_SQUARES = [
-  "Safety car deployed","DRS enabled","Sub 2s pit stop","Radio complaint","Overtake on lap 1",
-  "Virtual safety car","Fastest lap attempt","Spin on track","Rain starts","Team orders given",
-  "Tyre failure","Penalty given","FREE","Crash at turn 1","Early chequered flag",
-  "Driver swears","Podium surprise","Engine issue","Purple sector","Mechanical DNF",
-  "Wet tyres used","Pit lane speeding","Gap under 1s","Comeback drive","Dramatic last lap"
+// ── Suggestion bank ──────────────────────────────────────────────────────────
+
+const CATEGORIES: { label: string; items: string[] }[] = [
+  {
+    label: "Safety",
+    items: [
+      "Safety car out", "Virtual safety car", "Red flag shown", "Yellow flag sector",
+      "Medical car out", "Debris on track", "Race suspended", "Formation lap redo",
+    ],
+  },
+  {
+    label: "Action",
+    items: [
+      "Overtake on lap 1", "Crash at turn 1", "Spin on track", "Wheel-to-wheel battle",
+      "Driver contact", "Car gets beached", "Dramatic last lap", "Comeback drive",
+    ],
+  },
+  {
+    label: "Pit Lane",
+    items: [
+      "Sub 2s pit stop", "Pit lane speeding", "Botched pit stop", "Three-stopper",
+      "Pit lane start", "Fastest pit stop", "Tyres fall off pace", "Early pit gamble",
+    ],
+  },
+  {
+    label: "Radio & Drama",
+    items: [
+      "Driver swears on radio", "Team orders given", "Driver ignores orders",
+      "Engineer argument", "Angry team principal", "\"Box box box\"", "\"Push push push\"",
+      "Gap under 1 second",
+    ],
+  },
+  {
+    label: "Penalties",
+    items: [
+      "5-second penalty", "Drive-through penalty", "Time penalty applied",
+      "Black and white flag", "Stewards investigation", "Grid penalty next race",
+      "Unsafe release penalty", "Track limits violation",
+    ],
+  },
+  {
+    label: "Weather",
+    items: [
+      "Rain starts", "Wet tyres used", "Track dries mid-race",
+      "Aquaplaning moment", "Safety car in wet", "Slicks on damp track",
+    ],
+  },
+  {
+    label: "Performance",
+    items: [
+      "Purple sector set", "Fastest lap attempt", "DRS enabled", "Engine failure",
+      "Tyre failure / puncture", "Mechanical DNF", "Championship gap changes",
+      "Pole sitter wins", "Podium surprise",
+    ],
+  },
 ];
+
+const ALL_SUGGESTIONS = CATEGORIES.flatMap(c => c.items);
+
+// ── Win patterns ─────────────────────────────────────────────────────────────
 
 const WINS = [
   [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
   [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
-  [0,6,12,18,24],[4,8,12,16,20]
+  [0,6,12,18,24],[4,8,12,16,20],
 ];
 
 const STORAGE_KEY = "pitlane-bingo-squares";
+const BLANK = Array.from({ length: 25 }, (_, i) => i === 12 ? "FREE" : "");
 
 function loadSquares(): string[] {
   try {
@@ -25,22 +79,85 @@ function loadSquares(): string[] {
       if (Array.isArray(parsed) && parsed.length === 25) return parsed;
     }
   } catch {}
-  return [...DEFAULT_SQUARES];
+  return [...BLANK];
 }
 
-type View = "play" | "edit";
+function saveSquares(sq: string[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sq));
+}
+
+type View = "setup" | "play";
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export function RaceBingo() {
   const [squares, setSquares] = useState<string[]>(loadSquares);
-  const [draft, setDraft] = useState<string[]>([]);
   const [ticked, setTicked] = useState<Set<number>>(new Set([12]));
-  const [view, setView] = useState<View>("play");
+  const [view, setView] = useState<View>(() => {
+    const sq = loadSquares();
+    const filled = sq.filter((s, i) => i !== 12 && s.trim()).length;
+    return filled >= 20 ? "play" : "setup";
+  });
 
-  useEffect(() => {
-    if (view === "edit") {
-      setDraft([...squares]);
+  // Setup state
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [customText, setCustomText] = useState("");
+  const [activeCategory, setActiveCategory] = useState(0);
+
+  const filled = squares.filter((s, i) => i !== 12 && s.trim()).length;
+  const usedSuggestions = new Set(squares.filter((s, i) => i !== 12));
+
+  // When selecting a square in setup, pre-fill input with current text
+  const selectSquare = (i: number) => {
+    if (i === 12) return;
+    setSelectedIdx(i);
+    setCustomText(squares[i]);
+  };
+
+  const fillSelected = (text: string) => {
+    if (selectedIdx === null) return;
+    const next = [...squares];
+    next[selectedIdx] = text;
+    setSquares(next);
+    saveSquares(next);
+    // Auto-advance to next empty square
+    const nextEmpty = next.findIndex((s, i) => i !== 12 && i > selectedIdx && !s.trim());
+    if (nextEmpty !== -1) {
+      setSelectedIdx(nextEmpty);
+      setCustomText("");
+    } else {
+      setCustomText(text);
     }
-  }, [view]);
+  };
+
+  const applyCustom = () => {
+    if (!customText.trim() || selectedIdx === null) return;
+    fillSelected(customText.trim());
+  };
+
+  const clearSquare = (i: number) => {
+    const next = [...squares];
+    next[i] = "";
+    setSquares(next);
+    saveSquares(next);
+    setSelectedIdx(i);
+    setCustomText("");
+  };
+
+  const clearAll = () => {
+    const blank = [...BLANK];
+    setSquares(blank);
+    saveSquares(blank);
+    setSelectedIdx(null);
+    setCustomText("");
+  };
+
+  const startGame = () => {
+    setTicked(new Set([12]));
+    setView("play");
+  };
+
+  // ── Play view helpers ─────────────────────────────────────────────────────
 
   const toggle = (i: number) => {
     if (i === 12) return;
@@ -50,97 +167,186 @@ export function RaceBingo() {
     setTicked(next);
   };
 
-  const reset = () => setTicked(new Set([12]));
+  const resetGame = () => setTicked(new Set([12]));
 
   const winningLines = WINS.filter(line => line.every(i => ticked.has(i)));
   const hasWon = winningLines.length > 0;
   const winningSquares = new Set(winningLines.flat());
 
-  const saveAndPlay = () => {
-    const saved = draft.map((s, i) => i === 12 ? "FREE" : s.trim() || DEFAULT_SQUARES[i]);
-    setSquares(saved);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-    setTicked(new Set([12]));
-    setView("play");
-  };
+  // ── SETUP VIEW ────────────────────────────────────────────────────────────
 
-  const resetToDefaults = () => {
-    setDraft([...DEFAULT_SQUARES]);
-  };
-
-  if (view === "edit") {
+  if (view === "setup") {
     return (
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col gap-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-foreground">Customise your card</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Edit any square — the centre is always FREE</p>
+            <p className="text-sm font-bold text-white">Build your card</p>
+            <p className="text-xs text-muted-foreground/60 mt-0.5">
+              {filled}/24 squares filled · tap a square, then pick below
+            </p>
           </div>
-          <button
-            onClick={resetToDefaults}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="button-reset-defaults"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Defaults
-          </button>
+          <div className="flex items-center gap-3">
+            {filled > 0 && (
+              <button
+                onClick={clearAll}
+                className="text-xs text-muted-foreground/50 hover:text-muted-foreground flex items-center gap-1 transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" /> Clear all
+              </button>
+            )}
+            {filled >= 20 && (
+              <button
+                onClick={startGame}
+                className="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-full transition-opacity hover:opacity-90"
+              >
+                Start Race <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-1.5 max-h-[420px] overflow-y-auto pr-1">
-          {draft.map((sq, i) => {
-            if (i === 12) {
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md bg-primary/10 border border-primary/20"
-                >
-                  <span className="text-xs font-bold text-primary w-5 text-center">13</span>
-                  <span className="text-xs font-semibold text-primary tracking-widest flex-1">FREE — locked</span>
-                </div>
-              );
+        {/* Grid */}
+        <div className="grid grid-cols-5 gap-1">
+          {squares.map((sq, i) => {
+            const isFree = i === 12;
+            const isSelected = selectedIdx === i;
+            const isFilled = sq.trim().length > 0;
+
+            let cls = "";
+            if (isFree) {
+              cls = "bg-primary/20 text-primary border border-primary/30 cursor-default";
+            } else if (isSelected) {
+              cls = "bg-[#1a1a2e] border-2 border-primary text-white";
+            } else if (isFilled) {
+              cls = "bg-secondary/80 border border-border text-white/90 hover:border-primary/40";
+            } else {
+              cls = "bg-secondary/30 border border-border/40 text-muted-foreground/30 hover:border-primary/30 hover:bg-secondary/60";
             }
-            const displayNum = i < 12 ? i + 1 : i + 1;
+
             return (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-5 text-right shrink-0">{displayNum}</span>
-                <input
-                  type="text"
-                  value={sq}
-                  onChange={e => {
-                    const next = [...draft];
-                    next[i] = e.target.value;
-                    setDraft(next);
-                  }}
-                  maxLength={40}
-                  placeholder={DEFAULT_SQUARES[i]}
-                  className="flex-1 bg-secondary border border-border rounded-md px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
-                  data-testid={`input-bingo-square-${i}`}
-                />
-              </div>
+              <button
+                key={i}
+                onClick={() => selectSquare(i)}
+                disabled={isFree}
+                className={`aspect-square p-1 rounded text-[8px] md:text-[9px] leading-tight font-semibold flex items-center justify-center text-center overflow-hidden transition-all ${cls}`}
+              >
+                {isFree ? "FREE" : isFilled ? sq : <span className="text-[14px] font-light opacity-30">+</span>}
+              </button>
             );
           })}
         </div>
 
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={saveAndPlay}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-md hover:bg-primary/90 transition-colors"
-            data-testid="button-save-play"
-          >
-            <Check className="w-4 h-4" />
-            Save &amp; Play
-          </button>
-          <button
-            onClick={() => setView("play")}
-            className="px-4 py-2.5 text-sm text-muted-foreground border border-border rounded-md hover:text-foreground hover:border-border/80 transition-colors"
-            data-testid="button-cancel-edit"
-          >
-            Cancel
-          </button>
+        {/* Progress bar */}
+        <div className="h-1 rounded-full bg-secondary/40 overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${(filled / 24) * 100}%` }}
+          />
         </div>
+
+        {/* Selected square input + suggestions */}
+        {selectedIdx !== null && (
+          <div className="flex flex-col gap-3 border border-border/40 rounded-xl p-3 bg-secondary/20">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">
+                Square {selectedIdx < 12 ? selectedIdx + 1 : selectedIdx + 1}
+              </span>
+              {squares[selectedIdx] && (
+                <button onClick={() => clearSquare(selectedIdx)} className="ml-auto text-muted-foreground/40 hover:text-muted-foreground transition-colors">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Custom text input */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customText}
+                onChange={e => setCustomText(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && applyCustom()}
+                maxLength={40}
+                placeholder="Type your own event…"
+                className="flex-1 bg-background border border-border/60 rounded-md px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50 transition-colors"
+                autoFocus
+              />
+              {customText.trim() && (
+                <button
+                  onClick={applyCustom}
+                  className="bg-primary/90 hover:bg-primary text-white text-xs font-bold px-2.5 rounded-md transition-colors"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Category tabs */}
+            <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+              {CATEGORIES.map((cat, ci) => (
+                <button
+                  key={cat.label}
+                  onClick={() => setActiveCategory(ci)}
+                  className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${
+                    activeCategory === ci ? 'bg-primary text-white' : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Suggestion chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES[activeCategory].items.map(item => {
+                const alreadyUsed = usedSuggestions.has(item);
+                return (
+                  <button
+                    key={item}
+                    onClick={() => { if (!alreadyUsed) fillSelected(item); }}
+                    disabled={alreadyUsed}
+                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                      alreadyUsed
+                        ? 'border-border/20 text-muted-foreground/25 cursor-not-allowed line-through'
+                        : 'border-border/50 text-white/80 hover:border-primary/60 hover:text-white hover:bg-primary/10'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Prompt to tap a square */}
+        {selectedIdx === null && (
+          <p className="text-center text-xs text-muted-foreground/40 py-2">
+            Tap any square above to start filling it in
+          </p>
+        )}
+
+        {/* Start button (bottom, always visible when ready) */}
+        {filled >= 20 && (
+          <button
+            onClick={startGame}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold text-sm py-3 rounded-xl hover:bg-primary/90 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+            Start Race ({filled}/24 filled)
+          </button>
+        )}
+
+        {filled < 20 && filled > 0 && (
+          <p className="text-center text-[10px] text-muted-foreground/40 uppercase tracking-wider">
+            Fill {20 - filled} more to start
+          </p>
+        )}
       </div>
     );
   }
+
+  // ── PLAY VIEW ─────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col space-y-4">
@@ -153,16 +359,14 @@ export function RaceBingo() {
         )}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setView("edit")}
+            onClick={() => { setView("setup"); setSelectedIdx(null); setCustomText(""); }}
             className="flex items-center gap-1 hover:text-foreground transition-colors"
-            data-testid="button-edit-card"
           >
-            <Pencil className="w-3.5 h-3.5" /> Edit
+            Edit
           </button>
           <button
-            onClick={reset}
+            onClick={resetGame}
             className="flex items-center gap-1 hover:text-foreground transition-colors"
-            data-testid="button-reset-bingo"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Reset
           </button>
@@ -174,23 +378,26 @@ export function RaceBingo() {
           const isTicked = ticked.has(i);
           const isWinning = winningSquares.has(i);
           const isFree = i === 12;
+          const isEmpty = !sq.trim();
 
           let cls = "bg-secondary hover:bg-secondary/70 text-muted-foreground";
           if (isWinning) {
             cls = "bg-primary text-primary-foreground shadow-[0_0_14px_rgba(225,6,0,0.45)] scale-105 z-10";
           } else if (isTicked || isFree) {
             cls = "bg-primary/20 text-foreground border-primary/30";
+          } else if (isEmpty) {
+            cls = "bg-secondary/30 text-muted-foreground/20 cursor-not-allowed";
           }
 
           return (
             <button
               key={i}
               onClick={() => toggle(i)}
-              disabled={isFree}
+              disabled={isFree || isEmpty}
               data-testid={`button-bingo-square-${i}`}
               className={`aspect-square p-1 rounded font-semibold text-[8px] md:text-[10px] leading-tight flex items-center justify-center text-center border border-transparent transition-all duration-150 overflow-hidden ${cls}`}
             >
-              {sq}
+              {isFree ? "FREE" : isEmpty ? "—" : sq}
             </button>
           );
         })}
