@@ -60,8 +60,8 @@ Return ONLY valid JSON with no markdown or code fences:
 
     res.json({ ...data, race, round, generatedAt: new Date().toISOString() });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    res.status(500).json({ error: message });
+    req.log.error({ err }, "Race prediction failed");
+    res.status(500).json({ error: "Failed to generate prediction. Please try again." });
   }
 });
 

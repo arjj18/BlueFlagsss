@@ -3,7 +3,21 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const router: IRouter = Router();
 
+interface StandingsCache {
+  data: unknown;
+  expiresAt: number;
+}
+
+let standingsCache: StandingsCache | null = null;
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
 router.post("/standings/refresh", async (req, res) => {
+  const now = Date.now();
+  if (standingsCache && standingsCache.expiresAt > now) {
+    res.json(standingsCache.data);
+    return;
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     res.status(503).json({ error: "ANTHROPIC_API_KEY is not configured." });
@@ -62,7 +76,6 @@ Use ISO 3166-1 alpha-2 country codes. Sort both arrays by points descending. The
     }
 
     let jsonText = textBlock.text.trim();
-    // Strip any accidental markdown fences
     jsonText = jsonText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
 
     const data = JSON.parse(jsonText);
@@ -72,10 +85,13 @@ Use ISO 3166-1 alpha-2 country codes. Sort both arrays by points descending. The
       return;
     }
 
-    res.json({ ...data, lastUpdated: new Date().toISOString() });
+    const response = { ...data, lastUpdated: new Date().toISOString() };
+    standingsCache = { data: response, expiresAt: now + CACHE_TTL_MS };
+
+    res.json(response);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    res.status(500).json({ error: message });
+    req.log.error({ err }, "Standings refresh failed");
+    res.status(500).json({ error: "Failed to refresh standings. Please try again." });
   }
 });
 
