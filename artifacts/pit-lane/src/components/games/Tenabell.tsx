@@ -94,6 +94,7 @@ export function Tenabell() {
   const [alreadyPlayed] = useState<DailyState | null>(() => loadDailyState());
   const [streak, setStreak] = useState<StreakState>(() => loadStreak());
   const [mode, setMode] = useState<"select" | "timed" | "relaxed" | "over">("select");
+  const [playedMode, setPlayedMode] = useState<"timed" | "relaxed">("timed");
   const [timeLeft, setTimeLeft] = useState(120);
   const [found, setFound] = useState<string[]>([]);
   const [inputVal, setInputVal] = useState("");
@@ -101,11 +102,12 @@ export function Tenabell() {
   const [revealed, setRevealed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  useEffect((): (() => void) | void => {
     if (mode === "timed" && timeLeft > 0 && found.length < 10) {
       const t = setInterval(() => setTimeLeft(l => l - 1), 1000);
       return () => clearInterval(t);
-    } else if (mode === "timed" && timeLeft === 0) {
+    }
+    if (mode === "timed" && timeLeft === 0) {
       endGame(found);
     }
   }, [mode, timeLeft, found.length]);
@@ -118,10 +120,11 @@ export function Tenabell() {
 
   function endGame(finalFound: string[], gaveUp = false) {
     const score = finalFound.length;
-    const playMode = mode === "timed" ? "timed" : "relaxed";
+    const currentPlayMode = mode === "timed" ? "timed" : "relaxed";
     saveScore({ game: "tenabell", label: `${cat.teaser} · ${todayKey}`, score, total: 10 });
-    saveDailyState({ dateKey: todayKey, score, found: finalFound, playMode });
+    saveDailyState({ dateKey: todayKey, score, found: finalFound, playMode: currentPlayMode });
     setStreak(updateStreak(todayKey));
+    setPlayedMode(currentPlayMode);
     setRevealed(true);
     setMode("over");
   }
@@ -377,7 +380,7 @@ export function Tenabell() {
             score={found.length}
             teaser={cat.teaser}
             dateKey={todayKey}
-            playMode={mode === "timed" ? "timed" : "relaxed"}
+            playMode={playedMode}
           />
           {streak.current >= 1 && (
             <div className="flex items-center justify-center gap-2 text-sm font-bold">
