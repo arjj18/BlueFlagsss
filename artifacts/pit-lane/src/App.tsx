@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { ArrowLeft, BarChart2, CalendarDays, Zap } from 'lucide-react';
 import { RaceBingo } from './components/games/RaceBingo';
-import { PostRaceQuiz } from './components/games/PostRaceQuiz';
-import { GeneralQuiz } from './components/games/GeneralQuiz';
+import { WheelKnowledgeQuiz } from './components/games/WheelKnowledgeQuiz';
 import { Tenabell } from './components/games/Tenabell';
+import { TwentyFourO } from './components/games/TwentyFourO';
 import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
 import { RacePredictor } from './components/games/RacePredictor';
@@ -17,7 +17,7 @@ const streakState = loadStreak();
 const todayKeyHub = getTodayKey();
 const raceStatus = getCurrentRaceStatus();
 
-type GameId = "bingo" | "postRace" | "quiz" | "tenabell" | "history" | "schedule" | "predictor" | null;
+type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "history" | "schedule" | "predictor" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
@@ -28,26 +28,26 @@ export default function App() {
 
   const renderGame = () => {
     switch (activeGame) {
-      case "bingo": return <RaceBingo />;
-      case "postRace": return <PostRaceQuiz />;
-      case "quiz": return <GeneralQuiz />;
-      case "tenabell": return <Tenabell />;
-      case "history": return <ScoreHistory onClose={() => setActiveGame(null)} />;
-      case "schedule": return <RaceSchedule onClose={() => setActiveGame(null)} />;
-      case "predictor": return <RacePredictor />;
+      case "bingo":      return <RaceBingo />;
+      case "wheel":      return <WheelKnowledgeQuiz />;
+      case "tenabell":   return <Tenabell />;
+      case "twentyfour": return <TwentyFourO />;
+      case "history":    return <ScoreHistory onClose={() => setActiveGame(null)} />;
+      case "schedule":   return <RaceSchedule onClose={() => setActiveGame(null)} />;
+      case "predictor":  return <RacePredictor />;
       default: return null;
     }
   };
 
   const getGameTitle = () => {
     switch (activeGame) {
-      case "bingo": return "RACE BINGO";
-      case "postRace": return "AI RACE QUIZ";
-      case "quiz": return "GENERAL QUIZ";
-      case "tenabell": return "TENABELL";
-      case "history": return "SCORE HISTORY";
-      case "schedule": return "2026 SCHEDULE";
-      case "predictor": return "RACE PREDICTOR";
+      case "bingo":      return "RACE BINGO";
+      case "wheel":      return "F1 WHEEL KNOWLEDGE";
+      case "tenabell":   return "TENABELL";
+      case "twentyfour": return "24-0";
+      case "history":    return "SCORE HISTORY";
+      case "schedule":   return "2026 SCHEDULE";
+      case "predictor":  return "RACE PREDICTOR";
       default: return "";
     }
   };
@@ -127,7 +127,7 @@ export default function App() {
             <h2 className="text-xl font-bold mb-6 text-white/90">Select a game</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-              {/* Game Card 1 */}
+              {/* Race Bingo */}
               <button
                 onClick={() => setActiveGame("bingo")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-primary/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
@@ -137,36 +137,10 @@ export default function App() {
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> Live Race
                 </div>
                 <h3 className="font-black text-lg mb-1 text-white group-hover:text-primary transition-colors">Race Bingo</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">Tick off events as they happen live during the Grand Prix. First to 5 wins.</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">Build your card before lights out. Tick off events as they happen live.</p>
               </button>
 
-              {/* Game Card 2 */}
-              <button
-                onClick={() => setActiveGame("postRace")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#1565c0]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#1565c0]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
-                  After Race
-                </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#1565c0] transition-colors">AI Race Quiz</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">Test your memory of a specific race with dynamically generated trivia.</p>
-              </button>
-
-              {/* Game Card 3 */}
-              <button
-                onClick={() => setActiveGame("quiz")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#2e7d32]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#2e7d32]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
-                  Any Time
-                </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#2e7d32] transition-colors">General Quiz</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">10 random questions to test your all-time Formula 1 knowledge.</p>
-              </button>
-
-              {/* Game Card 4 */}
+              {/* Tenabell */}
               <button
                 onClick={() => setActiveGame("tenabell")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#e65100]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
@@ -201,7 +175,33 @@ export default function App() {
                 </div>
               </button>
 
-              {/* Game Card 5 — Race Predictor (full width) */}
+              {/* F1 Wheel Knowledge Quiz */}
+              <button
+                onClick={() => setActiveGame("wheel")}
+                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#2e7d32]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#2e7d32]" />
+                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
+                  Any Time
+                </div>
+                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#2e7d32] transition-colors">F1 Wheel Knowledge</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">General trivia or AI-generated race questions — pick your challenge.</p>
+              </button>
+
+              {/* 24-0 */}
+              <button
+                onClick={() => setActiveGame("twentyfour")}
+                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#b45309]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#b45309]" />
+                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
+                  Season Sim
+                </div>
+                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#b45309] transition-colors">24-0</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Build your dream constructor — 2 drivers, engine &amp; chassis. Simulate a 24-race season. Can you go unbeaten?</p>
+              </button>
+
+              {/* Race Predictor (full width) */}
               <button
                 onClick={() => setActiveGame("predictor")}
                 className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#7c3aed]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col sm:col-span-2"

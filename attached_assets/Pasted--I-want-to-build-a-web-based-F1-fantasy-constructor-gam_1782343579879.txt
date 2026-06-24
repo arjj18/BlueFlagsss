@@ -1,0 +1,24 @@
+"I want to build a web-based F1 fantasy constructor game called something like 'Perfect Season' or '24-0'. Here is exactly how it works:
+The concept
+
+Players build their own dream F1 constructor from scratch by picking 4 things — 2 drivers, 1 engine, and 1 car/chassis. Each item has a fixed rating out of 100. Players have a total budget of 240 points to spend across all 4 picks combined. This forces tough trade-offs — you can't just pick the best of everything.
+The four categories
+Driver 1 and Driver 2 — picked from a list of legendary and current F1 drivers from any era, each with a fixed rating out of 100. Examples: Senna 94, Verstappen 95, Hamilton 97, Schumacher 93, Alonso 90, Prost 89, Norris 82, Leclerc 84.
+Engine — picked from a list of legendary F1 engine suppliers from different eras, each with a fixed rating out of 100. Examples: Honda 2000s 91, Mercedes 2014-2021 97, Ferrari 2000s 88, Renault 2010s 85, Ford Cosworth 72.
+Car/Chassis — picked from a list of legendary F1 chassis from different eras, each with a fixed rating out of 100. Examples: Red Bull RB19 96, Mercedes W11 97, Ferrari F2004 93, McLaren MP4/4 95, Williams FW14B 90.
+The budget rule
+
+Driver 1 + Driver 2 + Engine + Car must add up to 240 or less. If the total goes over 240 the player cannot proceed — they must swap something out.
+The simulation
+
+Once the player locks in their 4 picks, simulate a 24-race season. Each race produces a result (win, podium, points finish, or DNF) based on the combined rating of the 4 picks plus a small random variance element so the same team doesn't always get the same result. Show each race result one by one building up tension. At the end show a season summary — total wins, podiums, points finishes, DNFs, and a final championship position.
+The goal
+
+The perfect run is winning all 24 races — going 24-0. This should be very hard to achieve even with a top-rated team, because of the random variance built into each race simulation.
+The shareable result card
+
+At the end of the season show a clean result card the player can screenshot showing their constructor name, their 4 picks and ratings, their win total out of 24, and their final season result. Something like 'Senna + Verstappen | Honda | Red Bull RB19 | 18 wins from 24 races.'
+The UI
+
+Clean and simple. A home screen where you pick your 4 items from dropdown lists or cards. A budget tracker showing how many of the 240 points you have left as you pick. A lock in button once you are within budget. Then a race simulation screen that reveals results race by race. Then a final results card.
+Please build this as a single HTML file with CSS and JavaScript included. Make it mobile friendly. 
