@@ -134,7 +134,8 @@ Prediction Rules
 - Consider track type, weather, tyre behaviour, reliability, upgrades, and driver form.
 - Penalise teams with high DNF rates (Aston Martin, Red Bull, Cadillac, Audi).
 - Boost drivers who excel in specific conditions (wet, hot, cold, etc.).
-- Do NOT invent narratives not supported by the data above.`;
+- Do NOT invent narratives not supported by the data above.
+- CONSISTENCY RULE: every claim in "wildcard" and "factors" must agree with the positions in "top10". If a driver is called a top-6 finisher in the wildcard, they must appear in positions 1–6 of top10. Never contradict your own top10 in the narrative fields.`;
 
 router.post("/predict/race", async (req, res) => {
   const { race, round } = req.body as { race?: unknown; round?: unknown };
@@ -161,7 +162,7 @@ router.post("/predict/race", async (req, res) => {
           role: "user",
           content: `Generate a race prediction for the 2026 ${race} Grand Prix (Round ${round}).
 
-Return ONLY valid JSON with no markdown or code fences:
+Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every position claim in "wildcard" and "factors" must match the "top10" array exactly — do not say a driver finishes top 6 if they are in position 7 of top10.
 {
   "headline": "Bold punchy one-liner prediction (max 12 words)",
   "winner": { "driver": "Full Name", "team": "Team", "confidence": "high|medium|low" },
