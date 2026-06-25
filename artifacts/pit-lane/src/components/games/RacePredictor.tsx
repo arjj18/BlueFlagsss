@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Zap, RefreshCw, Trophy, AlertCircle, TrendingUp, Star } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Zap, RefreshCw, Trophy, AlertCircle, TrendingUp, Star, Globe } from 'lucide-react';
 import { getCurrentRaceStatus } from '@/lib/f1Calendar';
 import { colorForTeam } from '@/lib/f1Standings';
 
@@ -19,6 +19,12 @@ type Prediction = {
 
 const LS_PREFIX = 'pitlane-prediction-r';
 
+const LOADING_STEPS = [
+  'Searching for latest F1 standings and recent results…',
+  'Analysing current form and track history…',
+  'Building your race prediction…',
+];
+
 function loadCached(round: number): Prediction | null {
   try {
     const raw = localStorage.getItem(`${LS_PREFIX}${round}`);
@@ -36,6 +42,10 @@ function confidenceBadge(c: 'high' | 'medium' | 'low') {
   return 'bg-muted/40 text-muted-foreground';
 }
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
@@ -48,19 +58,35 @@ export function RacePredictor() {
     () => race ? loadCached(race.round) : null
   );
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState('');
+  const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-generate if no cached prediction exists
   useEffect(() => {
     if (race && !prediction && !loading) {
       generate();
     }
   }, []);
 
+  function startStepCycle() {
+    setLoadingStep(0);
+    stepTimerRef.current = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+    }, 4000);
+  }
+
+  function stopStepCycle() {
+    if (stepTimerRef.current) {
+      clearInterval(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+  }
+
   async function generate() {
     if (!race) return;
     setLoading(true);
     setError('');
+    startStepCycle();
     try {
       const res = await fetch('/api/predict/race', {
         method: 'POST',
@@ -77,6 +103,7 @@ export function RacePredictor() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Prediction failed');
     } finally {
+      stopStepCycle();
       setLoading(false);
     }
   }
@@ -122,7 +149,22 @@ export function RacePredictor() {
               <div className="w-4 h-4 rounded-full border-2 border-[#7c3aed] border-t-transparent animate-spin" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground/60">Analysing form, track data &amp; standings…</p>
+          <div className="flex flex-col items-center gap-1.5">
+            {LOADING_STEPS.map((step, i) => (
+              <p
+                key={step}
+                className={`text-sm transition-all duration-500 ${
+                  i === loadingStep
+                    ? 'text-white/80 font-medium'
+                    : i < loadingStep
+                    ? 'text-muted-foreground/30 line-through text-xs'
+                    : 'text-muted-foreground/20 text-xs'
+                }`}
+              >
+                {step}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -224,6 +266,14 @@ export function RacePredictor() {
               </div>
               <p className="text-xs text-white/80">{prediction.championshipImpact}</p>
             </div>
+          </div>
+
+          {/* Live data footnote */}
+          <div className="flex items-center gap-1.5 pt-1 border-t border-white/5">
+            <Globe className="w-3 h-3 text-emerald-500/50 shrink-0" />
+            <p className="text-[10px] text-muted-foreground/35">
+              Prediction based on live web search data · {formatDate(prediction.generatedAt)}
+            </p>
           </div>
 
         </div>

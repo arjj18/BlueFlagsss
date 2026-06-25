@@ -1,0 +1,53 @@
+"Please update the F1 Race Predictor so that it always uses up to date information before generating its prediction. Here is exactly what needs to change:
+The problem
+
+The predictor is currently using outdated F1 knowledge — it has incorrect driver lineups, wrong championship standings, and stale form data. This is because it is relying on training data with a knowledge cutoff rather than searching for current information.
+The fix — add web search to every prediction
+
+Before generating any race prediction, Claude must first search the web for current information. Update the API call to include the web search tool exactly like this:
+javascriptconst response = await fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1000,
+    tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    messages: [{
+      role: 'user',
+      content: `You are an F1 analyst. Before making any predictions you must search the web for the most current information. 
+
+Please search for and find:
+1. The current 2025 F1 driver standings with exact points
+2. The current 2025 F1 constructor standings
+3. The current confirmed driver lineup for every team on the 2025 grid
+4. Recent race results from the last 3 races including winner, podium, and any notable incidents
+5. Any recent driver news, penalties, or grid changes heading into the ${raceName} Grand Prix
+
+Once you have searched and found all of this current information, generate a race prediction for the ${raceName} Grand Prix covering:
+
+- Predicted top 10 finishing order with brief reasoning for each position
+- Key battles to watch during the race
+- Strategy predictions covering tyre choices and pit stop windows
+- Wildcard — one surprise prediction most fans would not expect
+- Championship implications of different possible outcomes
+- Overall confidence rating out of 10 for your top prediction
+
+Format the response clearly with headers for each section. Base everything on the live current data you have just searched for, not on any pre-existing knowledge that might be outdated. If your search reveals driver lineup changes, team updates, or recent form shifts make sure these are reflected in your prediction.`
+    }]
+  })
+})
+Handle the search results properly
+
+The API response will contain multiple content blocks when web search is used — some will be text and some will be tool use blocks. Make sure the code processes all content blocks and joins the text ones together like this:
+javascriptconst data = await response.json()
+const fullText = data.content
+  .filter(block => block.type === 'text')
+  .map(block => block.text)
+  .join('')
+Show the user what is happening
+
+While the prediction is loading show a message that says something like 'Searching for latest F1 standings and recent results...' followed by 'Analysing current form and track history...' followed by 'Building your race prediction...' so the user understands why it takes a moment longer than a basic response.
+Add a data freshness note
+
+At the bottom of every prediction add a small note saying 'Prediction based on live web search data' with the current date so users know the information is current.
+Keep everything else about the predictor the same — the input field for race name, the formatting of the prediction, and the overall styling."
