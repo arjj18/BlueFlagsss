@@ -20,8 +20,8 @@ type Prediction = {
 const LS_PREFIX = 'pitlane-prediction-r';
 
 const LOADING_STEPS = [
-  'Searching for latest F1 standings and recent results…',
-  'Analysing current form and track history…',
+  'Reviewing 2026 championship standings…',
+  'Analysing form, track history and tyre strategy…',
   'Building your race prediction…',
 ];
 

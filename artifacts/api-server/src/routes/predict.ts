@@ -19,45 +19,17 @@ router.post("/predict/race", async (req, res) => {
   try {
     const anthropic = new Anthropic({ apiKey });
 
-    // Stage 1 — web search for current F1 standings, lineups, and recent results
-    const searchResp = (await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2000,
-      tools: [{ type: "web_search_20250305", name: "web_search" }] as unknown as Anthropic.Tool[],
-      messages: [
-        {
-          role: "user",
-          content: `Search the web and gather the most up-to-date Formula 1 information. Please find:
-1. Current 2025/2026 F1 driver championship standings with exact points
-2. Current 2025/2026 F1 constructor standings
-3. Confirmed driver lineup for every team on the current grid
-4. Results from the last 3 races — winner, podium, and any notable incidents or retirements
-5. Any recent driver news, team updates, penalties, or grid changes heading into the ${race} Grand Prix
-
-Summarise everything you find clearly and concisely.`,
-        },
-      ],
-    } as Parameters<typeof anthropic.messages.create>[0])) as Anthropic.Message;
-
-    const searchContext = (searchResp.content as { type: string; text?: string }[])
-      .filter((b) => b.type === "text")
-      .map((b) => b.text ?? "")
-      .join("\n");
-
-    // Stage 2 — generate structured JSON prediction using the live search context
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
       messages: [
         {
           role: "user",
-          content: `You are an expert Formula 1 analyst. Here is current F1 information gathered from a live web search:
-
-${searchContext}
-
-Based on this current data, generate a race prediction for the upcoming ${race} Grand Prix (Round ${round}).
+          content: `You are an expert Formula 1 analyst. Predict the race result for the upcoming 2026 ${race} Grand Prix (Round ${round}).
 
 Consider: current championship standings, track characteristics, recent form, tyre strategy, weather tendencies, and historical circuit performance for each team and driver.
+
+The confirmed 2026 grid: McLaren (Norris, Piastri), Ferrari (Leclerc, Hamilton), Red Bull (Verstappen, Lawson), Mercedes (Russell, Antonelli), Williams (Sainz, Albon), Aston Martin (Alonso, Stroll), Alpine (Gasly, Doohan), Haas (Ocon, Bearman), RB (Tsunoda, Hadjar), Audi (Hülkenberg, Bottas), Cadillac (Herta, Armstrong).
 
 Return ONLY valid JSON with no markdown or code fences:
 {
