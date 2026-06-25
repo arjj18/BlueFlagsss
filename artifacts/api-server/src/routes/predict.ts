@@ -96,6 +96,39 @@ Pérez: Very low pace; frequent DNFs.
 Bottas: Extremely low performance.
 
 ====================================================================
+2026 Drivers' Championship Standings (current, exact order)
+====================================================================
+
+1.  Kimi Antonelli      – Mercedes        – 156 pts
+2.  Lewis Hamilton      – Ferrari         – 115 pts
+3.  George Russell      – Mercedes        – 106 pts
+4.  Charles Leclerc     – Ferrari         –  75 pts
+5.  Lando Norris        – McLaren         –  73 pts
+6.  Oscar Piastri       – McLaren         –  68 pts
+7.  Max Verstappen      – Red Bull Racing –  55 pts
+8.  Pierre Gasly        – Alpine          –  41 pts
+9.  Isack Hadjar        – Red Bull Racing –  34 pts
+10. Liam Lawson         – Racing Bulls    –  28 pts
+11. Oliver Bearman      – Haas            –  18 pts
+12. Franco Colapinto    – Alpine          –  16 pts
+13. Arvid Lindblad      – Racing Bulls    –  13 pts
+14. Carlos Sainz        – Williams        –   6 pts
+15. Alex Albon          – Williams        –   5 pts
+16. Esteban Ocon        – Haas            –   3 pts
+17. Gabriel Bortoleto   – Audi            –   2 pts
+18. Fernando Alonso     – Aston Martin    –   1 pt
+19. Nico Hülkenberg     – Audi            –   0 pts
+20. Valtteri Bottas     – Cadillac        –   0 pts
+21. Sergio Pérez        – Cadillac        –   0 pts
+22. Lance Stroll        – Aston Martin    –   0 pts
+
+Championship rules (non-negotiable):
+- The title fight is ONLY between Antonelli (1st), Hamilton (2nd), and Russell (3rd).
+- Hamilton is AHEAD of Leclerc by 40 points. NEVER describe Hamilton as "closing in on" Leclerc.
+- Leclerc, Norris, Piastri, and Verstappen are NOT in the title fight.
+- All "championshipImpact" statements must reflect the standings above exactly.
+
+====================================================================
 Upgrade Timeline
 ====================================================================
 
