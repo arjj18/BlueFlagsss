@@ -1,0 +1,80 @@
+"Please update the AI Race Quiz feature so that it automatically shows either a Preview Quiz or a Review Quiz depending on what day of the week it is. Here is exactly how it should work:
+The two quiz modes
+THURSDAY PREVIEW QUIZ
+
+On Thursdays the quiz should be about the history and background of the upcoming Grand Prix. Questions should cover things like past winners at that circuit, lap records, legendary moments, circuit characteristics, which drivers have historically performed well there, constructor records at that venue, and interesting facts about the host city or country. This gives fans something to engage with before the race weekend begins.
+TUESDAY REVIEW QUIZ
+
+On Tuesdays the quiz should be about the race that just happened the previous weekend. Questions should cover the actual race result, who won, the podium, fastest lap, key overtakes, incidents, strategy decisions, championship implications, and any notable moments from qualifying or the race itself. Claude must use web search to find the actual results before generating these questions so they are accurate and current.
+How to detect the day automatically
+
+Use JavaScript to get the current day of the week and decide which quiz to show:
+javascriptconst today = new Date()
+const dayOfWeek = today.getDay() // 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+
+let quizMode = null
+
+if (dayOfWeek === 4) {
+  quizMode = 'preview'
+} else if (dayOfWeek === 2) {
+  quizMode = 'review'
+} else {
+  quizMode = 'general'
+}
+What to show on each day
+Thursday — Show a banner at the top saying 'Race Weekend Preview Quiz' in the app's red colour. Show an input field asking 'Which Grand Prix is this weekend?' so the player types the race name. Then generate 6 history and background questions about that circuit and event using this prompt to Claude:
+You are an F1 quiz master creating a Thursday preview quiz for fans ahead of the ${raceName}. 
+
+Generate 6 multiple choice questions about the HISTORY of the ${raceName} Grand Prix covering:
+- Past winners at this circuit
+- Lap records and circuit statistics  
+- Legendary moments and famous races at this venue
+- Which drivers have historically dominated here
+- Constructor records at this circuit
+- Interesting facts about the circuit or host country
+
+Do not ask about this year's race as it has not happened yet. Focus entirely on historical facts.
+
+Return ONLY a JSON array with no other text:
+[{"q":"Question?","opts":["A","B","C","D"],"ans":0,"fact":"Brief interesting fact about the answer."}]
+Tuesday — Show a banner saying 'Post Race Review Quiz' in the app's red colour. Show an input field asking 'Which race just happened?' so the player types the race name. Then use web search to find the actual results and generate 6 questions about the race that just happened using this prompt to Claude:
+You are an F1 quiz master creating a Tuesday review quiz about the ${raceName} that just took place.
+
+First search the web for the full race results, qualifying results, fastest lap, key incidents, and championship standings update from the ${raceName}.
+
+Then generate 6 multiple choice questions about what actually happened in this race covering:
+- The race winner and winning margin
+- The full podium
+- Fastest lap holder
+- A key overtake or incident during the race
+- A strategy decision that affected the outcome
+- The championship standings impact after this race
+
+Base every question on the actual real results you find from your web search. Do not guess or use outdated information.
+
+Return ONLY a JSON array with no other text:
+[{"q":"Question?","opts":["A","B","C","D"],"ans":0,"fact":"Brief interesting fact about the answer."}]
+Any other day — Show a banner saying 'General F1 Quiz' and show the existing general quiz questions. Add a small message underneath saying 'Preview quizzes unlock on Thursdays · Review quizzes unlock on Tuesdays' so users know when to come back.
+The loading message should reflect the mode
+
+For preview quiz show 'Searching circuit history for ${raceName}...'
+
+For review quiz show 'Searching for ${raceName} race results...' then 'Building your review quiz...'
+
+For general quiz show the existing loading message
+Show a clear label on every question
+
+At the top of each question card show a small pill badge that says either 'Preview — ${raceName}' in blue or 'Review — ${raceName}' in red or 'General Quiz' in green so the user always knows which mode they are in.
+Handle the API response correctly for web search
+
+When web search is used the response contains multiple content block types. Make sure to handle this correctly:
+javascriptconst data = await response.json()
+const fullText = data.content
+  .filter(block => block.type === 'text')
+  .map(block => block.text)
+  .join('')
+const clean = fullText.replace(/```json|```/g, '').trim()
+const questions = JSON.parse(clean)
+Keep everything else the same
+
+The quiz format, scoring, progress bar, correct and wrong answer highlighting, and fact display after each answer should all stay exactly as they are. Only the content generation logic and the day detection need to change."
