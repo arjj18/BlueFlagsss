@@ -81,10 +81,22 @@ function saveDailyState(state: DailyState): void {
   try { localStorage.setItem(DAILY_KEY, JSON.stringify(state)); } catch {}
 }
 
+function normalize(s: string): string {
+  return s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function fuzzyMatch(guess: string, target: string): boolean {
-  const g = guess.toLowerCase().trim();
-  const t = target.toLowerCase();
-  return g === t || (t.includes(g) && g.length >= 3) || (g.includes(t) && t.length >= 4);
+  const g = normalize(guess);
+  const t = normalize(target);
+  if (g === t) return true;
+  // surname-only match (last word of target)
+  const surname = t.split(/[\s/-]+/).pop() ?? "";
+  if (g === surname) return true;
+  if (surname.startsWith(g) && g.length >= 3) return true;
+  // substring match
+  if (t.includes(g) && g.length >= 3) return true;
+  if (g.includes(t) && t.length >= 4) return true;
+  return false;
 }
 
 export function Tenabell() {
@@ -226,6 +238,11 @@ export function Tenabell() {
               Ordered — answers must be in exact sequence
             </p>
           )}
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/45 pt-2 border-t border-border/20 mt-2">
+            <Trophy className="w-3 h-3 shrink-0" />
+            <span>Next category unlocks in</span>
+            <MidnightCountdown className="font-mono font-semibold tabular-nums text-muted-foreground/60" />
+          </div>
         </div>
 
         {/* Mode buttons */}

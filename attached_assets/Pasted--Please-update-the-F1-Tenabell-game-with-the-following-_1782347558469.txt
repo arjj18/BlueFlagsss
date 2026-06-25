@@ -1,0 +1,31 @@
+"Please update the F1 Tenabell game with the following two changes:
+Change 1 — Daily rotating category
+
+The Tenabell category must change every 24 hours so players get a brand new challenge each day. Use the current date to determine which category is shown — calculate a category index by taking the day of the year number and using it to pick from the categories array. This means everyone in the world sees the same category on the same day, like Wordle. Show the date and a countdown timer underneath the category title that counts down to when the next category unlocks — for example 'New challenge in 14:23:07'. Once a player has completed that day's Tenabell, show their score and a message saying come back tomorrow for a new challenge. Store whether the player has already completed today's challenge in localStorage so they cannot just refresh and replay the same category.
+Change 2 — Niche specific categories
+
+Replace the current broad categories with much more specific niche F1 categories that hardcore fans will find genuinely challenging. Here are the categories to use — add as many of these as possible and feel free to add more in the same style:
+
+Name the top 10 drivers with the most pole positions at the Hungarian Grand Prix
+Name the top 10 drivers with the most wins at Monaco
+Name the top 10 drivers with the most fastest laps in their career
+Name the top 10 drivers to have won their debut F1 race
+Name the top 10 teams with the most constructor championship points in a single season
+Name the top 10 drivers with the most DNFs in a single season
+Name the top 10 drivers who have driven for the most different F1 teams
+Name the top 10 closest ever F1 race finishes by margin of victory
+Name the top 10 drivers with the most podiums without a race win
+Name the top 10 circuits that have hosted the most Formula 1 Grands Prix
+Name the top 10 drivers with the most wins at the Italian Grand Prix at Monza
+Name the top 10 drivers who started from outside the top 10 on the grid and won the race
+Name the top 10 drivers with the most points scored in a single season
+Name the top 10 drivers to have won a championship with two different teams
+Name the top 10 nationalities with the most F1 World Championship titles combined
+Name the top 10 drivers with the most laps led in their career
+Name the top 10 youngest drivers to score their first F1 point
+Name the top 10 drivers with the most wins at the British Grand Prix at Silverstone
+Name the top 10 drivers who competed in the most Formula 1 races without winning
+Name the top 10 seasons with the most different race winners
+
+Each category must have exactly 10 correct answers stored in the answers array. The answer checking should be flexible — accept common abbreviations and partial last name matches so 'Schumi' or 'Schumacher' both work for Michael Schumacher.
+Keep everything else about the Tenabell game the same — the 2 minute timer option, the relaxed no timer option, the grid of 10 slots that fill in as answers are found, and the give up and reveal button.
