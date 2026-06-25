@@ -1,0 +1,120 @@
+I want to build a web-based F1 fantasy constructor game. Here is exactly how everything works:
+The concept
+
+Players build a dream F1 constructor by drafting 4 things in order — Driver 1, Driver 2, Engine, Car/Chassis. Each category has its own draft round. The game then simulates a 24 race season and tells you how many races your constructor won. The goal is to go a perfect 24-0.
+The draft mechanic
+
+Each draft round shows the player 5 randomly selected cards from that category. The 5 cards should always include a spread of budget ranges — roughly 1 cheap option (60-74 pts), 2 mid range options (75-87 pts), and 2 premium options (88-97 pts). The player picks one card. The other 4 disappear forever. Then the next category draft begins.
+The player gets exactly ONE reroll per game — a button that dismisses all 5 current cards and generates 5 fresh ones. Once used it is gone for the rest of the game.
+The budget system
+
+Every item has a fixed rating out of 100 which is also its cost in budget points. The total budget cap is 240 points across all 4 picks combined. A budget bar at the top of the screen updates in real time after every pick showing how many points have been spent and how many remain. If the remaining budget makes it impossible to complete the team the game should warn the player before they confirm a pick.
+The four categories and their items with ratings
+DRIVERS:
+
+Ayrton Senna 94
+Michael Schumacher 95
+Lewis Hamilton 97
+Max Verstappen 96
+Alain Prost 91
+Nigel Mansell 87
+Jackie Stewart 86
+Jim Clark 88
+Juan Manuel Fangio 93
+Sebastian Vettel 90
+Fernando Alonso 91
+Kimi Räikkönen 87
+Nico Rosberg 82
+Jenson Button 80
+Mika Häkkinen 85
+David Coulthard 78
+Rubens Barrichello 74
+Felipe Massa 73
+Mark Webber 76
+Lando Norris 83
+Charles Leclerc 85
+Carlos Sainz 81
+George Russell 80
+Valtteri Bottas 76
+Damon Hill 79
+Jacques Villeneuve 77
+Ralf Schumacher 72
+Heinz-Harald Frentzen 74
+Eddie Irvine 73
+Giancarlo Fisichella 71
+
+ENGINES:
+
+Mercedes 2014-2021 97
+Honda 2000s (Brawn/Red Bull) 91
+Ferrari 2000s (Schumacher era) 90
+Renault 2005-2006 88
+Mercedes 1990s (McLaren) 89
+Ford Cosworth DFV 1960s-70s 78
+Ferrari 1970s-80s 80
+Honda 1980s (McLaren turbo) 93
+Renault 2010-2013 (Red Bull) 87
+Ferrari 2017-2019 84
+BMW 2000s (Williams) 76
+TAG Porsche 1984-87 88
+Renault 2021-2023 (Alpine) 74
+Honda 2019-2021 (Red Bull) 88
+Ferrari 2022-present 85
+Ford Cosworth 1990s 68
+Mugen Honda 1990s 75
+Judd 1988 62
+Yamaha 1990s 63
+Subaru 1990 58
+
+CARS/CHASSIS:
+
+Red Bull RB19 2023 96
+Mercedes W11 2020 97
+Ferrari F2004 93
+McLaren MP4/4 1988 95
+Williams FW14B 1992 91
+Red Bull RB6 2010 88
+Mercedes W07 2016 94
+Ferrari F2002 91
+McLaren MP4/13 1998 87
+Brawn BGP001 2009 85
+Red Bull RB9 2013 89
+Lotus 72 1970 82
+Tyrrell 003 1971 80
+Ferrari 312T 1975 83
+Williams FW15C 1993 88
+McLaren MP4/6 1991 86
+Ferrari 641 1990 84
+Benetton B194 1994 81
+Williams FW18 1996 83
+Renault R25 2005 86
+Ferrari F2003-GA 90
+McLaren MP4/20 2005 84
+Red Bull RB5 2009 82
+Ferrari F2001 87
+Mercedes W05 2014 92
+McLaren MP4/23 2008 85
+Lotus 49 1967 78
+Brabham BT46B 1978 76
+Jordan 191 1991 70
+Tyrrell P34 six-wheeler 1976 68
+
+The selection UI
+
+Show 4 tabs across the top — Driver 1, Driver 2, Engine, Car. The active tab is highlighted. Each tab shows 5 draft cards in a grid. Each card shows the item name, era or nationality, and rating clearly. A budget bar sits at the top showing points spent vs 240 total. A reroll button is clearly visible and shows REROLL (1 remaining) — once used it says REROLL (0 remaining) and is greyed out. When a player picks a card it animates selected, then automatically advances to the next tab after a short delay.
+After all 4 picks are made show a review screen displaying all 4 chosen items side by side with their ratings and total budget used. Show a CHANGE button on each pick so players can go back and redo that category draft with a new set of 5 cards — but this costs 10 budget points as a penalty each time. Show a big BUILD MY CONSTRUCTOR button to proceed to the simulation.
+The simulation
+
+Simulate 24 races one by one. Each race calculates a result based on the average rating of the 4 picks plus a random variance of plus or minus 15 points. If the adjusted score is 90 or above the constructor wins the race. If it is 80-89 they finish on the podium. If it is 65-79 they score points. Below 65 is a DNF or points-less finish.
+Show each race result appearing one at a time with a short dramatic pause between each — like a ticker. Show the circuit name, the result, and a running win total.
+The final results card
+
+After all 24 races show a clean shareable result card showing:
+
+The constructor name (generated from the picks e.g. Hamilton and Senna — Honda — McLaren MP4/4)
+Each of the 4 picks and their ratings
+Total budget used out of 240
+Wins, podiums, points finishes and DNFs broken down
+A headline result e.g. 18 wins from 24 races
+A rating like Dominant, Competitive, Midfield, or Backmarker based on win total
+A PLAY AGAIN button
