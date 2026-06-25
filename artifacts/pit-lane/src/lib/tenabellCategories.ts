@@ -147,6 +147,44 @@ export const CATEGORIES: Category[] = [
     hint: "Jacky Ickx won Le Mans 6 times and is considered the greatest endurance racer in F1 history",
     ordered: false,
   },
+
+  // ── Race result categories ─────────────────────────────────────────────────
+
+  {
+    q: "Name all 10 classified finishers of the 2021 Hungarian Grand Prix — Ocon's historic maiden win",
+    teaser: "2021 Hungarian GP — top 10 finishers",
+    answers: ["Ocon","Hamilton","Sainz","Alonso","Stroll","Tsunoda","Latifi","Räikkönen","Raikkonen","Giovinazzi","Russell","Vettel"],
+    hint: "Esteban Ocon took his first and only win. Sebastian Vettel finished 2nd on track but was later disqualified",
+    ordered: false,
+  },
+  {
+    q: "Name all 10 classified finishers of the 2021 Italian Grand Prix at Monza — McLaren's stunning 1–2",
+    teaser: "2021 Italian GP — top 10 finishers",
+    answers: ["Ricciardo","Norris","Bottas","Sainz","Perez","Pérez","Hamilton","Leclerc","Alonso","Tsunoda","Stroll"],
+    hint: "McLaren's first 1–2 finish since the 2000 Brazilian GP — Ricciardo and Norris on the podium together",
+    ordered: false,
+  },
+  {
+    q: "Name all 10 classified finishers of the 2021 Monaco Grand Prix — Verstappen's first Monte Carlo win",
+    teaser: "2021 Monaco GP — top 10 finishers",
+    answers: ["Verstappen","Sainz","Norris","Vettel","Bottas","Stroll","Hamilton","Gasly","Alonso","Perez","Pérez"],
+    hint: "Leclerc took pole in front of his home crowd but had to withdraw before the race due to a gearbox failure",
+    ordered: false,
+  },
+  {
+    q: "Name all 10 classified finishers of the 2020 Turkish Grand Prix — Lewis Hamilton clinches his 7th World Championship",
+    teaser: "2020 Turkish GP — top 10 finishers",
+    answers: ["Hamilton","Perez","Pérez","Vettel","Leclerc","Sainz","Stroll","Bottas","Albon","Räikkönen","Raikkonen","Grosjean"],
+    hint: "Lance Stroll took his first and only career pole position in the wet — but won only by grid position",
+    ordered: false,
+  },
+  {
+    q: "Name all 10 classified finishers of the 2023 Las Vegas Grand Prix — the first Formula 1 race on the Las Vegas Strip",
+    teaser: "2023 Las Vegas GP — top 10 finishers",
+    answers: ["Verstappen","Leclerc","Perez","Pérez","Norris","Sainz","Hamilton","Alonso","Stroll","Magnussen","Gasly","Russell"],
+    hint: "Charles Leclerc started from pole and finished 2nd — but Verstappen clinched the lead from him late in the race",
+    ordered: false,
+  },
 ];
 
 export function getDailyCategory(): Category {
