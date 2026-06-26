@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { RefreshCw, Trophy, Check, RotateCcw, ChevronRight, X } from 'lucide-react';
+import { useState } from 'react';
+import { RefreshCw, Trophy, Check, RotateCcw, ChevronRight, X, Sparkles, AlertTriangle } from 'lucide-react';
 
-// ── Suggestion bank ──────────────────────────────────────────────────────────
+// ── Static suggestion bank ────────────────────────────────────────────────────
 
 const CATEGORIES: { label: string; items: string[] }[] = [
   {
@@ -125,6 +125,10 @@ function saveSquares(sq: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sq));
 }
 
+// ── AI category sentinel ──────────────────────────────────────────────────────
+
+const AI_TAB = -1; // special index for the AI tab
+
 type View = "setup" | "play";
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -143,10 +147,15 @@ export function RaceBingo() {
   const [customText, setCustomText] = useState("");
   const [activeCategory, setActiveCategory] = useState(0);
 
+  // AI state
+  const [aiRaceInput, setAiRaceInput] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   const filled = squares.filter((s, i) => i !== 12 && s.trim()).length;
   const usedSuggestions = new Set(squares.filter((s, i) => i !== 12));
 
-  // When selecting a square in setup, pre-fill input with current text
   const selectSquare = (i: number) => {
     if (i === 12) return;
     setSelectedIdx(i);
@@ -159,7 +168,6 @@ export function RaceBingo() {
     next[selectedIdx] = text;
     setSquares(next);
     saveSquares(next);
-    // Auto-advance to next empty square
     const nextEmpty = next.findIndex((s, i) => i !== 12 && i > selectedIdx && !s.trim());
     if (nextEmpty !== -1) {
       setSelectedIdx(nextEmpty);
@@ -196,7 +204,38 @@ export function RaceBingo() {
     setView("play");
   };
 
-  // ── Play view helpers ─────────────────────────────────────────────────────
+  // ── AI generation ──────────────────────────────────────────────────────────
+
+  const handleAiGenerate = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    setAiSuggestions([]);
+
+    try {
+      const res = await fetch('/api/bingo/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: "General",
+          race: aiRaceInput.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? `HTTP ${res.status}`);
+      }
+
+      const data = await res.json() as { suggestions: string[] };
+      setAiSuggestions(data.suggestions);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'Couldn\'t generate suggestions — try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // ── Play view helpers ──────────────────────────────────────────────────────
 
   const toggle = (i: number) => {
     if (i === 12) return;
@@ -212,9 +251,16 @@ export function RaceBingo() {
   const hasWon = winningLines.length > 0;
   const winningSquares = new Set(winningLines.flat());
 
-  // ── SETUP VIEW ────────────────────────────────────────────────────────────
+  // ── SETUP VIEW ─────────────────────────────────────────────────────────────
 
   if (view === "setup") {
+    const isAiTab = activeCategory === AI_TAB;
+
+    // Chips to show: static suggestions or AI results
+    const currentItems: string[] = isAiTab
+      ? aiSuggestions
+      : CATEGORIES[activeCategory]?.items ?? [];
+
     return (
       <div className="flex flex-col gap-4">
         {/* Header */}
@@ -289,7 +335,7 @@ export function RaceBingo() {
           <div className="flex flex-col gap-3 border border-border/40 rounded-xl p-3 bg-secondary/20">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">
-                Square {selectedIdx < 12 ? selectedIdx + 1 : selectedIdx + 1}
+                Square {selectedIdx + 1}
               </span>
               {squares[selectedIdx] && (
                 <button onClick={() => clearSquare(selectedIdx)} className="ml-auto text-muted-foreground/40 hover:text-muted-foreground transition-colors">
@@ -320,7 +366,7 @@ export function RaceBingo() {
               )}
             </div>
 
-            {/* Category tabs */}
+            {/* Category tabs (static + AI) */}
             <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-none">
               {CATEGORIES.map((cat, ci) => (
                 <button
@@ -333,28 +379,84 @@ export function RaceBingo() {
                   {cat.label}
                 </button>
               ))}
+              {/* AI tab */}
+              <button
+                onClick={() => setActiveCategory(AI_TAB)}
+                className={`shrink-0 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${
+                  isAiTab
+                    ? 'bg-primary text-white'
+                    : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Sparkles className="w-2.5 h-2.5" />
+                AI
+              </button>
             </div>
 
-            {/* Suggestion chips */}
-            <div className="flex flex-wrap gap-1.5">
-              {CATEGORIES[activeCategory].items.map(item => {
-                const alreadyUsed = usedSuggestions.has(item);
-                return (
+            {/* AI panel */}
+            {isAiTab && (
+              <div className="flex flex-col gap-2.5">
+                {/* Race name input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={aiRaceInput}
+                    onChange={e => setAiRaceInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && !aiLoading && handleAiGenerate()}
+                    placeholder="Race name (optional, e.g. Monaco GP)"
+                    className="flex-1 bg-background border border-border/60 rounded-md px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50 transition-colors"
+                  />
                   <button
-                    key={item}
-                    onClick={() => { if (!alreadyUsed) fillSelected(item); }}
-                    disabled={alreadyUsed}
-                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                      alreadyUsed
-                        ? 'border-border/20 text-muted-foreground/25 cursor-not-allowed line-through'
-                        : 'border-border/50 text-white/80 hover:border-primary/60 hover:text-white hover:bg-primary/10'
-                    }`}
+                    onClick={handleAiGenerate}
+                    disabled={aiLoading}
+                    className="shrink-0 flex items-center gap-1.5 bg-primary/90 hover:bg-primary disabled:opacity-50 text-white text-[10px] font-bold px-3 py-1.5 rounded-md transition-colors"
                   >
-                    {item}
+                    {aiLoading
+                      ? <RefreshCw className="w-3 h-3 animate-spin" />
+                      : <Sparkles className="w-3 h-3" />}
+                    {aiLoading ? 'Generating…' : 'Generate'}
                   </button>
-                );
-              })}
-            </div>
+                </div>
+
+                {aiError && (
+                  <div className="flex items-center gap-2 text-[10px] text-destructive/80 bg-destructive/10 rounded-md px-2.5 py-2 border border-destructive/20">
+                    <AlertTriangle className="w-3 h-3 shrink-0" />
+                    <span>{aiError}</span>
+                  </div>
+                )}
+
+                {!aiLoading && aiSuggestions.length === 0 && !aiError && (
+                  <p className="text-[10px] text-muted-foreground/40 text-center py-1">
+                    Click Generate for AI-powered event ideas
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Suggestion chips */}
+            {currentItems.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {currentItems.map(item => {
+                  const alreadyUsed = usedSuggestions.has(item);
+                  return (
+                    <button
+                      key={item}
+                      onClick={() => { if (!alreadyUsed) fillSelected(item); }}
+                      disabled={alreadyUsed}
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                        alreadyUsed
+                          ? 'border-border/20 text-muted-foreground/25 cursor-not-allowed line-through'
+                          : isAiTab
+                          ? 'border-primary/40 text-primary/80 hover:border-primary hover:text-white hover:bg-primary/15'
+                          : 'border-border/50 text-white/80 hover:border-primary/60 hover:text-white hover:bg-primary/10'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -365,7 +467,7 @@ export function RaceBingo() {
           </p>
         )}
 
-        {/* Start button (bottom, always visible when ready) */}
+        {/* Start button (bottom) */}
         {filled >= 20 && (
           <button
             onClick={startGame}
@@ -385,7 +487,7 @@ export function RaceBingo() {
     );
   }
 
-  // ── PLAY VIEW ─────────────────────────────────────────────────────────────
+  // ── PLAY VIEW ──────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col space-y-4">
