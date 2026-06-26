@@ -4,7 +4,6 @@ import Anthropic from "@anthropic-ai/sdk";
 const router: IRouter = Router();
 
 router.post("/bingo/suggest", async (req, res) => {
-  const category = typeof req.body?.category === "string" ? req.body.category.trim() : "General";
   const race = typeof req.body?.race === "string" ? req.body.race.trim() : "";
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -16,44 +15,54 @@ router.post("/bingo/suggest", async (req, res) => {
   try {
     const anthropic = new Anthropic({ apiKey });
 
-    const raceContext = race ? `\nThis is for the ${race}.` : "";
+    const raceContext = race ? `\nThis set of suggestions is for: ${race}.` : "";
 
-    const prompt = `You are generating Formula 1 Race Bingo event suggestions for a 5x5 bingo card.
+    const prompt = `You are generating suggestions for a Formula 1 Race Bingo card.
+
+The Bingo grid itself is a 4×4 layout (16 squares), but it should be left COMPLETELY BLANK.
+Your job is ONLY to generate 16 suggestion ideas that the user can choose from to fill the grid.
 
 Goal:
-Create diverse, realistic, and entertaining race events covering ALL teams and drivers — not just Ferrari.
+Create fun, varied, realistic bingo events that cover ALL teams and drivers in the 2026 season.
+Avoid focusing on a single team. Mix qualifying, race, reliability, strategy, and chaos events.
 
 Rules:
-- Include qualifying, race, and strategy events.
-- Mix driver-specific and team-wide events.
-- Use the current 2026 F1 grid: Verstappen/Lawson (Red Bull), Norris/Piastri (McLaren), Leclerc/Hamilton (Ferrari), Russell/Antonelli (Mercedes), Alonso/Doohan (Aston Martin), Sainz/Bearman (Haas), Gasly/Hadjar (Alpine), Albon/Sainz (Williams), Tsunoda/Iwasa (Racing Bulls), Bottas/Zhou (Sauber).
+- Use the full 2026 grid (all 22 drivers, all 11 teams).
+- Include head-to-head events for teammates and rivals.
+- Include team-wide performance events.
+- Include reliability and chaos events.
+- Include underdog or midfield surprises.
+- Include restart events after safety cars or red flags.
+- Include safety car / yellow flag / red flag events.
+- Keep each event short, punchy, and bingo-card friendly (max 7 words).
 - Avoid repeating the same team or driver too often.
-- Keep each suggestion short and natural — max 7 words, bingo-card style.
-- Focus on the selected category but still include multiple teams and drivers.${raceContext}
+- Output exactly 16 unique suggestions spread across these categories:
 
-Category to focus on: ${category}
+1. Driver vs Driver (qualifying or race) — 3 suggestions
+   e.g. "Leclerc outqualifies Hamilton", "Hadjar outqualifies Verstappen", "Antonelli beats Russell"
 
-Examples of valid suggestions:
-"Hadjar outqualifies Verstappen"
-"Antonelli wins from pole"
-"Norris crashes in Q2"
-"A Mercedes driver knocked out in Q2"
-"Ferrari pit stop under 2.5s"
-"Red Bull mechanical failure"
-"Alpine scores double points"
-"Haas driver finishes P7 or higher"
-"Williams driver reaches Q3"
-"Safety car deployed before Lap 10"
-"Race ends under red flag"
-"Rookie finishes in top 5"
-"Team radio complaint broadcast live"
+2. Team-Wide Performance Events — 3 suggestions
+   e.g. "Ferrari double top 5", "Red Bull finishes with only one car", "Williams scores points"
 
-Return ONLY a JSON array of exactly 12 short strings, no markdown, no other text:
+3. Reliability or Chaos Events — 3 suggestions
+   e.g. "Red Bull mechanical failure", "Two cars collide at Turn 1", "Driver retires with engine failure"
+
+4. Safety Car / Yellow Flag / Red Flag Events — 2 suggestions
+   e.g. "2 or more safety cars", "Race ends under red flag"
+
+5. Underdog or Midfield Surprise Events — 3 suggestions
+   e.g. "Bearman finishes in the top 5", "Williams reaches Q3", "Bortoleto finishes in the top 10"
+
+6. Restart Events (after Safety Car or Red Flag) — 2 suggestions
+   e.g. "Chaos on the restart", "Driver gains 3+ positions on restart"
+${raceContext}
+
+Return ONLY a JSON array of exactly 16 short strings, no markdown, no other text:
 ["suggestion 1", "suggestion 2", ...]`;
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 512,
+      max_tokens: 600,
       messages: [{ role: "user", content: prompt }],
     });
 

@@ -1,0 +1,76 @@
+You are generating suggestions for a Formula 1 Race Bingo card.
+
+The Bingo grid itself is a 4×4 layout (16 squares), but it should be left COMPLETELY BLANK. 
+Your job is ONLY to generate 16 suggestion ideas that the user can choose from to fill the grid.
+
+Goal:
+Create fun, varied, realistic bingo events that cover ALL teams and drivers in the 2026 season. 
+Avoid focusing on a single team. Mix qualifying, race, reliability, strategy, and chaos events.
+
+Rules:
+- Use the full 2026 grid (all 22 drivers, all 11 teams).
+- Include head-to-head events for teammates and rivals.
+- Include team-wide performance events.
+- Include reliability and chaos events (Category 3).
+- Include underdog or midfield surprises (Category 5).
+- Include restart events after safety cars or red flags (Category 6).
+- Include safety car / yellow flag / red flag events.
+- Keep each event short, punchy, and bingo-card friendly.
+- Avoid repeating the same team or driver too often.
+- Output exactly 16 unique suggestions.
+
+Event Categories to Include:
+
+1. Driver vs Driver (qualifying or race)
+   - “Leclerc outqualifies Hamilton”
+   - “Hamilton beats Leclerc in the race”
+   - “Hadjar outqualifies Verstappen”
+   - “Antonelli beats Russell”
+   - “Lawson finishes ahead of Lindblad”
+
+2. Team-Wide Performance Events
+   - “A Mercedes driver knocked out in Q2”
+   - “Ferrari double top 5”
+   - “Red Bull finishes with only one car”
+   - “McLaren pit stop under 2.5s”
+   - “Williams scores points”
+   - “Aston Martin double DNF”
+
+3. Reliability or Chaos Events (Category 3)
+   - “McLaren suffers a reliability issue”
+   - “Red Bull mechanical failure”
+   - “Aston Martin DNF”
+   - “Safety car deployed before Lap 10”
+   - “Two cars collide at Turn 1”
+   - “Virtual Safety Car deployed”
+   - “Pit lane incident investigated”
+   - “A driver retires with engine failure”
+
+5. Underdog or Midfield Surprise Events (Category 5)
+   - “Bearman finishes in the top 5”
+   - “Williams reaches Q3”
+   - “A driver outside the top 4 teams finishes top 6”
+   - “Colapinto scores points”
+   - “Lindblad beats Lawson”
+   - “Bortoleto finishes in the top 10”
+   - “Ocon finishes ahead of both Racing Bulls”
+   - “Albon finishes ahead of Sainz”
+
+6. Restart Events (after Safety Car or Red Flag) (Category 6)
+   - “Chaos on the restart”
+   - “Driver gains 3+ positions on restart”
+   - “Driver loses 2+ positions on restart”
+   - “Restart leads to an incident”
+   - “Top 3 changes order on restart”
+   - “Midfield bunches up causing near-contact”
+   - “Restart delayed due to debris”
+   - “Safety car restart causes a DRS train”
+
+4. Safety Car / Yellow Flag / Red Flag Events
+   - “2 or more safety cars”
+   - “0 yellow flags all race”
+   - “Race ends under red flag”
+
+Output Format:
+Return ONLY a list of 16 short bingo event suggestions as strings.
+Do NOT generate the grid. The grid must remain blank.
