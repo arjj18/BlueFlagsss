@@ -1,0 +1,185 @@
+"Please build the AI Race Quiz feature with two distinct modes — a Thursday Preview Quiz and a Tuesday Review Quiz — that automatically detect the day and show the right quiz. Here is every detail of both quizzes:
+Day detection logic
+javascriptconst today = new Date()
+const dayOfWeek = today.getDay()
+// 0=Sunday 1=Monday 2=Tuesday 3=Wednesday 4=Thursday 5=Friday 6=Saturday
+
+let quizMode = null
+if (dayOfWeek === 4) quizMode = 'preview'
+else if (dayOfWeek === 2) quizMode = 'review'
+else quizMode = 'general'
+Show a banner at the top of the quiz screen that says:
+
+Thursday: 'Race Weekend Preview Quiz 🔭' in blue
+Tuesday: 'Post Race Review Quiz 🏁' in red
+Any other day: 'General F1 Quiz ❓' in green with a message underneath saying 'Preview quizzes unlock on Thursdays · Review quizzes unlock on Tuesdays'
+
+Input screen for both modes
+
+Before generating either quiz show an input field asking:
+
+Preview mode: 'Which Grand Prix is this weekend?'
+Review mode: 'Which race just happened?'
+
+With a generate button underneath. Keep the existing loading spinner and show mode appropriate loading messages:
+
+Preview: 'Searching circuit history...' then 'Building your preview quiz...'
+Review: 'Searching for race results...' then 'Building your review quiz...'
+
+
+PREVIEW QUIZ — 10 questions about the history of the circuit
+Use this prompt to Claude with web search enabled:
+You are an F1 quiz master creating a Thursday preview quiz about the history of the ${raceName} Grand Prix circuit for fans ahead of this weekend's race.
+
+Search the web for historical facts about this circuit including first race year, pole position records, lap records, famous moments, legendary races, championship moments decided here, and how the circuit layout has changed over time.
+
+Generate exactly 10 questions in this exact order covering these specific topics:
+
+Question 1 — FIRST RACE: When was the first ever Formula 1 Grand Prix held at this circuit. Give four options with years close together to make it challenging.
+
+Question 2 — POLE POSITION KING: Which driver has taken the most pole positions at this circuit all time. Give four driver options.
+
+Question 3 — FAMOUS MOMENT PICTURE: Describe a famous historical moment or photo from this circuit in vivid detail — a crash, a celebration, a battle, a landmark moment — without naming the driver or year. Give four options for what happened or what happened next or who was involved.
+
+Question 4 — CIRCUIT LAYOUT: Describe the correct circuit layout in detail — number of corners, key characteristics, famous sections — and give three incorrect descriptions of similar circuits as wrong options. Label the options as Layout A, Layout B, Layout C, Layout D.
+
+Question 5 — SPOT THE DIFFERENCE: Describe how the circuit layout has changed from its original historic version to today. Give four options for what the key difference is — one correct and three plausible but wrong changes.
+
+Question 6 — LEGENDARY RACE: Describe a famous race at this circuit in detail without naming the year — the winner, the drama, the key moment — and ask which year it took place. Give four year options close together.
+
+Question 7 — STAT OR FICTION: Present four statistics about this circuit — lap record time, number of corners, total race distance in km, year of first GP — but make one of them slightly wrong. Ask which statistic is incorrect. The wrong answer should be plausible but off by a small margin.
+
+Question 8 — LAP RECORD: Who holds the current official lap record at this circuit, on what lap of which race was it set, and approximately what year. Give four driver options.
+
+Question 9 — CHAMPIONSHIP MOMENT: Ask about a World Championship that was decided at this circuit — who clinched it, what year, and what happened. If multiple championships have been decided here pick the most dramatic one. Give four options. If no championship has ever been decided here ask which driver came closest to clinching a title here but failed.
+
+Question 10 — WHO AM I: Create a four clue reveal about a driver with a legendary connection to this circuit. Structure it so clue 1 is very vague, clue 2 narrows it down, clue 3 makes it more specific, clue 4 almost gives it away. Give four driver options as the answer choices. Include which clue number each player needed to get the answer in the response so the UI can track it.
+
+Return ONLY a JSON array with no other text in this exact format:
+[
+  {
+    "q": "Question text",
+    "type": "standard",
+    "opts": ["A", "B", "C", "D"],
+    "ans": 0,
+    "fact": "Brief interesting fact about the correct answer"
+  },
+  {
+    "q": "Who am I?",
+    "type": "whoami",
+    "clues": ["Clue 1 very vague", "Clue 2 narrows down", "Clue 3 more specific", "Clue 4 almost gives it away"],
+    "opts": ["Driver A", "Driver B", "Driver C", "Driver D"],
+    "ans": 2,
+    "fact": "Brief fact about this driver and their connection to this circuit"
+  }
+]
+
+The last question must use type whoami with the clues array. All other questions use type standard. Base every answer on accurate historical facts found from your web search.
+
+REVIEW QUIZ — 10 questions about the race just happened
+Use this prompt to Claude with web search enabled:
+You are an F1 quiz master creating a Tuesday review quiz about the ${raceName} Formula 1 Grand Prix that just took place.
+
+First search the web thoroughly for:
+- Full qualifying results including pole sitter and any shock eliminations
+- Full race results including winner, podium, finishing order, DNFs
+- All pit stop data including which laps, which compounds, how many stops each driver made
+- Fastest lap — who set it, which lap, what time
+- Safety car or red flag periods and which laps they occurred
+- Key overtakes and incidents during the race
+- Championship standings before and after this race
+- Any notable team radio moments or post race controversy
+- Practice session highlights including who led FP1 FP2 FP3
+
+Then generate exactly 10 questions in this exact order:
+
+Question 1 — QUALIFYING: Ask about pole position — who took it, what the margin was over P2, or which big name was eliminated in Q1. Use the actual results from your search.
+
+Question 2 — PRACTICE: Ask about something specific from the practice sessions — who set the fastest time in FP1, which team showed unexpected pace, or which driver had a notable incident in practice.
+
+Question 3 — RACE START: Ask about the opening lap — who led into turn 1, how many positions the winner gained or lost at the start, or a specific incident on lap 1.
+
+Question 4 — SAFETY CAR OR INCIDENT: Ask about a safety car period, red flag, or notable crash during the race — which lap it was deployed, what caused it, or how it affected the race outcome. If there was no safety car ask about a notable incident or spin instead.
+
+Question 5 — TYRE STRATEGY: Ask about strategy decisions — which compound the race winner started on, which driver made the most pit stops, or which team made the boldest one stop vs two stop call. Use actual stint data from your search.
+
+Question 6 — MID RACE BATTLE: Ask about a specific overtake or battle for position during the race — which lap it happened on, which corner, or what the outcome was.
+
+Question 7 — POSITION CHART: Describe one driver's race trajectory through their positions at key laps — for example 'This driver started P8, was P12 after lap 1, climbed to P5 by lap 20, and finished P2' — and ask which driver this describes. Give four driver options. Use real lap position data from your search.
+
+Question 8 — FASTEST LAP: Who set the fastest lap of the race, on which lap was it set, and did they collect the bonus championship point for it. Give four driver options.
+
+Question 9 — FINAL RESULT: Ask a specific question about the race finish — the exact winning margin in seconds, who completed the podium in P3, or how many drivers finished on the lead lap. Use the actual race results.
+
+Question 10 — CHAMPIONSHIP IMPLICATIONS: Ask about how this race changed the championship standings — how many points the leader now leads by, which driver closed the gap the most, or what needs to happen at the next race for the title fight to change. Use the actual updated standings from your search.
+
+Return ONLY a JSON array with no other text in this exact format:
+[
+  {
+    "q": "Question text here",
+    "type": "standard",
+    "opts": ["Option A", "Option B", "Option C", "Option D"],
+    "ans": 0,
+    "fact": "Brief interesting fact about the correct answer"
+  }
+]
+
+Every question must use real accurate data from your web search. Do not guess or use outdated information. If you cannot find specific data for a question type search again with different terms before giving up.
+
+The Who Am I question UI — special handling needed
+The last question of the preview quiz has type whoami and needs special rendering. Build it like this:
+Show only Clue 1 initially with the four driver option buttons greyed out and unclickable. Add a button that says 'Reveal next clue'. Each time the player clicks it reveal the next clue one at a time. After clue 2 is revealed the answer buttons become active and the player can guess at any time. Track how many clues the player needed:
+
+Answered after clue 1 or 2: 'Sharp! You barely needed any help'
+Answered after clue 3: 'Good knowledge — you got there'
+Answered after clue 4: 'You needed all the clues but got there in the end'
+Wrong answer: 'Not quite — the answer was X'
+
+
+Scoring system for both quizzes
+Standard questions — 10 points for correct answer, 0 for wrong
+
+Who Am I — 40 points for correct after clue 1, 30 after clue 2, 20 after clue 3, 10 after clue 4, 0 for wrong
+Show running score throughout the quiz. At the end show final score out of 100 with these ratings:
+Preview quiz ratings:
+
+90-100: 'Circuit historian — you know this track better than the drivers'
+70-89: 'Dedicated fan — you have done your homework'
+50-69: 'Casual viewer — brush up before the race'
+Below 50: 'First time at this circuit? No shame in learning'
+
+Review quiz ratings:
+
+90-100: 'You watched every single lap. Respect.'
+70-89: 'Solid race fan — you were paying attention'
+50-69: 'You caught the highlights at least'
+Below 50: 'Did you even watch the race?'
+
+
+End of quiz screen
+Show the final score, the rating message, and a breakdown of all 10 questions showing which ones they got right and wrong with the correct answer and fact for each wrong one. Add a share score button that generates text like 'I scored 80/100 on the Monaco GP Preview Quiz on Pit Lane Fan Zone — can you beat me?' that copies to clipboard.
+
+API call structure for both quizzes
+Both quizzes must use web search. Use this structure for every API call:
+javascriptconst response = await fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01'
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    messages: [{ role: 'user', content: yourPromptHere }]
+  })
+})
+
+const data = await response.json()
+const fullText = data.content
+  .filter(block => block.type === 'text')
+  .map(block => block.text)
+  .join('')
+const clean = fullText.replace(/```json|```/g, '').trim()
+const questions = JSON.parse(clean)

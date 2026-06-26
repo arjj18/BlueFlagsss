@@ -1,16 +1,31 @@
-import { useState } from 'react';
-import { Trophy, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Trophy, RefreshCw, AlertTriangle, Share2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
 
-// ── Day detection ────────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 
 type QuizMode = 'preview' | 'review' | 'general';
+type Phase = 'input' | 'loading' | 'quiz' | 'done';
+
+type StandardQ = { type: 'standard'; q: string; opts: string[]; ans: number; fact: string };
+type WhoAmIQ  = { type: 'whoami';   q: string; clues: string[]; opts: string[]; ans: number; fact: string };
+type Question  = StandardQ | WhoAmIQ;
+
+type AnswerRecord = {
+  q: Question;
+  chosen: number;
+  correct: boolean;
+  points: number;
+  cluesUsed?: number;
+};
+
+// ── Day detection ────────────────────────────────────────────────────────────
 
 function getTodayMode(): QuizMode {
-  const day = new Date().getDay(); // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  const day = new Date().getDay();
   if (day === 4) return 'preview';
   if (day === 2) return 'review';
   return 'general';
@@ -18,52 +33,91 @@ function getTodayMode(): QuizMode {
 
 // ── Static questions (general mode) ─────────────────────────────────────────
 
-const GENERAL_QUESTIONS = [
-  { q: "Which driver has the most F1 World Championships?", opts: ["Michael Schumacher", "Lewis Hamilton", "Sebastian Vettel", "Ayrton Senna"], ans: 1, fact: "Hamilton and Schumacher share the record with 7 titles each." },
-  { q: "What does DRS stand for?", opts: ["Dynamic Race Speed", "Drag Reduction System", "Dual Rear Spoiler", "Direct Racing System"], ans: 1, fact: "DRS opens a flap in the rear wing to reduce drag on straights." },
-  { q: "Which circuit is nicknamed the Cathedral of Speed?", opts: ["Monaco", "Spa", "Monza", "Silverstone"], ans: 2, fact: "Monza in Italy is famous for its high-speed layout and passionate tifosi fans." },
-  { q: "How many points does a race winner receive?", opts: ["20", "25", "30", "15"], ans: 1, fact: "The current points system has awarded 25 points for a win since 2010." },
-  { q: "Which team has won the most Constructors' Championships?", opts: ["McLaren", "Mercedes", "Williams", "Ferrari"], ans: 3, fact: "Ferrari leads with 16 Constructors' Championships." },
-  { q: "What colour flag signals a race has been stopped?", opts: ["Yellow", "Blue", "Red", "Black"], ans: 2, fact: "A red flag means the race is immediately neutralised." },
-  { q: "Which driver is nicknamed The Iceman?", opts: ["Nico Rosberg", "Alain Prost", "Kimi Räikkönen", "Jenson Button"], ans: 2, fact: "Räikkönen earned the nickname for his cool, unemotional demeanour." },
-  { q: "How many cars start a Formula 1 race?", opts: ["16", "18", "20", "22"], ans: 2, fact: "10 teams × 2 drivers = 20 cars on the starting grid." },
-  { q: "Which country hosts the Suzuka circuit?", opts: ["South Korea", "China", "Singapore", "Japan"], ans: 3, fact: "Suzuka is in Japan's Mie Prefecture." },
-  { q: "What does a blue flag signal to a driver?", opts: ["Caution ahead", "Let a faster car pass", "Pit stop required", "Rain is coming"], ans: 1, fact: "A blue flag tells a driver they're about to be lapped and must let the faster car through." },
+const GENERAL_QUESTIONS: StandardQ[] = [
+  { type:'standard', q:"Which driver has the most F1 World Championships?", opts:["Michael Schumacher","Lewis Hamilton","Sebastian Vettel","Ayrton Senna"], ans:1, fact:"Hamilton and Schumacher both won 7 titles — a record they share." },
+  { type:'standard', q:"What does DRS stand for?", opts:["Dynamic Race Speed","Drag Reduction System","Dual Rear Spoiler","Direct Racing System"], ans:1, fact:"DRS opens a flap in the rear wing, cutting drag on straights to aid overtaking." },
+  { type:'standard', q:"Which circuit is nicknamed the Cathedral of Speed?", opts:["Monaco","Spa","Monza","Silverstone"], ans:2, fact:"Monza in Italy is famous for its high-speed layout and passionate tifosi fans." },
+  { type:'standard', q:"How many points does a race winner receive?", opts:["20","25","30","15"], ans:1, fact:"The 25-point win has been standard since the 2010 season." },
+  { type:'standard', q:"Which team has won the most Constructors' Championships?", opts:["McLaren","Mercedes","Williams","Ferrari"], ans:3, fact:"Ferrari leads with 16 Constructors' titles — more than any other team." },
+  { type:'standard', q:"What colour flag signals the race has been stopped?", opts:["Yellow","Blue","Red","Black"], ans:2, fact:"A red flag immediately neutralises the race. All drivers must slow and return to the pit lane." },
+  { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool, unemotional demeanour under pressure." },
+  { type:'standard', q:"How many cars start a Formula 1 race?", opts:["16","18","20","22"], ans:2, fact:"10 teams × 2 drivers = 20 cars on the starting grid." },
+  { type:'standard', q:"Which country hosts the Suzuka circuit?", opts:["South Korea","China","Singapore","Japan"], ans:3, fact:"Suzuka is in Japan's Mie Prefecture and has hosted the Japanese GP since 1987." },
+  { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield to the faster car." },
 ];
 
 // ── Mode config ──────────────────────────────────────────────────────────────
 
 const MODE_CONFIG = {
   preview: {
-    banner: 'Race Weekend Preview Quiz',
-    bannerColor: 'bg-blue-600/15 border-blue-500/30 text-blue-400',
-    badgeColor: 'bg-blue-500/20 text-blue-400',
-    accentColor: 'bg-blue-600 hover:bg-blue-600/90',
-    progressColor: '[&>div]:bg-blue-500',
+    label: 'Race Weekend Preview Quiz 🔭',
+    bannerBg: 'bg-blue-600/15 border-blue-500/30',
+    bannerText: 'text-blue-400',
+    badgeBg: 'bg-blue-500/20 text-blue-400',
+    accent: '#3b82f6',
+    accentCls: 'bg-blue-600 hover:bg-blue-700',
+    progressCls: '[&>div]:bg-blue-500',
     inputLabel: 'Which Grand Prix is this weekend?',
     inputPlaceholder: 'e.g. British Grand Prix',
+    loadingSteps: ['Searching circuit history…', 'Building your preview quiz…'],
+    ratings: [
+      { min: 90, msg: 'Circuit historian — you know this track better than the drivers' },
+      { min: 70, msg: 'Dedicated fan — you have done your homework' },
+      { min: 50, msg: 'Casual viewer — brush up before the race' },
+      { min:  0, msg: 'First time at this circuit? No shame in learning' },
+    ],
   },
   review: {
-    banner: 'Post Race Review Quiz',
-    bannerColor: 'bg-[#e10600]/10 border-[#e10600]/25 text-[#e10600]',
-    badgeColor: 'bg-[#e10600]/20 text-[#e10600]',
-    accentColor: 'bg-[#e10600] hover:bg-[#e10600]/90',
-    progressColor: '[&>div]:bg-[#e10600]',
+    label: 'Post Race Review Quiz 🏁',
+    bannerBg: 'bg-[#e10600]/10 border-[#e10600]/25',
+    bannerText: 'text-[#e10600]',
+    badgeBg: 'bg-[#e10600]/20 text-[#e10600]',
+    accent: '#e10600',
+    accentCls: 'bg-[#e10600] hover:bg-[#e10600]/85',
+    progressCls: '[&>div]:bg-[#e10600]',
     inputLabel: 'Which race just happened?',
     inputPlaceholder: 'e.g. Austrian Grand Prix',
+    loadingSteps: ['Searching for race results…', 'Building your review quiz…'],
+    ratings: [
+      { min: 90, msg: 'You watched every single lap. Respect.' },
+      { min: 70, msg: 'Solid race fan — you were paying attention' },
+      { min: 50, msg: 'You caught the highlights at least' },
+      { min:  0, msg: 'Did you even watch the race?' },
+    ],
   },
   general: {
-    banner: 'General F1 Quiz',
-    bannerColor: 'bg-[#2e7d32]/10 border-[#2e7d32]/25 text-[#2e7d32]',
-    badgeColor: 'bg-[#2e7d32]/20 text-[#2e7d32]',
-    accentColor: 'bg-[#2e7d32] hover:bg-[#2e7d32]/90',
-    progressColor: '[&>div]:bg-[#2e7d32]',
+    label: 'General F1 Quiz ❓',
+    bannerBg: 'bg-[#2e7d32]/10 border-[#2e7d32]/25',
+    bannerText: 'text-[#2e7d32]',
+    badgeBg: 'bg-[#2e7d32]/20 text-[#2e7d32]',
+    accent: '#2e7d32',
+    accentCls: 'bg-[#2e7d32] hover:bg-[#2e7d32]/85',
+    progressCls: '[&>div]:bg-[#2e7d32]',
     inputLabel: '',
     inputPlaceholder: '',
+    loadingSteps: [],
+    ratings: [
+      { min: 90, msg: 'Championship material! Excellent F1 knowledge.' },
+      { min: 70, msg: 'Solid points finish. You know your stuff.' },
+      { min: 50, msg: 'Room to improve — keep watching the races.' },
+      { min:  0, msg: 'A DNF this time. Keep at it!' },
+    ],
   },
-};
+} as const;
 
-type Question = { q: string; opts: string[]; ans: number; fact: string };
+// ── Scoring helpers ──────────────────────────────────────────────────────────
+
+const WHOAMI_PTS = [40, 30, 20, 10]; // indexed by clues revealed (0-based)
+const MAX_SCORE = 100;
+
+function whoamiPts(cluesRevealed: number) {
+  return WHOAMI_PTS[Math.min(cluesRevealed - 1, 3)];
+}
+
+function getRating(score: number, mode: QuizMode) {
+  const ratings = MODE_CONFIG[mode].ratings;
+  return ratings.find(r => score >= r.min)?.msg ?? ratings[ratings.length - 1].msg;
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -71,38 +125,50 @@ export function PostRaceQuiz() {
   const quizMode = getTodayMode();
   const cfg = MODE_CONFIG[quizMode];
 
+  const [phase, setPhase] = useState<Phase>(quizMode === 'general' ? 'quiz' : 'input');
   const [raceInput, setRaceInput] = useState('');
-  const [loadingMsg, setLoadingMsg] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // General mode starts directly with static questions
-  const [questions, setQuestions] = useState<Question[]>(() =>
-    quizMode === 'general'
-      ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5)
-      : []
-  );
   const [raceName, setRaceName] = useState(quizMode === 'general' ? 'General Quiz' : '');
-  const [started, setStarted] = useState(quizMode === 'general');
+  const [questions, setQuestions] = useState<Question[]>(() =>
+    quizMode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
+  );
 
+  // Quiz state
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
+  const [history, setHistory] = useState<AnswerRecord[]>([]);
   const [answered, setAnswered] = useState<number | null>(null);
-  const [gameOver, setGameOver] = useState(false);
+  const [cluesRevealed, setCluesRevealed] = useState(1);
 
-  // ── Generate AI quiz ───────────────────────────────────────────────────────
+  // Loading state
+  const [loadingStep, setLoadingStep] = useState(0);
+  const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Error
+  const [error, setError] = useState<string | null>(null);
+
+  // Share feedback
+  const [copied, setCopied] = useState(false);
+
+  // ── Loading step cycling ───────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (phase === 'loading' && cfg.loadingSteps.length > 1) {
+      stepTimer.current = setInterval(() => {
+        setLoadingStep(s => Math.min(s + 1, cfg.loadingSteps.length - 1));
+      }, 6000);
+    } else {
+      if (stepTimer.current) clearInterval(stepTimer.current);
+    }
+    return () => { if (stepTimer.current) clearInterval(stepTimer.current); };
+  }, [phase]);
+
+  // ── Generate ───────────────────────────────────────────────────────────────
 
   const handleGenerate = async () => {
     if (!raceInput.trim()) return;
-    setLoading(true);
+    setPhase('loading');
+    setLoadingStep(0);
     setError(null);
-
-    if (quizMode === 'preview') {
-      setLoadingMsg(`Searching circuit history for ${raceInput.trim()}…`);
-    } else {
-      setLoadingMsg(`Searching for ${raceInput.trim()} race results…`);
-      setTimeout(() => setLoadingMsg(`Building your review quiz…`), 5000);
-    }
 
     try {
       const res = await fetch('/api/quiz/generate', {
@@ -119,78 +185,76 @@ export function PostRaceQuiz() {
       const data = await res.json() as { race: string; questions: Question[] };
       setRaceName(data.race);
       setQuestions(data.questions);
-      setStarted(true);
+      setPhase('quiz');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn\'t generate quiz — please try again.');
-    } finally {
-      setLoading(false);
+      setPhase('input');
     }
   };
 
-  // ── Gameplay ───────────────────────────────────────────────────────────────
+  // ── Answer ─────────────────────────────────────────────────────────────────
 
   const handleAnswer = (idx: number) => {
     if (answered !== null) return;
+    const q = questions[currentIdx];
+    const correct = idx === q.ans;
+    let pts = 0;
+    let cluesUsed: number | undefined;
+
+    if (correct) {
+      if (q.type === 'whoami') {
+        pts = whoamiPts(cluesRevealed);
+        cluesUsed = cluesRevealed;
+      } else {
+        pts = 10;
+      }
+    } else if (q.type === 'whoami') {
+      cluesUsed = cluesRevealed;
+    }
+
+    setScore(s => s + pts);
     setAnswered(idx);
-    if (idx === questions[currentIdx].ans) setScore(s => s + 1);
+    setHistory(h => [...h, { q, chosen: idx, correct, points: pts, cluesUsed }]);
   };
+
+  // ── Next question ──────────────────────────────────────────────────────────
 
   const nextQuestion = () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(i => i + 1);
       setAnswered(null);
+      setCluesRevealed(1);
     } else {
-      const q = questions[currentIdx];
-      const finalScore = answered === q.ans ? score + 1 : score;
+      const finalScore = Math.min(score, MAX_SCORE);
       saveScore({
         game: quizMode === 'general' ? 'quiz' : 'postRace',
-        label: quizMode === 'general' ? 'General Quiz' : raceName,
+        label: raceName,
         score: finalScore,
-        total: questions.length,
+        total: MAX_SCORE,
       });
-      setGameOver(true);
+      setPhase('done');
     }
   };
 
-  // ── Game over ──────────────────────────────────────────────────────────────
+  // ── Share ──────────────────────────────────────────────────────────────────
 
-  if (gameOver) {
-    const pct = score / questions.length;
-    const msg = pct >= 0.8 ? 'Championship material! Excellent F1 knowledge.' : pct >= 0.5 ? 'Solid points finish. You know your stuff.' : 'A DNF this time. Keep watching the races!';
-    return (
-      <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in py-8">
-        <Trophy className={`w-16 h-16 ${quizMode === 'preview' ? 'text-blue-400' : quizMode === 'review' ? 'text-[#e10600]' : 'text-[#2e7d32]'}`} />
-        <h2 className="text-4xl font-black">{score} / {questions.length}</h2>
-        <p className="text-muted-foreground text-center max-w-sm">{msg}</p>
-        <Button
-          onClick={() => { setGameOver(false); setCurrentIdx(0); setScore(0); setAnswered(null); setStarted(quizMode === 'general'); setQuestions(quizMode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []); setRaceInput(''); }}
-          size="lg"
-          className={`font-bold tracking-widest mt-4 ${cfg.accentColor}`}
-        >
-          PLAY AGAIN
-        </Button>
-      </div>
-    );
-  }
+  const handleShare = () => {
+    const displayScore = Math.min(score, MAX_SCORE);
+    const modeLabel = quizMode === 'preview' ? 'Preview' : quizMode === 'review' ? 'Review' : 'General';
+    const text = `I scored ${displayScore}/${MAX_SCORE} on the ${raceName} ${modeLabel} Quiz on Pit Lane Fan Zone — can you beat me?`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  // ── Render: input ──────────────────────────────────────────────────────────
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 space-y-4">
-        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-        <p className="font-bold text-lg text-center">{loadingMsg}</p>
-      </div>
-    );
-  }
-
-  // ── Input screen (preview/review only) ────────────────────────────────────
-
-  if (!started) {
+  if (phase === 'input') {
     return (
       <div className="space-y-5">
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider ${cfg.bannerColor}`}>
-          {cfg.banner}
+        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-bold ${cfg.bannerBg} ${cfg.bannerText}`}>
+          {cfg.label}
         </div>
 
         <p className="text-sm text-muted-foreground">{cfg.inputLabel}</p>
@@ -204,14 +268,14 @@ export function PostRaceQuiz() {
             onKeyDown={e => e.key === 'Enter' && handleGenerate()}
             autoFocus
           />
-          <Button onClick={handleGenerate} disabled={!raceInput.trim()} className={`font-bold px-6 ${cfg.accentColor}`}>
+          <Button onClick={handleGenerate} disabled={!raceInput.trim()} className={`font-bold px-5 shrink-0 ${cfg.accentCls}`}>
             Generate →
           </Button>
         </div>
 
         {error && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
         )}
@@ -219,74 +283,215 @@ export function PostRaceQuiz() {
     );
   }
 
-  // ── Quiz ───────────────────────────────────────────────────────────────────
+  // ── Render: loading ────────────────────────────────────────────────────────
+
+  if (phase === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4">
+        <RefreshCw className="w-8 h-8 animate-spin" style={{ color: cfg.accent }} />
+        <div className="flex flex-col items-center gap-2">
+          {cfg.loadingSteps.map((step, i) => (
+            <p key={step} className={`text-sm transition-all duration-500 ${
+              i === loadingStep ? 'text-white/80 font-medium'
+                : i < loadingStep ? 'text-muted-foreground/30 line-through text-xs'
+                : 'text-muted-foreground/20 text-xs'
+            }`}>
+              {step}
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: done ───────────────────────────────────────────────────────────
+
+  if (phase === 'done') {
+    const displayScore = Math.min(score, MAX_SCORE);
+    const rating = getRating(displayScore, quizMode);
+    const modeLabel = quizMode === 'preview' ? 'Preview' : quizMode === 'review' ? 'Review' : 'General';
+
+    return (
+      <div className="flex flex-col gap-5 animate-in fade-in">
+        {/* Score header */}
+        <div className="flex flex-col items-center py-6 gap-2">
+          <Trophy className="w-12 h-12 mb-1" style={{ color: cfg.accent }} />
+          <h2 className="text-5xl font-black tabular-nums">{displayScore}<span className="text-2xl text-muted-foreground font-bold">/{MAX_SCORE}</span></h2>
+          <p className="text-sm text-muted-foreground/70 text-center max-w-xs">{rating}</p>
+        </div>
+
+        {/* Share button */}
+        <Button onClick={handleShare} variant="outline" className="gap-2 font-bold border-border/60">
+          {copied ? <><Check className="w-4 h-4 text-green-400" /> Copied!</> : <><Share2 className="w-4 h-4" /> Share score</>}
+        </Button>
+
+        {/* Question breakdown */}
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-1">Question breakdown</p>
+          {history.map((rec, i) => {
+            const isWhoami = rec.q.type === 'whoami';
+            return (
+              <div key={i} className={`rounded-lg border p-3 text-sm ${rec.correct ? 'border-green-600/25 bg-green-600/5' : 'border-red-600/25 bg-red-600/5'}`}>
+                <div className="flex items-start gap-2">
+                  <span className={`shrink-0 mt-0.5 ${rec.correct ? 'text-green-400' : 'text-red-400'}`}>
+                    {rec.correct ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-white/80 leading-snug">
+                      {isWhoami ? 'Who am I?' : rec.q.q}
+                    </p>
+                    {isWhoami && rec.cluesUsed && (
+                      <p className="text-[11px] text-muted-foreground/50 mt-0.5">
+                        {rec.cluesUsed} clue{rec.cluesUsed > 1 ? 's' : ''} revealed
+                      </p>
+                    )}
+                    {rec.correct ? (
+                      <p className="text-[11px] text-green-400/70 mt-0.5">+{rec.points} pts</p>
+                    ) : (
+                      <>
+                        <p className="text-[11px] text-muted-foreground/50 mt-0.5">
+                          Correct: <span className="text-white/60">{rec.q.opts[rec.q.ans]}</span>
+                        </p>
+                        <p className="text-[11px] text-muted-foreground/40 mt-0.5 italic">{rec.q.fact}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Play again */}
+        <Button
+          onClick={() => {
+            setPhase(quizMode === 'general' ? 'quiz' : 'input');
+            setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null); setCluesRevealed(1); setRaceInput('');
+            if (quizMode === 'general') {
+              setQuestions([...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5));
+            } else {
+              setQuestions([]);
+            }
+          }}
+          className={`font-bold tracking-widest mt-2 ${cfg.accentCls}`}
+        >
+          PLAY AGAIN
+        </Button>
+      </div>
+    );
+  }
+
+  // ── Render: quiz ───────────────────────────────────────────────────────────
 
   const q = questions[currentIdx];
+  const isWhoami = q?.type === 'whoami';
+  const whoamiQ = isWhoami ? (q as WhoAmIQ) : null;
+  const displayScore = Math.min(score, MAX_SCORE);
 
   return (
-    <div className="flex flex-col space-y-5">
-      {/* Mode badge */}
-      <div className="flex items-center gap-2">
-        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${cfg.badgeColor}`}>
-          {quizMode === 'general' ? 'General Quiz' : `${quizMode === 'preview' ? 'Preview' : 'Review'} — ${raceName}`}
+    <div className="flex flex-col gap-5">
+
+      {/* Mode badge + score */}
+      <div className="flex items-center justify-between">
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${cfg.badgeBg}`}>
+          {quizMode === 'general' ? 'General Quiz'
+            : quizMode === 'preview' ? `Preview — ${raceName}`
+            : `Review — ${raceName}`}
+        </span>
+        <span className="text-sm font-bold tabular-nums text-muted-foreground/60">
+          {displayScore} <span className="text-xs text-muted-foreground/40">pts</span>
         </span>
       </div>
 
       {/* Progress */}
       <div className="space-y-1.5">
-        <div className="flex justify-between text-xs font-medium text-muted-foreground">
-          <span className="uppercase tracking-wider">Question {currentIdx + 1}/{questions.length}</span>
-          <span>Score: {score}</span>
+        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground/40">
+          <span>Q{currentIdx + 1} of {questions.length}</span>
         </div>
-        <Progress value={(currentIdx / questions.length) * 100} className={`h-1.5 bg-secondary rounded-none ${cfg.progressColor}`} />
+        <Progress value={(currentIdx / questions.length) * 100} className={`h-1 bg-secondary rounded-none ${cfg.progressCls}`} />
       </div>
 
-      {/* Question */}
-      <div className="text-xl md:text-2xl font-bold leading-tight py-2">{q.q}</div>
+      {/* General mode unlock notice (first question only) */}
+      {quizMode === 'general' && currentIdx === 0 && answered === null && (
+        <p className="text-[10px] text-muted-foreground/35 text-center -mt-1">
+          Preview quizzes unlock on Thursdays · Review quizzes unlock on Tuesdays
+        </p>
+      )}
 
-      {/* Options */}
+      {/* Who Am I clues */}
+      {isWhoami && whoamiQ && (
+        <div className="bg-secondary/30 rounded-xl p-4 space-y-3 border border-border/30">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">
+            Who am I? — {MAX_SCORE - displayScore > 0 ? `up to ${whoamiPts(cluesRevealed)} pts` : ''} 
+          </p>
+          {whoamiQ.clues.slice(0, cluesRevealed).map((clue, i) => (
+            <div key={i} className="flex gap-2.5">
+              <span className="text-[10px] font-black text-muted-foreground/30 w-4 shrink-0 mt-0.5">#{i + 1}</span>
+              <p className={`text-sm leading-snug ${i === cluesRevealed - 1 ? 'text-white/90 font-medium' : 'text-muted-foreground/50'}`}>{clue}</p>
+            </div>
+          ))}
+          {answered === null && cluesRevealed < 4 && (
+            <button
+              onClick={() => setCluesRevealed(c => c + 1)}
+              className="text-xs font-bold text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors underline underline-offset-2 mt-1"
+            >
+              Reveal clue {cluesRevealed + 1} of 4
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Question text (standard only) */}
+      {!isWhoami && (
+        <div className="text-xl md:text-2xl font-bold leading-tight py-1">{q.q}</div>
+      )}
+
+      {/* Answer buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {q.opts.map((opt, idx) => {
-          let stateClass = 'bg-secondary hover:bg-secondary/80 text-foreground border-transparent';
+          let cls = 'bg-secondary hover:bg-secondary/80 text-foreground border-transparent';
           if (answered !== null) {
-            if (idx === q.ans) stateClass = 'bg-green-600 hover:bg-green-600 text-white border-green-500 shadow-[0_0_15px_rgba(22,163,74,0.4)]';
-            else if (idx === answered) stateClass = 'bg-red-600 hover:bg-red-600 text-white border-red-500';
-            else stateClass = 'bg-secondary/50 text-muted-foreground border-transparent opacity-50';
+            if (idx === q.ans) cls = 'bg-green-600 hover:bg-green-600 text-white border-green-500 shadow-[0_0_15px_rgba(22,163,74,0.3)]';
+            else if (idx === answered) cls = 'bg-red-600 hover:bg-red-600 text-white border-red-500';
+            else cls = 'bg-secondary/50 text-muted-foreground border-transparent opacity-50';
           }
           return (
             <Button
               key={idx}
               variant="outline"
-              className={`h-auto min-h-16 py-3 px-4 justify-start text-left whitespace-normal border-2 transition-all ${stateClass}`}
+              className={`h-auto min-h-14 py-3 px-4 justify-start text-left whitespace-normal border-2 transition-all ${cls}`}
               onClick={() => handleAnswer(idx)}
               disabled={answered !== null}
             >
               <div className="flex items-center gap-3 w-full">
-                <div className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center bg-black/20 text-xs font-bold font-mono">
+                <div className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center bg-black/20 text-[10px] font-bold font-mono">
                   {String.fromCharCode(65 + idx)}
                 </div>
-                <span>{opt}</span>
+                <span className="text-sm">{opt}</span>
               </div>
             </Button>
           );
         })}
       </div>
 
-      {/* Fact + next button */}
+      {/* Post-answer reveal */}
       {answered !== null && (
-        <div className="mt-2 p-4 bg-secondary/50 border border-border rounded-lg animate-in slide-in-from-bottom-2">
-          <p className="text-sm font-medium mb-4">{q.fact}</p>
-          <Button onClick={nextQuestion} className={`w-full font-bold tracking-widest ${cfg.accentColor}`}>
-            {currentIdx < questions.length - 1 ? 'NEXT QUESTION' : 'FINISH'}
+        <div className="p-4 bg-secondary/50 border border-border rounded-xl animate-in slide-in-from-bottom-2 space-y-3">
+          {/* Who Am I performance message */}
+          {isWhoami && (
+            <p className="text-xs font-bold" style={{ color: answered === q.ans ? cfg.accent : '#ef4444' }}>
+              {answered === q.ans
+                ? cluesRevealed <= 2 ? 'Sharp! You barely needed any help'
+                  : cluesRevealed === 3 ? 'Good knowledge — you got there'
+                  : 'You needed all the clues but got there in the end'
+                : `Not quite — the answer was ${q.opts[q.ans]}`}
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground/80">{q.fact}</p>
+          <Button onClick={nextQuestion} className={`w-full font-bold tracking-widest ${cfg.accentCls}`}>
+            {currentIdx < questions.length - 1 ? 'NEXT QUESTION' : 'SEE RESULTS'}
           </Button>
         </div>
-      )}
-
-      {/* General mode unlock notice */}
-      {quizMode === 'general' && currentIdx === 0 && answered === null && (
-        <p className="text-[11px] text-muted-foreground/40 text-center">
-          Preview quizzes unlock on Thursdays · Review quizzes unlock on Tuesdays
-        </p>
       )}
     </div>
   );
