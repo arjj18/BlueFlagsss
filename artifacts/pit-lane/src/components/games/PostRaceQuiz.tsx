@@ -128,14 +128,15 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function PostRaceQuiz() {
-  const quizMode = getTodayMode();
+  const [testModeOverride, setTestModeOverride] = useState<QuizMode | null>(null);
+  const quizMode: QuizMode = testModeOverride ?? getTodayMode();
   const cfg = MODE_CONFIG[quizMode];
 
-  const [phase, setPhase] = useState<Phase>(quizMode === 'general' ? 'quiz' : 'input');
+  const [phase, setPhase] = useState<Phase>(() => getTodayMode() === 'general' ? 'quiz' : 'input');
   const [raceInput, setRaceInput] = useState('');
-  const [raceName, setRaceName] = useState(quizMode === 'general' ? 'General Quiz' : '');
+  const [raceName, setRaceName] = useState(() => getTodayMode() === 'general' ? 'General Quiz' : '');
   const [questions, setQuestions] = useState<Question[]>(() =>
-    quizMode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
+    getTodayMode() === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
   );
 
   // Quiz state
@@ -151,6 +152,57 @@ export function PostRaceQuiz() {
 
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // ── Dev: test mode override ────────────────────────────────────────────────
+
+  const resetQuizState = (mode: QuizMode) => {
+    setPhase(mode === 'general' ? 'quiz' : 'input');
+    setRaceName(mode === 'general' ? 'General Quiz' : '');
+    setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
+    setCluesRevealed(1); setRaceInput(''); setError(null);
+    setQuestions(mode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []);
+  };
+
+  const handleSetTestMode = (mode: QuizMode) => {
+    setTestModeOverride(mode);
+    resetQuizState(mode);
+  };
+
+  const clearTestMode = () => {
+    setTestModeOverride(null);
+    resetQuizState(getTodayMode());
+  };
+
+  const devBar = (
+    <div className="flex items-center gap-1.5 p-2 mb-3 bg-black/50 border border-border/30 rounded-lg">
+      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 mr-0.5 shrink-0">
+        DEV
+      </span>
+      {(['preview', 'review', 'general'] as QuizMode[]).map(m => (
+        <button
+          key={m}
+          onClick={() => handleSetTestMode(m)}
+          className={`text-[10px] font-bold px-2.5 py-1 rounded-md capitalize transition-colors ${
+            testModeOverride === m
+              ? m === 'preview' ? 'bg-blue-600 text-white'
+                : m === 'review' ? 'bg-[#e10600] text-white'
+                : 'bg-[#2e7d32] text-white'
+              : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {m}
+        </button>
+      ))}
+      {testModeOverride && (
+        <button
+          onClick={clearTestMode}
+          className="ml-auto text-[9px] text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
+        >
+          × real mode
+        </button>
+      )}
+    </div>
+  );
 
   // ── Loading step cycling ───────────────────────────────────────────────────
 
@@ -268,6 +320,7 @@ export function PostRaceQuiz() {
   if (phase === 'input') {
     return (
       <div className="space-y-5">
+        {devBar}
         <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-bold ${cfg.bannerBg} ${cfg.bannerText}`}>
           {cfg.label}
         </div>
@@ -299,7 +352,9 @@ export function PostRaceQuiz() {
 
   if (phase === 'loading') {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
+      <div className="flex flex-col gap-0">
+        {devBar}
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
         <RefreshCw className="w-8 h-8 animate-spin" style={{ color: cfg.accent }} />
         <div className="flex flex-col items-center gap-2">
           {cfg.loadingSteps.map((step, i) => (
@@ -311,6 +366,7 @@ export function PostRaceQuiz() {
               {step}
             </p>
           ))}
+        </div>
         </div>
       </div>
     );
@@ -324,6 +380,7 @@ export function PostRaceQuiz() {
 
     return (
       <div className="flex flex-col gap-4 animate-in fade-in">
+        {devBar}
         {/* Score header */}
         <div className="flex flex-col items-center py-5 gap-2">
           <Trophy className="w-12 h-12 mb-1" style={{ color: cfg.accent }} />
@@ -398,6 +455,7 @@ export function PostRaceQuiz() {
 
   return (
     <div className="flex flex-col gap-5">
+      {devBar}
 
       {/* Mode badge + score */}
       <div className="flex items-center justify-between">
