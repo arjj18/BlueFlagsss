@@ -4,6 +4,17 @@ import { GenerateQuizBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
+// Circuit names that have SVG layouts in the frontend library.
+// Claude must use ONLY these names in the circuits array for layout questions.
+const AVAILABLE_CIRCUITS = [
+  "Monaco", "Singapore", "Baku", "Jeddah",
+  "Monza", "Spa", "Silverstone", "Suzuka",
+  "Bahrain", "Abu Dhabi", "Red Bull Ring", "Zandvoort",
+  "COTA", "Interlagos", "Montreal", "Hungaroring",
+  "Catalunya", "Qatar", "Albert Park", "Las Vegas",
+  "Mexico City", "Imola",
+];
+
 function extractJsonArray(text: string): unknown[] {
   const clean = text.replace(/```json|```/g, "").trim();
   const start = clean.indexOf("[");
@@ -28,7 +39,7 @@ async function callWithSearch(anthropic: Anthropic, prompt: string): Promise<str
 
 const PREVIEW_PROMPT = (race: string) => `You are an F1 quiz master creating a Thursday preview quiz about the history of the ${race} Grand Prix circuit for fans ahead of this weekend's race.
 
-Search the web for historical facts about this circuit including first race year, pole position records, lap records, famous moments, legendary races, championship moments decided here, and how the circuit layout has changed over time.
+Search the web for historical facts about this circuit including first race year, pole position records, lap records, famous moments, legendary races, and championship moments decided here.
 
 Generate exactly 10 questions in this exact order:
 
@@ -38,9 +49,30 @@ Question 2 — POLE POSITION KING: Which driver has taken the most pole position
 
 Question 3 — FAMOUS MOMENT PICTURE: Describe a famous historical moment from this circuit in vivid detail — a crash, a celebration, a battle, a landmark moment — without naming the driver or year. Give four options for who was involved or what happened next.
 
-Question 4 — CIRCUIT LAYOUT: Describe the correct circuit layout in detail — number of corners, key characteristics, famous sections — and give three incorrect descriptions as wrong options. Label as Layout A, Layout B, Layout C, Layout D.
+Question 4 — SPOT THE DIFFERENCE: Describe how the circuit layout has changed from its original historic version to today. Give four options for the key difference — one correct and three plausible but wrong changes.
 
-Question 5 — SPOT THE DIFFERENCE: Describe how the circuit layout has changed from its original historic version to today. Give four options for the key difference — one correct and three plausible but wrong changes.
+Question 5 — CIRCUIT LAYOUT IDENTIFIER: The player must identify which of four circuit layout silhouettes is the correct one for this race weekend.
+
+For this question you must:
+- Determine the exact circuit name for the ${race} using ONLY a name from this list: ${AVAILABLE_CIRCUITS.join(", ")}
+- Pick 3 decoy circuits from the SAME type to make it genuinely difficult:
+  - If correct circuit is a street circuit (Monaco, Singapore, Baku, Jeddah) → use other street circuits as decoys
+  - If correct circuit is a high-speed circuit (Monza, Spa, Silverstone, Suzuka) → use other high-speed circuits as decoys
+  - If correct circuit is a Middle Eastern circuit (Bahrain, Abu Dhabi, Qatar) → use other Middle Eastern/modern circuits as decoys
+  - Otherwise group by geographic region or track character
+- Randomise which position (index 0, 1, 2, or 3) the correct circuit appears in the circuits array
+- Set ans to that random index so it is not always the same position
+
+Return this question in this EXACT format (layout type, NOT standard type):
+{
+  "q": "Which of these four circuit layouts is the ${race} circuit?",
+  "type": "layout",
+  "circuits": ["CircuitA", "CircuitB", "CircuitC", "CircuitD"],
+  "ans": 2,
+  "fact": "One interesting fact about this circuit layout or its history"
+}
+
+Where circuits[ans] is the correct circuit name and EVERY name in circuits must be from this exact list: ${AVAILABLE_CIRCUITS.join(", ")}
 
 Question 6 — LEGENDARY RACE: Describe a famous race at this circuit in detail without naming the year — the winner, the drama, the key moment — and ask which year it took place. Give four year options close together.
 
@@ -52,26 +84,26 @@ Question 9 — CHAMPIONSHIP MOMENT: Ask about a World Championship decided at th
 
 Question 10 — WHO AM I: Create a four clue reveal about a driver with a legendary connection to this circuit. Clue 1 is very vague, clue 2 narrows it down, clue 3 is more specific, clue 4 almost gives it away. Give four driver options.
 
-Return ONLY a JSON array with no other text in this exact format:
-[
-  {
-    "q": "Question text",
-    "type": "standard",
-    "opts": ["A", "B", "C", "D"],
-    "ans": 0,
-    "fact": "Brief interesting fact about the correct answer"
-  },
-  {
-    "q": "Who am I?",
-    "type": "whoami",
-    "clues": ["Clue 1 very vague", "Clue 2 narrows down", "Clue 3 more specific", "Clue 4 almost gives it away"],
-    "opts": ["Driver A", "Driver B", "Driver C", "Driver D"],
-    "ans": 2,
-    "fact": "Brief fact about this driver and their connection to this circuit"
-  }
-]
+Return ONLY a JSON array with no other text. Questions 1-4 and 6-9 use this format:
+{
+  "q": "Question text",
+  "type": "standard",
+  "opts": ["A", "B", "C", "D"],
+  "ans": 0,
+  "fact": "Brief interesting fact"
+}
 
-The last question MUST use type "whoami" with the clues array. All others use type "standard".`;
+Question 5 uses the layout format shown above.
+
+Question 10 uses this format:
+{
+  "q": "Who am I?",
+  "type": "whoami",
+  "clues": ["Clue 1 very vague", "Clue 2 narrows down", "Clue 3 more specific", "Clue 4 almost gives it away"],
+  "opts": ["Driver A", "Driver B", "Driver C", "Driver D"],
+  "ans": 2,
+  "fact": "Brief fact about this driver and their connection to this circuit"
+}`;
 
 const REVIEW_PROMPT = (race: string) => `You are an F1 quiz master creating a Tuesday review quiz about the ${race} Formula 1 Grand Prix that just took place.
 

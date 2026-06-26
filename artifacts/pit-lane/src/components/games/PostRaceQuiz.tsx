@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
+import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,7 +13,8 @@ type Phase = 'input' | 'loading' | 'quiz' | 'done';
 
 type StandardQ = { type: 'standard'; q: string; opts: string[]; ans: number; fact: string };
 type WhoAmIQ  = { type: 'whoami';   q: string; clues: string[]; opts: string[]; ans: number; fact: string };
-type Question  = StandardQ | WhoAmIQ;
+type LayoutQ  = { type: 'layout';   q: string; circuits: string[]; ans: number; fact: string };
+type Question  = StandardQ | WhoAmIQ | LayoutQ;
 
 type AnswerRecord = {
   q: Question;
@@ -39,11 +41,11 @@ const GENERAL_QUESTIONS: StandardQ[] = [
   { type:'standard', q:"Which circuit is nicknamed the Cathedral of Speed?", opts:["Monaco","Spa","Monza","Silverstone"], ans:2, fact:"Monza in Italy is famous for its high-speed layout and passionate tifosi fans." },
   { type:'standard', q:"How many points does a race winner receive?", opts:["20","25","30","15"], ans:1, fact:"The 25-point win has been standard since the 2010 season." },
   { type:'standard', q:"Which team has won the most Constructors' Championships?", opts:["McLaren","Mercedes","Williams","Ferrari"], ans:3, fact:"Ferrari leads with 16 Constructors' titles — more than any other team." },
-  { type:'standard', q:"What colour flag signals the race has been stopped?", opts:["Yellow","Blue","Red","Black"], ans:2, fact:"A red flag immediately neutralises the race. All drivers must slow and return to the pit lane." },
-  { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool, unemotional demeanour under pressure." },
+  { type:'standard', q:"What colour flag signals the race has been stopped?", opts:["Yellow","Blue","Red","Black"], ans:2, fact:"A red flag immediately neutralises the race." },
+  { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool demeanour under pressure." },
   { type:'standard', q:"How many cars start a Formula 1 race?", opts:["16","18","20","22"], ans:2, fact:"10 teams × 2 drivers = 20 cars on the starting grid." },
   { type:'standard', q:"Which country hosts the Suzuka circuit?", opts:["South Korea","China","Singapore","Japan"], ans:3, fact:"Suzuka is in Japan's Mie Prefecture and has hosted the Japanese GP since 1987." },
-  { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield to the faster car." },
+  { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield." },
 ];
 
 // ── Mode config ──────────────────────────────────────────────────────────────
@@ -95,7 +97,7 @@ const MODE_CONFIG = {
     progressCls: '[&>div]:bg-[#2e7d32]',
     inputLabel: '',
     inputPlaceholder: '',
-    loadingSteps: [],
+    loadingSteps: [] as string[],
     ratings: [
       { min: 90, msg: 'Championship material! Excellent F1 knowledge.' },
       { min: 70, msg: 'Solid points finish. You know your stuff.' },
@@ -107,7 +109,7 @@ const MODE_CONFIG = {
 
 // ── Scoring helpers ──────────────────────────────────────────────────────────
 
-const WHOAMI_PTS = [40, 30, 20, 10]; // indexed by clues revealed (0-based)
+const WHOAMI_PTS = [40, 30, 20, 10];
 const MAX_SCORE = 100;
 
 function whoamiPts(cluesRevealed: number) {
@@ -118,6 +120,10 @@ function getRating(score: number, mode: QuizMode) {
   const ratings = MODE_CONFIG[mode].ratings;
   return ratings.find(r => score >= r.min)?.msg ?? ratings[ratings.length - 1].msg;
 }
+
+// ── Option letter labels ─────────────────────────────────────────────────────
+
+const LETTERS = ['A', 'B', 'C', 'D'];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -139,14 +145,11 @@ export function PostRaceQuiz() {
   const [answered, setAnswered] = useState<number | null>(null);
   const [cluesRevealed, setCluesRevealed] = useState(1);
 
-  // Loading state
+  // Loading
   const [loadingStep, setLoadingStep] = useState(0);
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Error
   const [error, setError] = useState<string | null>(null);
-
-  // Share feedback
   const [copied, setCopied] = useState(false);
 
   // ── Loading step cycling ───────────────────────────────────────────────────
@@ -160,7 +163,7 @@ export function PostRaceQuiz() {
       if (stepTimer.current) clearInterval(stepTimer.current);
     }
     return () => { if (stepTimer.current) clearInterval(stepTimer.current); };
-  }, [phase]);
+  }, [phase, cfg.loadingSteps.length]);
 
   // ── Generate ───────────────────────────────────────────────────────────────
 
@@ -217,7 +220,7 @@ export function PostRaceQuiz() {
     setHistory(h => [...h, { q, chosen: idx, correct, points: pts, cluesUsed }]);
   };
 
-  // ── Next question ──────────────────────────────────────────────────────────
+  // ── Next ───────────────────────────────────────────────────────────────────
 
   const nextQuestion = () => {
     if (currentIdx < questions.length - 1) {
@@ -225,11 +228,10 @@ export function PostRaceQuiz() {
       setAnswered(null);
       setCluesRevealed(1);
     } else {
-      const finalScore = Math.min(score, MAX_SCORE);
       saveScore({
         game: quizMode === 'general' ? 'quiz' : 'postRace',
         label: raceName,
-        score: finalScore,
+        score: Math.min(score, MAX_SCORE),
         total: MAX_SCORE,
       });
       setPhase('done');
@@ -248,6 +250,19 @@ export function PostRaceQuiz() {
     });
   };
 
+  // ── Reset ──────────────────────────────────────────────────────────────────
+
+  const handleReset = () => {
+    setPhase(quizMode === 'general' ? 'quiz' : 'input');
+    setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
+    setCluesRevealed(1); setRaceInput('');
+    if (quizMode === 'general') {
+      setQuestions([...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5));
+    } else {
+      setQuestions([]);
+    }
+  };
+
   // ── Render: input ──────────────────────────────────────────────────────────
 
   if (phase === 'input') {
@@ -256,9 +271,7 @@ export function PostRaceQuiz() {
         <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-bold ${cfg.bannerBg} ${cfg.bannerText}`}>
           {cfg.label}
         </div>
-
         <p className="text-sm text-muted-foreground">{cfg.inputLabel}</p>
-
         <div className="flex gap-2">
           <Input
             value={raceInput}
@@ -272,7 +285,6 @@ export function PostRaceQuiz() {
             Generate →
           </Button>
         </div>
-
         {error && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -309,27 +321,33 @@ export function PostRaceQuiz() {
   if (phase === 'done') {
     const displayScore = Math.min(score, MAX_SCORE);
     const rating = getRating(displayScore, quizMode);
-    const modeLabel = quizMode === 'preview' ? 'Preview' : quizMode === 'review' ? 'Review' : 'General';
 
     return (
-      <div className="flex flex-col gap-5 animate-in fade-in">
+      <div className="flex flex-col gap-4 animate-in fade-in">
         {/* Score header */}
-        <div className="flex flex-col items-center py-6 gap-2">
+        <div className="flex flex-col items-center py-5 gap-2">
           <Trophy className="w-12 h-12 mb-1" style={{ color: cfg.accent }} />
-          <h2 className="text-5xl font-black tabular-nums">{displayScore}<span className="text-2xl text-muted-foreground font-bold">/{MAX_SCORE}</span></h2>
+          <h2 className="text-5xl font-black tabular-nums">
+            {displayScore}<span className="text-2xl text-muted-foreground font-bold">/{MAX_SCORE}</span>
+          </h2>
           <p className="text-sm text-muted-foreground/70 text-center max-w-xs">{rating}</p>
         </div>
 
-        {/* Share button */}
+        {/* Share */}
         <Button onClick={handleShare} variant="outline" className="gap-2 font-bold border-border/60">
           {copied ? <><Check className="w-4 h-4 text-green-400" /> Copied!</> : <><Share2 className="w-4 h-4" /> Share score</>}
         </Button>
 
-        {/* Question breakdown */}
+        {/* Breakdown */}
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-1">Question breakdown</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/40 mb-1">Question breakdown</p>
           {history.map((rec, i) => {
             const isWhoami = rec.q.type === 'whoami';
+            const isLayout = rec.q.type === 'layout';
+            const correctLabel = isLayout
+              ? (rec.q as LayoutQ).circuits[rec.q.ans]
+              : (rec.q as StandardQ | WhoAmIQ).opts[rec.q.ans];
+
             return (
               <div key={i} className={`rounded-lg border p-3 text-sm ${rec.correct ? 'border-green-600/25 bg-green-600/5' : 'border-red-600/25 bg-red-600/5'}`}>
                 <div className="flex items-start gap-2">
@@ -338,7 +356,7 @@ export function PostRaceQuiz() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white/80 leading-snug">
-                      {isWhoami ? 'Who am I?' : rec.q.q}
+                      {isWhoami ? 'Who am I?' : isLayout ? 'Which circuit layout?' : rec.q.q}
                     </p>
                     {isWhoami && rec.cluesUsed && (
                       <p className="text-[11px] text-muted-foreground/50 mt-0.5">
@@ -350,7 +368,7 @@ export function PostRaceQuiz() {
                     ) : (
                       <>
                         <p className="text-[11px] text-muted-foreground/50 mt-0.5">
-                          Correct: <span className="text-white/60">{rec.q.opts[rec.q.ans]}</span>
+                          Correct: <span className="text-white/60">{correctLabel}</span>
                         </p>
                         <p className="text-[11px] text-muted-foreground/40 mt-0.5 italic">{rec.q.fact}</p>
                       </>
@@ -362,19 +380,7 @@ export function PostRaceQuiz() {
           })}
         </div>
 
-        {/* Play again */}
-        <Button
-          onClick={() => {
-            setPhase(quizMode === 'general' ? 'quiz' : 'input');
-            setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null); setCluesRevealed(1); setRaceInput('');
-            if (quizMode === 'general') {
-              setQuestions([...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5));
-            } else {
-              setQuestions([]);
-            }
-          }}
-          className={`font-bold tracking-widest mt-2 ${cfg.accentCls}`}
-        >
+        <Button onClick={handleReset} className={`font-bold tracking-widest mt-1 ${cfg.accentCls}`}>
           PLAY AGAIN
         </Button>
       </div>
@@ -384,8 +390,10 @@ export function PostRaceQuiz() {
   // ── Render: quiz ───────────────────────────────────────────────────────────
 
   const q = questions[currentIdx];
-  const isWhoami = q?.type === 'whoami';
-  const whoamiQ = isWhoami ? (q as WhoAmIQ) : null;
+  if (!q) return null;
+
+  const isWhoami = q.type === 'whoami';
+  const isLayout = q.type === 'layout';
   const displayScore = Math.min(score, MAX_SCORE);
 
   return (
@@ -411,20 +419,20 @@ export function PostRaceQuiz() {
         <Progress value={(currentIdx / questions.length) * 100} className={`h-1 bg-secondary rounded-none ${cfg.progressCls}`} />
       </div>
 
-      {/* General mode unlock notice (first question only) */}
+      {/* General unlock notice (first question only) */}
       {quizMode === 'general' && currentIdx === 0 && answered === null && (
-        <p className="text-[10px] text-muted-foreground/35 text-center -mt-1">
+        <p className="text-[10px] text-muted-foreground/30 text-center -mt-1">
           Preview quizzes unlock on Thursdays · Review quizzes unlock on Tuesdays
         </p>
       )}
 
       {/* Who Am I clues */}
-      {isWhoami && whoamiQ && (
+      {isWhoami && (
         <div className="bg-secondary/30 rounded-xl p-4 space-y-3 border border-border/30">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">
-            Who am I? — {MAX_SCORE - displayScore > 0 ? `up to ${whoamiPts(cluesRevealed)} pts` : ''} 
+            Who am I? — up to {whoamiPts(cluesRevealed)} pts
           </p>
-          {whoamiQ.clues.slice(0, cluesRevealed).map((clue, i) => (
+          {(q as WhoAmIQ).clues.slice(0, cluesRevealed).map((clue, i) => (
             <div key={i} className="flex gap-2.5">
               <span className="text-[10px] font-black text-muted-foreground/30 w-4 shrink-0 mt-0.5">#{i + 1}</span>
               <p className={`text-sm leading-snug ${i === cluesRevealed - 1 ? 'text-white/90 font-medium' : 'text-muted-foreground/50'}`}>{clue}</p>
@@ -441,43 +449,97 @@ export function PostRaceQuiz() {
         </div>
       )}
 
-      {/* Question text (standard only) */}
+      {/* Question text (standard + layout) */}
       {!isWhoami && (
         <div className="text-xl md:text-2xl font-bold leading-tight py-1">{q.q}</div>
       )}
 
-      {/* Answer buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {q.opts.map((opt, idx) => {
-          let cls = 'bg-secondary hover:bg-secondary/80 text-foreground border-transparent';
-          if (answered !== null) {
-            if (idx === q.ans) cls = 'bg-green-600 hover:bg-green-600 text-white border-green-500 shadow-[0_0_15px_rgba(22,163,74,0.3)]';
-            else if (idx === answered) cls = 'bg-red-600 hover:bg-red-600 text-white border-red-500';
-            else cls = 'bg-secondary/50 text-muted-foreground border-transparent opacity-50';
-          }
-          return (
-            <Button
-              key={idx}
-              variant="outline"
-              className={`h-auto min-h-14 py-3 px-4 justify-start text-left whitespace-normal border-2 transition-all ${cls}`}
-              onClick={() => handleAnswer(idx)}
-              disabled={answered !== null}
-            >
-              <div className="flex items-center gap-3 w-full">
-                <div className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center bg-black/20 text-[10px] font-bold font-mono">
-                  {String.fromCharCode(65 + idx)}
+      {/* ── Layout question: circuit SVG grid ─────────────────────────────── */}
+      {isLayout && (
+        <div className="grid grid-cols-2 gap-3">
+          {(q as LayoutQ).circuits.map((circuitName, idx) => {
+            let silhouetteState: 'idle' | 'correct' | 'wrong' | 'faded' = 'idle';
+            let borderCls = 'border-border/40 hover:border-muted-foreground/60 cursor-pointer';
+            let bgCls = 'bg-secondary/40';
+
+            if (answered !== null) {
+              if (idx === q.ans) {
+                silhouetteState = 'correct';
+                borderCls = 'border-green-500/70';
+                bgCls = 'bg-green-600/8';
+              } else if (idx === answered) {
+                silhouetteState = 'wrong';
+                borderCls = 'border-red-500/70';
+                bgCls = 'bg-red-600/8';
+              } else {
+                silhouetteState = 'faded';
+                borderCls = 'border-transparent';
+                bgCls = 'bg-secondary/20';
+              }
+            }
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handleAnswer(idx)}
+                disabled={answered !== null}
+                className={`relative rounded-xl border-2 p-3 pb-2 transition-all duration-200 ${borderCls} ${bgCls}
+                  ${answered === null ? 'active:scale-95' : ''}`}
+                style={{ aspectRatio: '4/3' }}
+              >
+                {/* Letter label */}
+                <div className="absolute top-2 left-2.5 text-[10px] font-black text-muted-foreground/40">
+                  {LETTERS[idx]}
                 </div>
-                <span className="text-sm">{opt}</span>
-              </div>
-            </Button>
-          );
-        })}
-      </div>
+
+                {/* Circuit SVG */}
+                <div className="w-full h-full flex items-center justify-center pt-3">
+                  <CircuitSilhouette
+                    name={circuitName}
+                    state={silhouetteState}
+                    showLabel={answered !== null && idx === q.ans}
+                    className="w-full h-full"
+                  />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Standard / Who Am I: text option buttons ──────────────────────── */}
+      {!isLayout && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {q.opts.map((opt, idx) => {
+            let cls = 'bg-secondary hover:bg-secondary/80 text-foreground border-transparent';
+            if (answered !== null) {
+              if (idx === q.ans) cls = 'bg-green-600 hover:bg-green-600 text-white border-green-500 shadow-[0_0_15px_rgba(22,163,74,0.3)]';
+              else if (idx === answered) cls = 'bg-red-600 hover:bg-red-600 text-white border-red-500';
+              else cls = 'bg-secondary/50 text-muted-foreground border-transparent opacity-50';
+            }
+            return (
+              <Button
+                key={idx}
+                variant="outline"
+                className={`h-auto min-h-14 py-3 px-4 justify-start text-left whitespace-normal border-2 transition-all ${cls}`}
+                onClick={() => handleAnswer(idx)}
+                disabled={answered !== null}
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center bg-black/20 text-[10px] font-bold font-mono">
+                    {LETTERS[idx]}
+                  </div>
+                  <span className="text-sm">{opt}</span>
+                </div>
+              </Button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Post-answer reveal */}
       {answered !== null && (
         <div className="p-4 bg-secondary/50 border border-border rounded-xl animate-in slide-in-from-bottom-2 space-y-3">
-          {/* Who Am I performance message */}
           {isWhoami && (
             <p className="text-xs font-bold" style={{ color: answered === q.ans ? cfg.accent : '#ef4444' }}>
               {answered === q.ans
