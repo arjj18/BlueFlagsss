@@ -1,0 +1,1 @@
+- [Quiz AI token budget](quiz-anthropic-tokens.md) — AI quiz route needs max_tokens>=8000 (web search eats budget); truncated-JSON SyntaxError vs out-of-credits 400 are different failures.

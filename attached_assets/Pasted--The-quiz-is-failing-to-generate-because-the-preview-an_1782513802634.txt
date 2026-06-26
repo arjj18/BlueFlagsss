@@ -1,0 +1,128 @@
+"The quiz is failing to generate because the preview and review quiz modes are not actually sending the right prompts to the Claude API. Please check and fix the following:
+The core problem
+
+When the user types 'Austrian Grand Prix' and clicks Generate in Preview mode the app needs to send a specific detailed prompt to the Claude API asking for 10 historical questions about that circuit. Check whether this is actually happening or whether the generate button is calling an old hardcoded question function instead of making an API call.
+Fix — make sure Generate sends the correct prompt for each mode
+When mode is preview and user has typed a race name send this exact prompt to the API:
+javascriptconst previewPrompt = `You are an F1 quiz master creating a Thursday preview quiz about the history of the ${raceName} Grand Prix circuit.
+
+Search for historical facts about this circuit and generate exactly 10 multiple choice questions covering these topics in this exact order:
+
+1. When was the first ever Formula 1 Grand Prix held at this circuit
+2. Which driver has the most pole positions at this circuit all time
+3. Describe a famous historical moment at this circuit without naming the driver or year and ask what happened
+4. Which of these four circuit descriptions matches this circuit — give the correct one and three wrong ones from similar circuits
+5. How has this circuit layout changed from its original version to today — give four options with one correct change
+6. Describe a famous race at this circuit without naming the year and ask which year it was from four options
+7. Present four statistics about this circuit with one being slightly wrong and ask which stat is incorrect
+8. Who holds the current lap record at this circuit
+9. Has a World Championship ever been decided at this circuit and if so who won it there
+10. Four clue reveal — give clues one at a time about a driver with a legendary connection to this circuit and ask who it is
+
+Return ONLY a valid JSON array with no other text no markdown no explanation:
+[
+  {
+    "q": "Question text",
+    "type": "standard",
+    "opts": ["A", "B", "C", "D"],
+    "ans": 0,
+    "fact": "Brief interesting fact about the correct answer"
+  },
+  {
+    "q": "Who am I?",
+    "type": "whoami",
+    "clues": ["Clue 1 very vague", "Clue 2 narrows down", "Clue 3 more specific", "Clue 4 almost gives it away"],
+    "opts": ["Driver A", "Driver B", "Driver C", "Driver D"],
+    "ans": 0,
+    "fact": "Brief fact about this driver and their connection to this circuit"
+  }
+]
+
+The last question must use type whoami with a clues array. All other questions use type standard. Base every answer on accurate historical facts.`
+When mode is review and user has typed a race name send this exact prompt to the API with web search enabled:
+javascriptconst reviewPrompt = `You are an F1 quiz master creating a Tuesday review quiz about the ${raceName} Formula 1 Grand Prix that just took place.
+
+First search the web for the full results of the ${raceName} including qualifying results, race results, pit stop data, fastest lap, safety car periods, key incidents, and updated championship standings.
+
+Then generate exactly 10 multiple choice questions in this exact order:
+
+1. QUALIFYING: Who took pole position and what was notable about qualifying
+2. PRACTICE: Something specific that happened in the practice sessions
+3. RACE START: What happened on the opening lap
+4. SAFETY CAR OR INCIDENT: A safety car period red flag or notable crash during the race
+5. TYRE STRATEGY: Which compounds were used and what strategy decisions were made
+6. MID RACE BATTLE: A specific overtake or battle for position during the race
+7. POSITION CHART: Describe one driver's race trajectory through positions at key laps and ask which driver this describes
+8. FASTEST LAP: Who set the fastest lap and on which lap
+9. FINAL RESULT: A specific question about the race finish podium or winning margin
+10. CHAMPIONSHIP IMPLICATIONS: How this race changed the championship standings
+
+Base every single question on real accurate data from your web search. Do not guess.
+
+Return ONLY a valid JSON array with no other text no markdown no explanation:
+[{"q":"Question?","type":"standard","opts":["A","B","C","D"],"ans":0,"fact":"Brief fact about the correct answer"}]`
+Make sure the API call structure is correct for both modes
+For preview mode use this API call without web search since it is history based:
+javascriptconst response = await fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01'
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: previewPrompt }]
+  })
+})
+For review mode use this API call with web search enabled so it can find current race results:
+javascriptconst response = await fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01'
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    messages: [{ role: 'user', content: reviewPrompt }]
+  })
+})
+Parse the response correctly for both modes
+javascriptconst data = await response.json()
+console.log('API response status:', response.status)
+console.log('API response:', JSON.stringify(data, null, 2))
+
+if (data.error) {
+  throw new Error(`API error: ${data.error.message}`)
+}
+
+const fullText = data.content
+  .filter(block => block.type === 'text')
+  .map(block => block.text)
+  .join('')
+
+console.log('Raw text from API:', fullText)
+
+const jsonMatch = fullText.match(/\[[\s\S]*\]/)
+if (!jsonMatch) {
+  throw new Error('No valid JSON array found in API response')
+}
+
+const questions = JSON.parse(jsonMatch[0])
+console.log('Parsed questions:', questions)
+
+if (!Array.isArray(questions) || questions.length === 0) {
+  throw new Error('Questions array is empty or invalid')
+}
+Show better error messages
+
+If anything fails show the specific error on screen rather than just failed to generate so we know exactly what went wrong:
+javascript} catch (error) {
+  console.error('Quiz generation error:', error)
+  showError(`Failed: ${error.message}`)
+}
+After making these changes click Run then open the app click Force Thursday type Austrian Grand Prix and click Generate. Check the browser console with F12 and tell me what appears in the logs."

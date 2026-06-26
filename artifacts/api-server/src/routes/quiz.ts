@@ -23,11 +23,22 @@ function extractJsonArray(text: string): unknown[] {
   return JSON.parse(clean.slice(start, end + 1));
 }
 
-async function callWithSearch(anthropic: Anthropic, prompt: string): Promise<string> {
+async function generateQuiz(
+  anthropic: Anthropic,
+  prompt: string,
+  useWebSearch: boolean,
+): Promise<string> {
   const resp = (await anthropic.messages.create({
+    // 10 detailed questions + facts (+ web-search tokens for review) easily
+    // exceed a small budget; too low a limit truncates the JSON mid-string and
+    // breaks parsing. Keep this generous.
     model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    tools: [{ type: "web_search_20250305", name: "web_search" }] as unknown as Anthropic.Tool[],
+    max_tokens: 8000,
+    // Review (post-race) needs live results, so it searches the web. Preview is
+    // history-based and runs from the model's own knowledge — no web search.
+    ...(useWebSearch
+      ? { tools: [{ type: "web_search_20250305", name: "web_search" }] as unknown as Anthropic.Tool[] }
+      : {}),
     messages: [{ role: "user", content: prompt }],
   } as Parameters<typeof anthropic.messages.create>[0])) as Anthropic.Message;
 
@@ -39,7 +50,7 @@ async function callWithSearch(anthropic: Anthropic, prompt: string): Promise<str
 
 const PREVIEW_PROMPT = (race: string) => `You are an F1 quiz master creating a Thursday preview quiz about the history of the ${race} Grand Prix circuit for fans ahead of this weekend's race.
 
-Search the web for historical facts about this circuit including first race year, pole position records, lap records, famous moments, legendary races, and championship moments decided here.
+Using your knowledge of F1 history, draw on facts about this circuit including first race year, pole position records, lap records, famous moments, legendary races, and championship moments decided here.
 
 Generate exactly 10 questions in this exact order:
 
@@ -164,18 +175,45 @@ router.post("/quiz/generate", async (req, res) => {
   try {
     const anthropic = new Anthropic({ apiKey });
     const prompt = mode === "preview" ? PREVIEW_PROMPT(race) : REVIEW_PROMPT(race);
-    const fullText = await callWithSearch(anthropic, prompt);
-    const questions = extractJsonArray(fullText);
+    const fullText = await generateQuiz(anthropic, prompt, mode === "review");
+
+    let questions: unknown[];
+    try {
+      questions = extractJsonArray(fullText);
+    } catch (parseErr) {
+      req.log.error({ parseErr, fullTextLength: fullText.length }, "Quiz JSON parse failed");
+      res.status(502).json({
+        error: "The AI response was incomplete or malformed. Please try again.",
+      });
+      return;
+    }
 
     if (!Array.isArray(questions) || questions.length === 0) {
-      res.status(500).json({ error: "AI returned invalid quiz data" });
+      res.status(502).json({ error: "The AI returned no questions. Please try again." });
       return;
     }
 
     res.json({ race, mode, questions });
   } catch (err) {
     req.log.error({ err }, "Quiz generation failed");
-    res.status(500).json({ error: "Failed to generate quiz. Please try again." });
+
+    if (err instanceof Anthropic.APIError) {
+      const message = String((err as { message?: unknown }).message ?? "");
+      if (err.status === 401) {
+        res.status(503).json({ error: "The Anthropic API key is invalid. Check ANTHROPIC_API_KEY in your Secrets." });
+        return;
+      }
+      if (err.status === 400 && /credit balance is too low/i.test(message)) {
+        res.status(503).json({ error: "The Anthropic account is out of credits. Add credits in the Anthropic console to enable AI quizzes." });
+        return;
+      }
+      if (err.status === 429) {
+        res.status(429).json({ error: "Too many requests to the AI right now. Wait a moment and try again." });
+        return;
+      }
+    }
+
+    res.status(502).json({ error: "Couldn't reach the quiz generator. Please try again." });
   }
 });
 
