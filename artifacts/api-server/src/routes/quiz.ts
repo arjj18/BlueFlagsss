@@ -117,7 +117,28 @@ Question 10 uses this format:
   "fact": "Brief fact about this driver and their connection to this circuit"
 }`;
 
-const REVIEW_PROMPT = (race: string) => `You are an F1 quiz master creating a Tuesday review quiz about the ${race} Formula 1 Grand Prix that just took place.
+const REVIEW_PROMPT = (race: string) => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentDate = now.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return `You are an F1 quiz master. Today's date is ${currentDate}. The current F1 season is ${currentYear}.
+
+IMPORTANT: You must search for ${currentYear} race results only. Do not use ${currentYear - 1} or any previous season data under any circumstances.
+
+Search specifically for:
+- "${race} ${currentYear} F1 race result"
+- "${race} ${currentYear} F1 qualifying"
+- "${race} ${currentYear} F1 fastest lap"
+- "${race} ${currentYear} F1 championship standings after race"
+- "Formula 1 ${currentYear} ${race} Grand Prix"
+
+If your search returns results from ${currentYear - 1} or earlier ignore them completely and search again with different terms. The ${race} Grand Prix ${currentYear} has already taken place and results are available online.
+
+You are creating a Tuesday review quiz about the ${currentYear} ${race} Formula 1 Grand Prix that just took place.
 
 First search the web thoroughly for: full qualifying results, full race results including winner podium finishing order DNFs, all pit stop data including laps compounds and number of stops, fastest lap holder and which lap, safety car or red flag periods and which laps, key overtakes and incidents, championship standings before and after this race, practice session highlights.
 
@@ -154,7 +175,8 @@ Return ONLY a JSON array with no other text in this exact format:
   }
 ]
 
-Every question must use real accurate data from your web search. Do not guess or use outdated information.`;
+Every question must use real accurate data from your ${currentYear} web search. Do not guess or use outdated information or any data from ${currentYear - 1} or earlier.`;
+};
 
 router.post("/quiz/generate", async (req, res) => {
   const parsed = GenerateQuizBody.safeParse(req.body);

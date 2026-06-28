@@ -199,7 +199,7 @@ export default function App() {
                   F1 Knowledge
                 </div>
                 <div className="text-[11px] text-[#666] leading-snug mb-2">Trivia &amp; AI race quizzes</div>
-                <div className="mt-auto text-[10px] font-semibold text-[#2e7d32]/80">2 modes · Mixed types</div>
+                <div className="mt-auto text-[10px] font-semibold text-[#2e7d32]/80">3 modes · Daily picks</div>
               </button>
             </div>
 

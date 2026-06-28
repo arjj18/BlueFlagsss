@@ -28,8 +28,8 @@ type AnswerRecord = {
 
 function getTodayMode(): QuizMode {
   const day = new Date().getDay();
-  if (day === 4) return 'preview';
-  if (day === 2) return 'review';
+  if (day === 4 || day === 5 || day === 6) return 'preview'; // Thursday–Saturday
+  if (day === 2 || day === 3) return 'review';               // Tuesday–Wednesday
   return 'general';
 }
 
@@ -43,7 +43,7 @@ const GENERAL_QUESTIONS: StandardQ[] = [
   { type:'standard', q:"Which team has won the most Constructors' Championships?", opts:["McLaren","Mercedes","Williams","Ferrari"], ans:3, fact:"Ferrari leads with 16 Constructors' titles — more than any other team." },
   { type:'standard', q:"What colour flag signals the race has been stopped?", opts:["Yellow","Blue","Red","Black"], ans:2, fact:"A red flag immediately neutralises the race." },
   { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool demeanour under pressure." },
-  { type:'standard', q:"How many cars start a Formula 1 race?", opts:["16","18","20","22"], ans:2, fact:"10 teams × 2 drivers = 20 cars on the starting grid." },
+  { type:'standard', q:"How many cars start a Formula 1 race in 2026?", opts:["18","20","22","24"], ans:2, fact:"With 11 teams × 2 drivers there are 22 cars on the starting grid in 2026, after Cadillac joined as the 11th constructor." },
   { type:'standard', q:"Which country hosts the Suzuka circuit?", opts:["South Korea","China","Singapore","Japan"], ans:3, fact:"Suzuka is in Japan's Mie Prefecture and has hosted the Japanese GP since 1987." },
   { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield." },
 ];
@@ -127,16 +127,24 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function PostRaceQuiz() {
+type PostRaceQuizProps = {
+  /** When provided, the quiz launches directly in this mode (set by the quiz home). */
+  initialMode?: QuizMode;
+  /** Fallback handler so error states can offer the always-available General Quiz. */
+  onPlayGeneral?: () => void;
+};
+
+export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps = {}) {
+  const startMode: QuizMode = initialMode ?? getTodayMode();
   const [testModeOverride, setTestModeOverride] = useState<QuizMode | null>(null);
-  const quizMode: QuizMode = testModeOverride ?? getTodayMode();
+  const quizMode: QuizMode = testModeOverride ?? startMode;
   const cfg = MODE_CONFIG[quizMode];
 
-  const [phase, setPhase] = useState<Phase>(() => getTodayMode() === 'general' ? 'quiz' : 'input');
+  const [phase, setPhase] = useState<Phase>(() => startMode === 'general' ? 'quiz' : 'input');
   const [raceInput, setRaceInput] = useState('');
-  const [raceName, setRaceName] = useState(() => getTodayMode() === 'general' ? 'General Quiz' : '');
+  const [raceName, setRaceName] = useState(() => startMode === 'general' ? 'General Quiz' : '');
   const [questions, setQuestions] = useState<Question[]>(() =>
-    getTodayMode() === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
+    startMode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
   );
 
   // Quiz state
@@ -170,7 +178,7 @@ export function PostRaceQuiz() {
 
   const clearTestMode = () => {
     setTestModeOverride(null);
-    resetQuizState(getTodayMode());
+    resetQuizState(startMode);
   };
 
   const devBar = (
@@ -340,9 +348,37 @@ export function PostRaceQuiz() {
           </Button>
         </div>
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <p>{error}</p>
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg space-y-3">
+            <div className="flex items-start gap-2.5 text-destructive">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-bold">
+                  Couldn't generate the {quizMode === 'preview' ? 'Preview' : 'Review'} Quiz right now.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{error}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  The AI quiz needs a live connection. You can try again, or play the General Quiz which always works offline.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {onPlayGeneral && (
+                <Button
+                  onClick={onPlayGeneral}
+                  className="flex-1 font-bold bg-[#2e7d32] hover:bg-[#2e7d32]/85"
+                >
+                  Play General Quiz instead →
+                </Button>
+              )}
+              <Button
+                onClick={handleGenerate}
+                variant="outline"
+                disabled={!raceInput.trim()}
+                className="flex-1 font-bold gap-2"
+              >
+                <RefreshCw className="w-4 h-4" /> Try again
+              </Button>
+            </div>
           </div>
         )}
       </div>

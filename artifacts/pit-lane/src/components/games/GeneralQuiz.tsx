@@ -359,10 +359,17 @@ const BANK: Question[] = [
   },
   {
     type: 'standard',
-    q: 'How many constructors currently compete in Formula 1?',
-    opts: ['8', '9', '10', '12'],
+    q: 'How many constructors compete in Formula 1 in 2026?',
+    opts: ['9', '10', '11', '12'],
     ans: 2,
-    fact: 'F1 has had 10 constructors on the grid since 2016. General Motors backed Cadillac team are set to join as an 11th constructor.',
+    fact: 'F1 has 11 constructors on the grid for the 2026 season after Cadillac joined as the 11th team, the first new American works constructor in decades.',
+  },
+  {
+    type: 'standard',
+    q: 'How many cars start a Formula 1 race in 2026?',
+    opts: ['18', '20', '22', '24'],
+    ans: 2,
+    fact: 'There are now 11 teams on the grid with 2 drivers each making 22 cars in total. Cadillac joined as the 11th constructor bringing new American investment to the sport.',
   },
   {
     type: 'standard',
@@ -428,6 +435,10 @@ const BANK: Question[] = [
     fact: 'The Red Bull Ring in Austria hosted two consecutive race weekends in July 2020 when the season was severely disrupted by the pandemic.',
   },
 ];
+
+// Question bank last updated: June 2026
+// Season: 2026 F1 World Championship
+// Grid: 11 teams, 22 drivers
 
 const TYPE_META: Record<QuestionType, { label: string; badge: string }> = {
   career: { label: 'Career Path', badge: 'bg-[#1565c0]/15 text-[#6db1ec] border-[#1565c0]/40' },
