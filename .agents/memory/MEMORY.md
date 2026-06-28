@@ -1,1 +1,1 @@
-- [Quiz AI token budget](quiz-anthropic-tokens.md) — AI quiz route needs max_tokens>=8000 (web search eats budget); truncated-JSON SyntaxError vs out-of-credits 400 are different failures.
+- [Quiz/predict AI generation](quiz-anthropic-tokens.md) — quiz+predictor use Replit-billed managed AI (shared @workspace/integrations-anthropic-ai client); web search works via proxy; keep max_tokens 8192 or JSON truncates.

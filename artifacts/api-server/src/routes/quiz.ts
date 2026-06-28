@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateQuizBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -33,7 +34,7 @@ async function generateQuiz(
     // exceed a small budget; too low a limit truncates the JSON mid-string and
     // breaks parsing. Keep this generous.
     model: "claude-sonnet-4-6",
-    max_tokens: 8000,
+    max_tokens: 8192,
     // Review (post-race) needs live results, so it searches the web. Preview is
     // history-based and runs from the model's own knowledge — no web search.
     ...(useWebSearch
@@ -166,14 +167,7 @@ router.post("/quiz/generate", async (req, res) => {
   const rawMode = (req.body as { mode?: unknown }).mode;
   const mode: "preview" | "review" = rawMode === "preview" ? "preview" : "review";
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    res.status(503).json({ error: "ANTHROPIC_API_KEY is not configured. Add it to your Replit Secrets to enable this feature." });
-    return;
-  }
-
   try {
-    const anthropic = new Anthropic({ apiKey });
     const prompt = mode === "preview" ? PREVIEW_PROMPT(race) : REVIEW_PROMPT(race);
     const fullText = await generateQuiz(anthropic, prompt, mode === "review");
 
@@ -199,16 +193,12 @@ router.post("/quiz/generate", async (req, res) => {
 
     if (err instanceof Anthropic.APIError) {
       const message = String((err as { message?: unknown }).message ?? "");
-      if (err.status === 401) {
-        res.status(503).json({ error: "The Anthropic API key is invalid. Check ANTHROPIC_API_KEY in your Secrets." });
-        return;
-      }
-      if (err.status === 400 && /credit balance is too low/i.test(message)) {
-        res.status(503).json({ error: "The Anthropic account is out of credits. Add credits in the Anthropic console to enable AI quizzes." });
-        return;
-      }
       if (err.status === 429) {
         res.status(429).json({ error: "Too many requests to the AI right now. Wait a moment and try again." });
+        return;
+      }
+      if (/credit balance is too low/i.test(message)) {
+        res.status(503).json({ error: "The AI service is temporarily unavailable (out of credits). Please try again later." });
         return;
       }
     }

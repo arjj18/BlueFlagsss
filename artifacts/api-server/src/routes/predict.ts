@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import Anthropic from "@anthropic-ai/sdk";
+import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router: IRouter = Router();
 
@@ -177,18 +177,10 @@ router.post("/predict/race", async (req, res) => {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    res.status(503).json({ error: "ANTHROPIC_API_KEY is not configured." });
-    return;
-  }
-
   try {
-    const anthropic = new Anthropic({ apiKey });
-
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: [
         {
