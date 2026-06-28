@@ -1,0 +1,440 @@
+"Please add a global autocomplete search component to the app that works across multiple features. Here is every detail of how it should work:
+The autocomplete database
+Create a single JavaScript file or object called F1_DATABASE that contains every searchable item across four categories. Build it with all of these entries:
+javascriptconst F1_DATABASE = {
+  drivers: [
+    // Current drivers
+    'Max Verstappen', 'Lewis Hamilton', 'Charles Leclerc', 'Lando Norris',
+    'Carlos Sainz', 'George Russell', 'Fernando Alonso', 'Oscar Piastri',
+    'Lance Stroll', 'Esteban Ocon', 'Pierre Gasly', 'Valtteri Bottas',
+    'Zhou Guanyu', 'Kevin Magnussen', 'Nico Hulkenberg', 'Yuki Tsunoda',
+    'Daniel Ricciardo', 'Nyck de Vries', 'Logan Sargeant', 'Alexander Albon',
+    'Franco Colapinto', 'Oliver Bearman', 'Kimi Antonelli', 'Jack Doohan',
+    'Isack Hadjar', 'Liam Lawson', 'Gabriel Bortoleto',
+
+    // Legends and historical drivers
+    'Ayrton Senna', 'Michael Schumacher', 'Alain Prost', 'Nigel Mansell',
+    'Jackie Stewart', 'Jim Clark', 'Juan Manuel Fangio', 'Niki Lauda',
+    'Nelson Piquet', 'Jenson Button', 'Kimi Räikkönen', 'Nico Rosberg',
+    'Sebastian Vettel', 'Rubens Barrichello', 'Felipe Massa', 'Mark Webber',
+    'David Coulthard', 'Mika Häkkinen', 'Damon Hill', 'Jacques Villeneuve',
+    'Ralf Schumacher', 'Heinz-Harald Frentzen', 'Eddie Irvine', 'Giancarlo Fisichella',
+    'Romain Grosjean', 'Sergio Perez', 'Robert Kubica', 'Pastor Maldonado',
+    'Vitaly Petrov', 'Heikki Kovalainen', 'Jarno Trulli', 'Timo Glock',
+    'Adrian Sutil', 'Nick Heidfeld', 'Emerson Fittipaldi', 'Mario Andretti',
+    'Jochen Rindt', 'Graham Hill', 'Jack Brabham', 'John Surtees',
+    'Mike Hawthorn', 'Giuseppe Farina', 'Alberto Ascari', 'Stirling Moss',
+    'Gilles Villeneuve', 'Ronnie Peterson', 'James Hunt', 'Carlos Reutemann',
+    'Riccardo Patrese', 'Michele Alboreto', 'Gerhard Berger', 'Derek Warwick',
+    'Martin Brundle', 'Johnny Herbert', 'Jos Verstappen', 'Olivier Panis',
+    'Jean Alesi', 'Michael Andretti', 'Eddie Cheever', 'Thierry Boutsen',
+    'Stefan Johansson', 'Elio de Angelis', 'Rene Arnoux', 'Patrick Tambay',
+    'Bruno Senna', 'Anthony Davidson', 'Takuma Sato', 'Jenson Button',
+    'Tiago Monteiro', 'Christijan Albers', 'Scott Speed', 'Vitantonio Liuzzi',
+    'Sebastien Bourdais', 'Narain Karthikeyan', 'Ho-Pin Tung', 'Ma Qing Hua',
+
+    // Recent drivers
+    'Stoffel Vandoorne', 'Pascal Wehrlein', 'Jolyon Palmer', 'Rio Haryanto',
+    'Marcus Ericsson', 'Roberto Merhi', 'Will Stevens', 'Max Chilton',
+    'Charles Pic', 'Vitaly Petrov', 'Kamui Kobayashi', 'Charles Leclerc',
+    'Antonio Giovinazzi', 'Mick Schumacher', 'Nikita Mazepin', 'Callum Ilott',
+    'Roy Nissany', 'Pietro Fittipaldi', 'Devlin DeFrancesco', 'Nicholas Latifi',
+  ],
+
+  teams: [
+    // Current teams
+    'Red Bull Racing', 'Ferrari', 'McLaren', 'Mercedes', 'Aston Martin',
+    'Alpine', 'Williams', 'Racing Bulls', 'Haas', 'Kick Sauber',
+
+    // Historic team names
+    'Toro Rosso', 'AlphaTauri', 'Force India', 'Racing Point', 'Sahara Force India',
+    'Lotus', 'Lotus F1 Team', 'Caterham', 'HRT', 'Virgin Racing', 'Marussia',
+    'Manor', 'Renault', 'Jaguar', 'BAR', 'British American Racing', 'Toyota',
+    'Honda', 'Super Aguri', 'Spyker', 'MF1', 'Jordan', 'Minardi', 'Arrows',
+    'Prost', 'Stewart', 'Tyrrell', 'Benetton', 'Brabham', 'March',
+    'Ligier', 'Footwork', 'Leyton House', 'Dallara', 'Pacific', 'Simtek',
+    'Fondmetal', 'Andrea Moda', 'Osella', 'Coloni', 'EuroBrun', 'Life',
+    'Brawn GP', 'BAR Honda', 'Sauber', 'Alfa Romeo', 'BRM', 'Cooper',
+    'Matra', 'Wolf', 'Hesketh', 'Shadow', 'Ensign', 'Fittipaldi',
+    'Toleman', 'Spirit', 'ATS', 'RAM', 'Theodore', 'Tecno',
+  ],
+
+  circuits: [
+    // Current calendar circuits with full names
+    'Bahrain Grand Prix', 'Saudi Arabian Grand Prix', 'Australian Grand Prix',
+    'Japanese Grand Prix', 'Chinese Grand Prix', 'Miami Grand Prix',
+    'Emilia Romagna Grand Prix', 'Monaco Grand Prix', 'Canadian Grand Prix',
+    'Spanish Grand Prix', 'Austrian Grand Prix', 'British Grand Prix',
+    'Hungarian Grand Prix', 'Belgian Grand Prix', 'Dutch Grand Prix',
+    'Italian Grand Prix', 'Azerbaijan Grand Prix', 'Singapore Grand Prix',
+    'United States Grand Prix', 'Mexico City Grand Prix', 'Brazilian Grand Prix',
+    'Las Vegas Grand Prix', 'Qatar Grand Prix', 'Abu Dhabi Grand Prix',
+
+    // Circuit names as well as Grand Prix names
+    'Bahrain International Circuit', 'Jeddah Corniche Circuit',
+    'Albert Park Circuit', 'Suzuka International Racing Course',
+    'Shanghai International Circuit', 'Miami International Autodrome',
+    'Autodromo Enzo e Dino Ferrari', 'Circuit de Monaco',
+    'Circuit Gilles Villeneuve', 'Circuit de Barcelona-Catalunya',
+    'Red Bull Ring', 'Silverstone Circuit', 'Hungaroring',
+    'Circuit de Spa-Francorchamps', 'Circuit Zandvoort',
+    'Autodromo Nazionale Monza', 'Baku City Circuit',
+    'Marina Bay Street Circuit', 'Circuit of the Americas',
+    'Autodromo Hermanos Rodriguez', 'Autodromo Jose Carlos Pace',
+    'Las Vegas Strip Circuit', 'Losail International Circuit',
+    'Yas Marina Circuit',
+
+    // Common shorthand names fans use
+    'Bahrain', 'Jeddah', 'Melbourne', 'Suzuka', 'Shanghai', 'Miami',
+    'Imola', 'Monaco', 'Montreal', 'Barcelona', 'Spielberg', 'Silverstone',
+    'Budapest', 'Spa', 'Zandvoort', 'Monza', 'Baku', 'Singapore',
+    'Austin', 'COTA', 'Mexico City', 'Sao Paulo', 'Interlagos',
+    'Las Vegas', 'Lusail', 'Abu Dhabi', 'Yas Marina',
+
+    // Historic circuits
+    'Nurburgring', 'Hockenheim', 'Hockenheimring', 'Magny-Cours',
+    'A1 Ring', 'Indianapolis Motor Speedway', 'Detroit Street Circuit',
+    'Dallas Street Circuit', 'Long Beach Street Circuit', 'Watkins Glen',
+    'Mosport', 'Brands Hatch', 'Donington Park', 'Aintree',
+    'Sebring', 'Riverside', 'Phoenix Street Circuit', 'Caesars Palace',
+    'Kyalami', 'Buenos Aires', 'Jerez', 'Estoril', 'Jarama',
+    'Dijon', 'Paul Ricard', 'Clermont-Ferrand', 'Rouen',
+    'Pescara', 'Ain-Diab', 'Monsanto', 'Oporto', 'Boavista',
+    'Zeltweg', 'Nivelles', 'Zolder', 'Charade', 'Reims',
+    'Fuji Speedway', 'Sepang International Circuit', 'Sepang',
+    'Istanbul Park', 'Valencia Street Circuit', 'Sochi Autodrom',
+    'Sochi', 'Portimao', 'Algarve International Circuit',
+    'Mugello', 'Bahrain Outer Circuit', 'Nurburgring Nordschleife',
+  ],
+
+  engines: [
+    // Current engine suppliers
+    'Mercedes Engine', 'Ferrari Engine', 'Red Bull Powertrains', 'Honda RBPT',
+    'Renault Engine', 'Alpine Engine', 'Ford Engine',
+
+    // Historic engine suppliers
+    'Honda', 'Renault', 'Mercedes', 'Ferrari', 'Ford Cosworth',
+    'Ford Cosworth DFV', 'TAG Porsche', 'BMW', 'Mugen Honda',
+    'Judd', 'Yamaha', 'Subaru', 'Hart', 'Lamborghini', 'Peugeot',
+    'Mecachrome', 'Supertec', 'Asiatech', 'Cosworth', 'Toyota Engine',
+    'BMW Sauber', 'Ilmor', 'Repco', 'Climax', 'BRM Engine',
+    'Maserati Engine', 'Alfa Romeo Engine', 'Vanwall', 'Weslake',
+  ]
+}
+The autocomplete component
+Build a reusable autocomplete component that can be dropped into any input field in the app. It should work like this:
+javascriptfunction createAutocomplete(inputElement, categories, onSelect) {
+  // categories is an array like ['drivers'] or ['drivers', 'teams', 'circuits']
+  // onSelect is called when the user picks a suggestion
+  
+  const dropdown = document.createElement('div')
+  dropdown.style.cssText = `
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;
+  `
+  
+  inputElement.parentElement.style.position = 'relative'
+  inputElement.parentElement.appendChild(dropdown)
+  
+  function search(query) {
+    if (query.length < 2) {
+      dropdown.style.display = 'none'
+      return
+    }
+    
+    const lower = query.toLowerCase()
+    const results = []
+    
+    categories.forEach(cat => {
+      const items = F1_DATABASE[cat] || []
+      items.forEach(item => {
+        if (item.toLowerCase().includes(lower) && results.length < 8) {
+          results.push({ item, category: cat })
+        }
+      })
+    })
+    
+    // Sort results — items starting with the query come first
+    results.sort((a, b) => {
+      const aStarts = a.item.toLowerCase().startsWith(lower)
+      const bStarts = b.item.toLowerCase().startsWith(lower)
+      if (aStarts && !bStarts) return -1
+      if (!aStarts && bStarts) return 1
+      return a.item.localeCompare(b.item)
+    })
+    
+    if (results.length === 0) {
+      dropdown.style.display = 'none'
+      return
+    }
+    
+    const categoryColors = {
+      drivers: '#e10600',
+      teams: '#1565c0', 
+      circuits: '#2e7d32',
+      engines: '#e65100'
+    }
+    
+    const categoryLabels = {
+      drivers: 'Driver',
+      teams: 'Team',
+      circuits: 'Circuit',
+      engines: 'Engine'
+    }
+    
+    dropdown.innerHTML = results.map((r, i) => `
+      <div 
+        class="autocomplete-item"
+        data-index="${i}"
+        style="
+          padding: 10px 14px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 0.5px solid var(--color-border-tertiary);
+          transition: background 0.1s;
+        "
+        onmouseover="this.style.background='var(--color-background-secondary)'"
+        onmouseout="this.style.background='transparent'"
+        onmousedown="event.preventDefault()"
+        onclick="selectItem('${r.item.replace(/'/g, "\\'")}')"
+      >
+        <span>${highlightMatch(r.item, query)}</span>
+        <span style="
+          font-size: 9px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: ${categoryColors[r.category]};
+          background: ${categoryColors[r.category]}20;
+          padding: 2px 6px;
+          border-radius: 20px;
+        ">${categoryLabels[r.category]}</span>
+      </div>
+    `).join('')
+    
+    dropdown.style.display = 'block'
+    
+    // Make selectItem available globally for onclick
+    window.selectItem = function(value) {
+      inputElement.value = value
+      dropdown.style.display = 'none'
+      onSelect(value)
+    }
+  }
+  
+  function highlightMatch(text, query) {
+    const lower = text.toLowerCase()
+    const queryLower = query.toLowerCase()
+    const index = lower.indexOf(queryLower)
+    if (index === -1) return text
+    return text.substring(0, index) + 
+      '<strong style="color:#e10600">' + text.substring(index, index + query.length) + '</strong>' + 
+      text.substring(index + query.length)
+  }
+  
+  inputElement.addEventListener('input', (e) => search(e.target.value))
+  
+  inputElement.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') dropdown.style.display = 'none'
+    if (e.key === 'ArrowDown') {
+      const items = dropdown.querySelectorAll('.autocomplete-item')
+      if (items.length > 0) items[0].focus()
+    }
+  })
+  
+  inputElement.addEventListener('blur', () => {
+    setTimeout(() => dropdown.style.display = 'none', 150)
+  })
+  
+  return { search, close: () => dropdown.style.display = 'none' }
+}
+Where to apply the autocomplete
+Apply the autocomplete component to these specific input fields:
+
+TENABELL answer input — use all four categories since Tenabell questions can ask about drivers, teams, circuits or engines:
+
+javascript// When Tenabell input is created add this
+const tenabellInput = document.getElementById('tenabell-input')
+if (tenabellInput) {
+  createAutocomplete(
+    tenabellInput, 
+    ['drivers', 'teams', 'circuits', 'engines'],
+    (selectedValue) => {
+      // Auto submit the guess when user selects from dropdown
+      tenabellInput.value = selectedValue
+      TENABELL.tryGuess()
+    }
+  )
+}
+
+PREVIEW QUIZ race name input — use circuits only so it suggests the correct full Grand Prix name:
+
+javascriptconst previewInput = document.getElementById('preview-race-input')
+if (previewInput) {
+  createAutocomplete(
+    previewInput,
+    ['circuits'],
+    (selectedValue) => {
+      previewInput.value = selectedValue
+      // Do not auto submit — let user click generate button themselves
+    }
+  )
+}
+
+REVIEW QUIZ race name input — use circuits only:
+
+javascriptconst reviewInput = document.getElementById('review-race-input')
+if (reviewInput) {
+  createAutocomplete(
+    reviewInput,
+    ['circuits'],
+    (selectedValue) => {
+      reviewInput.value = selectedValue
+    }
+  )
+}
+
+RACE PREDICTOR race name input — use circuits only:
+
+javascriptconst predictorInput = document.getElementById('predictor-race-input')
+if (predictorInput) {
+  createAutocomplete(
+    predictorInput,
+    ['circuits'],
+    (selectedValue) => {
+      predictorInput.value = selectedValue
+    }
+  )
+}
+
+GENERAL QUIZ career path answer input — use drivers only:
+
+javascriptconst careerInput = document.getElementById('career-answer-input')
+if (careerInput) {
+  createAutocomplete(
+    careerInput,
+    ['drivers'],
+    (selectedValue) => {
+      careerInput.value = selectedValue
+      // Auto submit when driver selected from dropdown
+      GENERALQUIZ.submitCareerAnswer(selectedValue)
+    }
+  )
+}
+Fuzzy matching for Tenabell
+For the Tenabell specifically also update the answer checking logic to be more flexible. A player should get credit if their answer closely matches a correct answer even without using autocomplete. Update the Tenabell guess checking like this:
+javascriptfunction checkTenabellAnswer(input, correctAnswers) {
+  const inputLower = input.trim().toLowerCase()
+  
+  return correctAnswers.find(answer => {
+    const answerLower = answer.toLowerCase()
+    
+    // Exact match
+    if (answerLower === inputLower) return true
+    
+    // Input contains the answer
+    if (answerLower.includes(inputLower) && inputLower.length >= 3) return true
+    
+    // Answer contains the input
+    if (inputLower.includes(answerLower) && answerLower.length >= 4) return true
+    
+    // Last name match for drivers — Verstappen matches Max Verstappen
+    const answerParts = answerLower.split(' ')
+    if (answerParts.length > 1) {
+      const lastName = answerParts[answerParts.length - 1]
+      if (lastName === inputLower && inputLower.length >= 4) return true
+    }
+    
+    // Common nicknames and abbreviations
+    const nicknames = {
+      'max': 'max verstappen',
+      'lewis': 'lewis hamilton',
+      'lando': 'lando norris',
+      'charles': 'charles leclerc',
+      'checo': 'sergio perez',
+      'danny ric': 'daniel ricciardo',
+      'the iceman': 'kimi räikkönen',
+      'kimi': 'kimi räikkönen',
+      'schumi': 'michael schumacher',
+      'schu': 'michael schumacher',
+      'alonso': 'fernando alonso',
+      'nando': 'fernando alonso',
+      'seb': 'sebastian vettel',
+      'nico': 'nico rosberg',
+      'bottas': 'valtteri bottas',
+      'sainz': 'carlos sainz',
+      'russell': 'george russell',
+      'norris': 'lando norris',
+      'piastri': 'oscar piastri',
+    }
+    
+    if (nicknames[inputLower]) {
+      return answerLower === nicknames[inputLower]
+    }
+    
+    return false
+  })
+}
+The visual style of the autocomplete dropdown
+Make sure the dropdown matches the rest of the app — dark background, red accent colour for matches, subtle category pills on the right side. The matching text in the search result should be bold and red so players can see exactly which part of the name matched their query.
+The dropdown should appear instantly as the player types with no delay. It should disappear when the player clicks outside it, presses Escape, or selects an item.
+On mobile the dropdown should be large enough to tap comfortably — each row at least 44px tall so fingers can select accurately.
+Important — initialise autocomplete after each game renders
+Because the games re-render their HTML when state changes the input elements get recreated and lose their autocomplete. Make sure to call the autocomplete initialisation function after every render that creates an input field. Add this to a central initAutocomplete function that gets called after every render:
+javascriptfunction initAllAutocompletes() {
+  // Small delay to ensure DOM has updated
+  setTimeout(() => {
+    const tenabellInput = document.getElementById('tenabell-input')
+    if (tenabellInput && !tenabellInput.dataset.autocomplete) {
+      tenabellInput.dataset.autocomplete = 'true'
+      createAutocomplete(
+        tenabellInput,
+        ['drivers', 'teams', 'circuits', 'engines'],
+        (val) => { tenabellInput.value = val; TENABELL.tryGuess() }
+      )
+    }
+    
+    const previewInput = document.getElementById('preview-race-input')
+    if (previewInput && !previewInput.dataset.autocomplete) {
+      previewInput.dataset.autocomplete = 'true'
+      createAutocomplete(previewInput, ['circuits'], (val) => { previewInput.value = val })
+    }
+    
+    const reviewInput = document.getElementById('review-race-input')
+    if (reviewInput && !reviewInput.dataset.autocomplete) {
+      reviewInput.dataset.autocomplete = 'true'
+      createAutocomplete(reviewInput, ['circuits'], (val) => { reviewInput.value = val })
+    }
+    
+    const predictorInput = document.getElementById('predictor-race-input')
+    if (predictorInput && !predictorInput.dataset.autocomplete) {
+      predictorInput.dataset.autocomplete = 'true'
+      createAutocomplete(predictorInput, ['circuits'], (val) => { predictorInput.value = val })
+    }
+    
+    const careerInput = document.getElementById('career-answer-input')
+    if (careerInput && !careerInput.dataset.autocomplete) {
+      careerInput.dataset.autocomplete = 'true'
+      createAutocomplete(careerInput, ['drivers'], (val) => { GENERALQUIZ.submitCareerAnswer(val) })
+    }
+  }, 100)
+}
+
+// Call this after every render throughout the app
+Keep all existing game logic exactly as it is. Only add the autocomplete database, the autocomplete component, and the initialisation calls after each render."

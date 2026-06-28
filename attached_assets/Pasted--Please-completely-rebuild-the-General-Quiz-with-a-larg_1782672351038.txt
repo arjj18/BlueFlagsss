@@ -1,0 +1,485 @@
+"Please completely rebuild the General Quiz with a large hardcoded question bank and multiple question types that are randomly mixed every game. Here is every detail:
+The core concept
+
+The general quiz pulls 10 random questions from a bank of 70+ questions every game. The 10 questions are always a mix of different question types so no two games feel the same. Questions are shuffled randomly so players see them in a different order every time.
+The question types to include
+Type 1 — STANDARD: Standard multiple choice question with four text options
+
+Type 2 — CAREER PATH: Show a sequence of teams a driver raced for and ask who the driver is
+
+Type 3 — FINISHING GRAPH: Show a description of a driver's championship finishing positions across multiple seasons and ask who the driver is
+
+Type 4 — TEAM RADIO: Show a famous team radio transcript with the driver name removed and ask who said it
+
+Type 5 — HELMET: Describe a driver's distinctive helmet design in detail and ask which driver it belongs to
+
+Type 6 — FAMOUS MOMENT: Describe a famous F1 moment or photo in vivid detail and ask what happened what happened next or who was involved
+
+Type 7 — LIVERY: Describe a famous F1 car livery in detail and ask which team it belongs to
+
+Type 8 — SPONSOR: Describe a famous F1 sponsor and ask which team or driver they were associated with
+The complete question bank — build all of these
+CAREER PATH QUESTIONS:
+javascript{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['Sauber', 'Ferrari', 'Lotus', 'Ferrari', 'Alfa Romeo'],
+  years: ['2018', '2019–present', '', '', ''],
+  opts: ['Charles Leclerc', 'Kimi Räikkönen', 'Sebastian Vettel', 'Fernando Alonso'],
+  ans: 1,
+  fact: 'Räikkönen returned to Sauber in 2019 when the team was rebranded Alfa Romeo, completing a full circle in his career.'
+},
+{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['Minardi', 'Renault', 'McLaren', 'Renault', 'Ferrari', 'McLaren', 'Alpine', 'Aston Martin'],
+  years: ['2001', '2003–06', '2007', '2008–09', '2010–14', '2015', '2021–22', '2023–'],
+  opts: ['Michael Schumacher', 'Fernando Alonso', 'Jenson Button', 'Rubens Barrichello'],
+  ans: 1,
+  fact: 'Alonso is one of the most well travelled drivers in F1 history having raced for 8 different teams across his career.'
+},
+{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['Jordan', 'Benetton', 'Ferrari', 'Mercedes'],
+  years: ['1991', '1991–95', '1996–2006', '2010–12'],
+  opts: ['Damon Hill', 'Michael Schumacher', 'Eddie Irvine', 'Rubens Barrichello'],
+  ans: 1,
+  fact: 'Schumacher won all five of his consecutive titles at Ferrari before a brief retirement and comeback with Mercedes.'
+},
+{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['McLaren', 'Mercedes', 'Ferrari'],
+  years: ['2007–12', '2013–24', '2025–'],
+  opts: ['Nico Rosberg', 'Lewis Hamilton', 'Valtteri Bottas', 'George Russell'],
+  ans: 1,
+  fact: 'Hamilton shocked the F1 world in 2024 by announcing he would join Ferrari for the 2025 season after 12 years at Mercedes.'
+},
+{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['Toro Rosso', 'Red Bull'],
+  years: ['2015', '2016–'],
+  opts: ['Daniel Ricciardo', 'Carlos Sainz', 'Max Verstappen', 'Daniil Kvyat'],
+  ans: 2,
+  fact: 'Verstappen became the youngest driver to start an F1 race at 17 years and 166 days old with Toro Rosso in 2015.'
+},
+{
+  type: 'career',
+  q: 'Which driver followed this career path?',
+  career: ['Renault', 'McLaren', 'Ferrari', 'Lotus', 'Ferrari', 'Alfa Romeo'],
+  years: ['2001', '2002–06', '2007–09', '2010–12', '2014–18', '2019–21'],
+  opts: ['Fernando Alonso', 'Kimi Räikkönen', 'Felipe Massa', 'Romain Grosjean'],
+  ans: 1,
+  fact: 'Räikkönen holds the record for most F1 race starts with 349 appearances across his career.'
+},
+
+FINISHING GRAPH QUESTIONS:
+
+{
+  type: 'graph',
+  q: 'Which driver had this championship finishing positions across their career?',
+  positions: [
+    { year: '2015', pos: 3 },
+    { year: '2016', pos: 1 },
+    { year: '2017', pos: 2 },
+    { year: '2018', pos: 2 },
+    { year: '2019', pos: 5 },
+    { year: '2020', pos: 2 },
+  ],
+  opts: ['Lewis Hamilton', 'Nico Rosberg', 'Sebastian Vettel', 'Valtteri Bottas'],
+  ans: 1,
+  fact: 'Rosberg retired just five days after winning the 2016 World Championship, one of the most shocking retirements in F1 history.'
+},
+{
+  type: 'graph',
+  q: 'Which driver had this championship finishing positions across their career?',
+  positions: [
+    { year: '2010', pos: 1 },
+    { year: '2011', pos: 1 },
+    { year: '2012', pos: 1 },
+    { year: '2013', pos: 1 },
+    { year: '2014', pos: 5 },
+    { year: '2015', pos: 3 },
+  ],
+  opts: ['Fernando Alonso', 'Sebastian Vettel', 'Lewis Hamilton', 'Mark Webber'],
+  ans: 1,
+  fact: 'Vettel dominated F1 from 2010 to 2013 with Red Bull but struggled badly when the sport moved to turbo hybrid engines in 2014.'
+},
+{
+  type: 'graph',
+  q: 'Which driver had this championship finishing positions across their career?',
+  positions: [
+    { year: '2019', pos: 6 },
+    { year: '2020', pos: 3 },
+    { year: '2021', pos: 1 },
+    { year: '2022', pos: 1 },
+    { year: '2023', pos: 1 },
+  ],
+  opts: ['Charles Leclerc', 'Lewis Hamilton', 'Max Verstappen', 'Lando Norris'],
+  ans: 2,
+  fact: 'Verstappen won three consecutive World Championships from 2021 to 2023 and dominated the 2023 season winning 19 of 22 races.'
+},
+
+TEAM RADIO QUESTIONS:
+
+{
+  type: 'radio',
+  q: 'Which driver said this on team radio?',
+  radio: '"Multi 21 Seb, Multi 21." — and the driver ignored the instruction and overtook his teammate anyway.',
+  opts: ['Lewis Hamilton', 'Sebastian Vettel', 'Mark Webber', 'Nico Rosberg'],
+  ans: 1,
+  fact: 'Multi 21 was a Red Bull coded instruction telling Vettel to hold position behind Webber at the 2013 Malaysian GP. Vettel ignored it and passed Webber to win.'
+},
+{
+  type: 'radio',
+  q: 'Which driver said this on team radio?',
+  radio: '"Leave me alone, I know what I am doing!"',
+  opts: ['Fernando Alonso', 'Sebastian Vettel', 'Kimi Räikkönen', 'Max Verstappen'],
+  ans: 2,
+  fact: 'Räikkönen said this iconic line to his Ferrari engineer at the 2012 Abu Dhabi Grand Prix while managing his tyres on the way to victory.'
+},
+{
+  type: 'radio',
+  q: 'Which driver said this on team radio?',
+  radio: '"Somebody is squeezing me... this is not right. Somebody is doing this on purpose."',
+  opts: ['Ayrton Senna', 'Alain Prost', 'Nigel Mansell', 'Nelson Piquet'],
+  ans: 0,
+  fact: 'Senna said this at the 1990 Japanese Grand Prix shortly before his collision with Prost that handed Senna the World Championship.'
+},
+{
+  type: 'radio',
+  q: 'Which driver said this on team radio after winning his first World Championship?',
+  radio: '"Oh my God. Oh my God. Is this real? Is this real?"',
+  opts: ['Jenson Button', 'Sebastian Vettel', 'Lewis Hamilton', 'Kimi Räikkönen'],
+  ans: 2,
+  fact: 'Hamilton said this after winning his first World Championship at the 2008 Brazilian Grand Prix on the very last corner of the last lap.'
+},
+{
+  type: 'radio',
+  q: 'Which driver said this on team radio?',
+  radio: '"I am not a lion. I am a Ferrari."',
+  opts: ['Felipe Massa', 'Kimi Räikkönen', 'Michael Schumacher', 'Eddie Irvine'],
+  ans: 1,
+  fact: 'Räikkönen made this comment during a 2018 race when his engineer told him to be aggressive like a lion on the restart.'
+},
+
+HELMET QUESTIONS:
+
+{
+  type: 'helmet',
+  q: 'Which driver wears this distinctive helmet design?',
+  helmet: 'A bright orange helmet with a red lion motif on the top and Dutch national colours running down the sides. Clean modern design with minimal sponsor logos on the visor strip.',
+  opts: ['Max Verstappen', 'Lando Norris', 'Daniel Ricciardo', 'Nyck de Vries'],
+  ans: 0,
+  fact: 'Verstappen chose orange as his primary colour in tribute to the Dutch national colour and the Dutch motorsport tradition of orange racing.'
+},
+{
+  type: 'helmet',
+  q: 'Which driver wears this distinctive helmet design?',
+  helmet: 'A striking papaya orange and yellow gradient helmet with a tropical sunset design. Features a small cartoon character detail and has become one of the most recognised helmets in the modern paddock.',
+  opts: ['George Russell', 'Lando Norris', 'Oscar Piastri', 'Charles Leclerc'],
+  ans: 1,
+  fact: 'Norris worked with a helmet designer to create his distinctive gradient designs which change slightly each season but always feature warm orange and yellow tones.'
+},
+{
+  type: 'helmet',
+  q: 'Which legendary driver wore a helmet with this iconic design?',
+  helmet: 'A yellow helmet with a distinctive green and blue Brazilian flag inspired design running across the top. Simple, instantly recognisable, and became one of the most iconic helmets in motorsport history.',
+  opts: ['Nelson Piquet', 'Rubens Barrichello', 'Ayrton Senna', 'Felipe Massa'],
+  ans: 2,
+  fact: 'Senna\'s yellow helmet became so iconic that it is now displayed in museums around the world and inspired countless tribute designs by modern drivers.'
+},
+{
+  type: 'helmet',
+  q: 'Which driver wore this helmet design?',
+  helmet: 'A distinctive red and white design with a large number 1 on the back even before he was champion. Clean lines, British flag elements, and a very recognisable visor strip colour.',
+  opts: ['Nigel Mansell', 'Damon Hill', 'Jenson Button', 'David Coulthard'],
+  ans: 0,
+  fact: 'Mansell\'s red and white helmet became famous worldwide when he won the 1992 World Championship with Williams in dominant fashion.'
+},
+
+FAMOUS MOMENT QUESTIONS:
+
+{
+  type: 'moment',
+  q: 'What happened immediately after this famous F1 moment?',
+  moment: 'It is the 1994 San Marino Grand Prix at Imola. Ayrton Senna\'s Williams car exits the Tamburello corner at high speed during the race. The car appears to be going straight.',
+  opts: [
+    'Senna pitted immediately for a tyre change',
+    'Senna\'s car hit the concrete wall and he sustained fatal injuries',
+    'Senna recovered the car and continued racing',
+    'Senna retired with a mechanical failure'
+  ],
+  ans: 1,
+  fact: 'Senna\'s death on 1 May 1994 devastated the motorsport world. He remains one of the greatest drivers in F1 history and his loss led to major safety reforms in the sport.'
+},
+{
+  type: 'moment',
+  q: 'What happened in this famous F1 moment?',
+  moment: 'It is the final corner of the final lap of the 2008 Brazilian Grand Prix. Lewis Hamilton is in fifth place and needs to be fourth or higher to win the championship by one point. Timo Glock is ahead of him.',
+  opts: [
+    'Hamilton crashed out and lost the championship',
+    'Hamilton overtook Glock on the last corner to clinch the championship',
+    'Hamilton finished fifth and Felipe Massa won the championship',
+    'The race was red flagged and Hamilton was awarded the championship'
+  ],
+  ans: 1,
+  fact: 'Hamilton overtook Glock who was on dry tyres in wet conditions on the very last corner of the season to claim his first World Championship by one single point.'
+},
+{
+  type: 'moment',
+  q: 'What happened before this famous F1 moment?',
+  moment: 'Michael Schumacher is standing on the pit wall at the 2006 Japanese Grand Prix looking devastated as his Ferrari sits stationary on track with smoke coming from the engine.',
+  opts: [
+    'Schumacher had just crashed into Alonso deliberately',
+    'Schumacher\'s engine failed while he was leading the race from pole position',
+    'Schumacher had just received a drive through penalty',
+    'Schumacher had just been lapped by Alonso'
+  ],
+  ans: 1,
+  fact: 'Schumacher\'s engine failure at Suzuka 2006 while leading effectively ended his title challenge against Alonso with just two races remaining.'
+},
+{
+  type: 'moment',
+  q: 'What happened in this famous F1 moment?',
+  moment: 'It is the start of the 1990 Japanese Grand Prix. Ayrton Senna lines up on pole position but is moved to the dirty side of the grid by the FIA after protesting his grid position.',
+  opts: [
+    'Senna made a perfect start and won the race comfortably',
+    'Senna immediately drove into Prost at the first corner handing himself the championship',
+    'Senna retired on lap one with a mechanical failure',
+    'Senna and Prost had a clean race with Prost winning'
+  ],
+  ans: 1,
+  fact: 'Senna later admitted he deliberately drove into Prost in retaliation for Prost doing the same to him at the same corner in 1989. The collision gave Senna his second World Championship.'
+},
+
+LIVERY QUESTIONS:
+
+{
+  type: 'livery',
+  q: 'Which F1 team raced with this famous car livery?',
+  livery: 'A stunning bright yellow car with black detailing. No major tobacco sponsor. Clean and distinctive on the grid. Raced in the late 1990s and became one of the most loved liveries in F1 history.',
+  opts: ['Renault', 'Jordan Grand Prix', 'Minardi', 'Arrows'],
+  ans: 1,
+  fact: 'The Jordan 191 and subsequent yellow Jordans became iconic on the F1 grid. Eddie Jordan\'s team was known for spotting young talent including Michael Schumacher.'
+},
+{
+  type: 'livery',
+  q: 'Which F1 team raced with this famous car livery?',
+  livery: 'Distinctive orange livery covering the entire car. No other colour. Ran in the late 1960s and early 1970s and was the most visually striking car on the grid. Named after a fruit.',
+  opts: ['Tyrrell', 'McLaren', 'Lotus', 'BRM'],
+  ans: 1,
+  fact: 'McLaren ran papaya orange cars in their early years as an independent team. The colour was revived in 2017 when McLaren returned to their heritage colours.'
+},
+{
+  type: 'livery',
+  q: 'Which F1 team raced with this famous car livery?',
+  livery: 'Black and gold car that became one of the most iconic liveries in motorsport history. Sponsored by a cigarette brand. Raced in the 1970s and won multiple World Championships.',
+  opts: ['Brabham', 'Tyrrell', 'Lotus', 'Ferrari'],
+  ans: 2,
+  fact: 'The John Player Special Lotus in black and gold is considered one of the most beautiful F1 liveries ever created. It was driven by legends including Emerson Fittipaldi and Mario Andretti.'
+},
+
+SPONSOR QUESTIONS:
+
+{
+  type: 'sponsor',
+  q: 'Which F1 team was most famously associated with this sponsor?',
+  sponsor: 'Marlboro — the red and white chevron design that became one of the most recognisable sponsor logos in motorsport history across three decades.',
+  opts: ['Williams', 'Ferrari and McLaren', 'Lotus', 'Brabham'],
+  ans: 1,
+  fact: 'Marlboro sponsored McLaren from 1974 to 1996 and Ferrari from 1984 to 2011 making it the longest running and most valuable sponsorship in F1 history.'
+},
+{
+  type: 'sponsor',
+  q: 'Which F1 team was most famously associated with this sponsor?',
+  sponsor: 'Rothmans — blue white and gold colour scheme that defined one of the most dominant teams of the 1990s.',
+  opts: ['McLaren', 'Benetton', 'Williams', 'Ferrari'],
+  ans: 2,
+  fact: 'Rothmans Williams dominated F1 in the early 1990s winning four consecutive Constructors Championships from 1992 to 1994 with drivers like Mansell, Prost and Hill.'
+},
+{
+  type: 'sponsor',
+  q: 'Which F1 team was most famously associated with this sponsor?',
+  sponsor: 'West — a cigarette brand whose silver and red livery created one of the most striking car designs of the late 1990s.',
+  opts: ['Ferrari', 'McLaren', 'Williams', 'Jordan'],
+  ans: 1,
+  fact: 'West McLaren Mercedes in silver and red became iconic during the Hakkinen and Coulthard era of the late 1990s and early 2000s.'
+},
+
+STANDARD TRIVIA QUESTIONS:
+
+{
+  type: 'standard',
+  q: 'Which driver holds the record for the most pole positions in F1 history?',
+  opts: ['Michael Schumacher', 'Ayrton Senna', 'Lewis Hamilton', 'Sebastian Vettel'],
+  ans: 2,
+  fact: 'Hamilton has taken over 100 pole positions in F1, comfortably ahead of Schumacher in second place.'
+},
+{
+  type: 'standard',
+  q: 'What is the name of the famous tunnel section at the Monaco Grand Prix?',
+  opts: ['The Tunnel', 'Portier', 'Casino Square', 'Rascasse'],
+  ans: 0,
+  fact: 'The Monaco tunnel is one of the most unique features in F1 — drivers go from bright sunlight into near darkness at over 180mph.'
+},
+{
+  type: 'standard',
+  q: 'Which team did Brawn GP become after being sold in 2009?',
+  opts: ['Force India', 'Mercedes', 'Lotus', 'Aston Martin'],
+  ans: 1,
+  fact: 'Brawn GP won the 2009 championship in their only season before being purchased by Mercedes who turned it into their works F1 team.'
+},
+{
+  type: 'standard',
+  q: 'What does VSC stand for in Formula 1?',
+  opts: ['Variable Speed Control', 'Virtual Safety Car', 'Vehicle Speed Check', 'Velocity Safety Control'],
+  ans: 1,
+  fact: 'The Virtual Safety Car was introduced in 2015 after Jules Bianchi\'s fatal accident at the 2014 Japanese Grand Prix to slow cars without a physical safety car.'
+},
+{
+  type: 'standard',
+  q: 'How many constructors currently compete in Formula 1?',
+  opts: ['8', '9', '10', '12'],
+  ans: 2,
+  fact: 'F1 has had 10 constructors on the grid since 2016. General Motors backed Cadillac team are set to join as an 11th constructor.'
+},
+{
+  type: 'standard',
+  q: 'Which circuit hosts the Italian Grand Prix?',
+  opts: ['Imola', 'Mugello', 'Monza', 'Pescara'],
+  ans: 2,
+  fact: 'Monza has hosted the Italian Grand Prix almost every year since 1950 making it one of the most historic venues in F1.'
+},
+{
+  type: 'standard',
+  q: 'What colour are the Soft tyres in modern F1?',
+  opts: ['Yellow', 'White', 'Red', 'Orange'],
+  ans: 2,
+  fact: 'Pirelli uses red for Soft, yellow for Medium, and white for Hard tyres to make compound identification easy for fans watching on TV.'
+},
+{
+  type: 'standard',
+  q: 'Which driver won the first ever Formula 1 World Championship in 1950?',
+  opts: ['Alberto Ascari', 'Juan Manuel Fangio', 'Giuseppe Farina', 'Luigi Fagioli'],
+  ans: 2,
+  fact: 'Giuseppe Farina won the inaugural F1 World Championship driving an Alfa Romeo, beating Juan Manuel Fangio who would go on to win five titles.'
+},
+{
+  type: 'standard',
+  q: 'What is the maximum number of points available in a single F1 race weekend including sprint?',
+  opts: ['29', '34', '44', '38'],
+  ans: 1,
+  fact: 'A sprint race weekend offers 25 for race win plus 1 fastest lap plus 8 for sprint win totalling 34 maximum points in one weekend.'
+},
+{
+  type: 'standard',
+  q: 'Which F1 team is based in Woking, England?',
+  opts: ['Williams', 'Aston Martin', 'McLaren', 'Mercedes'],
+  ans: 2,
+  fact: 'McLaren Technology Centre in Woking Surrey has been the home of McLaren F1 since 2004 and is considered one of the most impressive facilities in motorsport.'
+},
+{
+  type: 'standard',
+  q: 'What year was the DRS overtaking aid introduced to Formula 1?',
+  opts: ['2009', '2010', '2011', '2013'],
+  ans: 2,
+  fact: 'DRS was introduced for the 2011 season to help overtaking after the 2010 season was criticised for processional racing with limited on track action.'
+},
+{
+  type: 'standard',
+  q: 'Which country has produced the most F1 World Champions?',
+  opts: ['Germany', 'Brazil', 'United Kingdom', 'France'],
+  ans: 2,
+  fact: 'The UK has produced more F1 World Champions than any other country including Hamilton, Button, Hill, Clark, Stewart, Mansell and others.'
+},
+{
+  type: 'standard',
+  q: 'What is the name of the Red Bull junior team in F1?',
+  opts: ['Alpha Tauri', 'Toro Rosso', 'Racing Bulls', 'RB F1'],
+  ans: 2,
+  fact: 'The team has gone through several name changes — Minardi, Toro Rosso, AlphaTauri and now Racing Bulls — but has always served as Red Bull\'s driver development team.'
+},
+{
+  type: 'standard',
+  q: 'Which Grand Prix was cancelled in 2020 due to the COVID-19 pandemic and replaced by two races at the same venue?',
+  opts: ['British Grand Prix', 'Belgian Grand Prix', 'Austrian Grand Prix', 'Spanish Grand Prix'],
+  ans: 2,
+  fact: 'The Red Bull Ring in Austria hosted two consecutive race weekends in July 2020 when the season was severely disrupted by the pandemic.'
+},
+The rendering logic for each question type
+Build a renderQuestion function that checks the question type and renders it differently:
+javascriptfunction renderQuestion(q, questionNumber, totalQuestions, onAnswer) {
+  if (q.type === 'standard' || q.type === 'radio' || 
+      q.type === 'helmet' || q.type === 'moment' || 
+      q.type === 'livery' || q.type === 'sponsor') {
+    return renderStandardQuestion(q, questionNumber, totalQuestions, onAnswer)
+  } else if (q.type === 'career') {
+    return renderCareerQuestion(q, questionNumber, totalQuestions, onAnswer)
+  } else if (q.type === 'graph') {
+    return renderGraphQuestion(q, questionNumber, totalQuestions, onAnswer)
+  }
+}
+For career path questions render the teams as a horizontal timeline with arrows between each team name and the years underneath:
+javascriptfunction renderCareerQuestion(q, ...) {
+  const timeline = q.career.map((team, i) => `
+    <div style="display:flex;align-items:center;gap:4px">
+      <div style="background:#111;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:500;text-align:center">
+        <div>${team}</div>
+        ${q.years[i] ? `<div style="font-size:9px;color:#e10600;margin-top:2px">${q.years[i]}</div>` : ''}
+      </div>
+      ${i < q.career.length - 1 ? '<div style="color:#e10600;font-size:16px">→</div>' : ''}
+    </div>
+  `).join('')
+  
+  return `
+    <div style="overflow-x:auto;padding-bottom:8px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:4px;min-width:max-content">
+        ${timeline}
+      </div>
+    </div>
+    ${renderOptions(q, onAnswer)}
+  `
+}
+For finishing position graph questions render a simple visual bar chart showing the championship positions across years. Lower position number means higher on the chart. P1 is at the top, P10 is at the bottom:
+javascriptfunction renderGraphQuestion(q, ...) {
+  const maxPos = Math.max(...q.positions.map(p => p.pos))
+  const chartHeight = 120
+  
+  const bars = q.positions.map(p => {
+    const barHeight = ((maxPos - p.pos + 1) / maxPos) * chartHeight
+    const color = p.pos === 1 ? '#e10600' : p.pos <= 3 ? '#e65100' : '#1565c0'
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:10px;font-weight:700;color:${color}">P${p.pos}</div>
+        <div style="width:28px;height:${barHeight}px;background:${color};border-radius:3px 3px 0 0;min-height:8px"></div>
+        <div style="font-size:9px;color:var(--color-text-tertiary)">${p.year}</div>
+      </div>
+    `
+  }).join('')
+  
+  return `
+    <div style="margin-bottom:8px;font-size:11px;color:var(--color-text-secondary)">Championship finishing positions by season</div>
+    <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:16px;padding:12px;background:var(--color-background-secondary);border-radius:8px;overflow-x:auto">
+      ${bars}
+    </div>
+    ${renderOptions(q, onAnswer)}
+  `
+}
+The quiz flow
+On clicking General Quiz from the home screen immediately start the quiz — no extra screens. Randomly select 10 questions from the full bank making sure to include at least one career path question, one graph question, one radio or helmet or famous moment question, and the rest filled randomly from any type. Shuffle the order of the 10 questions randomly each game.
+Show a type badge on each question card so the player knows what type it is — a small pill in the top corner saying Career Path, Position Graph, Team Radio, Famous Moment, Helmet, Livery, Sponsor, or Trivia in different colours.
+Scoring
+
+10 points per correct answer. Maximum 100 points.
+End screen ratings:
+
+90-100: 'F1 Encyclopaedia — you know everything 🏆'
+70-89: 'Serious fan — you have done your homework 👍'
+50-69: 'Casual viewer — keep watching the races 📺'
+Below 50: 'Are you sure you watch F1? 😅'
+
+Show a share button at the end that copies 'I scored X/100 on the Pit Lane Fan Zone General Quiz — can you beat me?' to clipboard.
+Keep all other games exactly as they are. Only rebuild the General Quiz section."
