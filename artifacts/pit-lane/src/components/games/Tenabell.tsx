@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, ChevronRight, CalendarDays, Trophy, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { AutocompleteInput } from '@/components/AutocompleteInput';
 import { saveScore } from '@/lib/scoreHistory';
 import { getDailyCategory, getTodayKey, updateStreak, loadStreak, type StreakState } from '@/lib/tenabellCategories';
 import { MidnightCountdown } from '@/components/MidnightCountdown';
@@ -85,10 +85,36 @@ function normalize(s: string): string {
   return s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+// Common driver nicknames / abbreviations → full name (normalized at compare time).
+const NICKNAMES: Record<string, string> = {
+  max: 'max verstappen',
+  lewis: 'lewis hamilton',
+  lando: 'lando norris',
+  charles: 'charles leclerc',
+  checo: 'sergio perez',
+  'danny ric': 'daniel ricciardo',
+  'the iceman': 'kimi räikkönen',
+  kimi: 'kimi räikkönen',
+  schumi: 'michael schumacher',
+  schu: 'michael schumacher',
+  alonso: 'fernando alonso',
+  nando: 'fernando alonso',
+  seb: 'sebastian vettel',
+  nico: 'nico rosberg',
+  bottas: 'valtteri bottas',
+  sainz: 'carlos sainz',
+  russell: 'george russell',
+  norris: 'lando norris',
+  piastri: 'oscar piastri',
+};
+
 function fuzzyMatch(guess: string, target: string): boolean {
   const g = normalize(guess);
   const t = normalize(target);
   if (g === t) return true;
+  // nickname / abbreviation match
+  const nick = NICKNAMES[g];
+  if (nick && normalize(nick) === t) return true;
   // surname-only match (last word of target)
   const surname = t.split(/[\s/-]+/).pop() ?? "";
   if (g === surname) return true;
@@ -141,12 +167,13 @@ export function Tenabell() {
     setMode("over");
   }
 
-  const checkAns = () => {
-    if (!inputVal.trim() || mode === "over") return;
+  const checkAns = (explicit?: string) => {
+    const guess = (explicit ?? inputVal).trim();
+    if (!guess || mode === "over") return;
 
     if (cat.ordered) {
       const nextAnswer = cat.answers[found.length];
-      if (fuzzyMatch(inputVal, nextAnswer)) {
+      if (fuzzyMatch(guess, nextAnswer)) {
         const next = [...found, nextAnswer];
         setFound(next);
         setInputVal("");
@@ -157,7 +184,7 @@ export function Tenabell() {
         setTimeout(() => setShake(false), 500);
       }
     } else {
-      const match = cat.answers.find(a => !found.includes(a) && fuzzyMatch(inputVal, a));
+      const match = cat.answers.find(a => !found.includes(a) && fuzzyMatch(guess, a));
       if (match) {
         const next = [...found, match];
         setFound(next);
@@ -329,18 +356,20 @@ export function Tenabell() {
       {/* Input */}
       {mode !== "over" && (
         <div className="flex gap-2">
-          <Input
+          <AutocompleteInput
             ref={inputRef}
             value={inputVal}
-            onChange={e => setInputVal(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && checkAns()}
+            onChange={setInputVal}
+            categories={['drivers', 'teams', 'circuits', 'engines']}
+            onSelect={(val) => checkAns(val)}
+            onSubmit={() => checkAns()}
             placeholder={cat.ordered ? `Who is #${found.length + 1}?` : "Type an answer…"}
             className="bg-secondary/50 font-semibold"
             autoFocus
             data-testid="input-tenabell-answer"
           />
           <Button
-            onClick={checkAns}
+            onClick={() => checkAns()}
             className="bg-[#e65100] hover:bg-[#e65100]/90 shrink-0 text-white"
             data-testid="button-tenabell-submit"
           >

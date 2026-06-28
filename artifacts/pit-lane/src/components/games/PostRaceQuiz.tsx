@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Trophy, RefreshCw, AlertTriangle, Share2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { AutocompleteInput } from '@/components/AutocompleteInput';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
 import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
@@ -326,12 +326,13 @@ export function PostRaceQuiz() {
         </div>
         <p className="text-sm text-muted-foreground">{cfg.inputLabel}</p>
         <div className="flex gap-2">
-          <Input
+          <AutocompleteInput
             value={raceInput}
-            onChange={e => setRaceInput(e.target.value)}
+            onChange={setRaceInput}
+            categories={['circuits']}
+            onSubmit={handleGenerate}
             placeholder={cfg.inputPlaceholder}
             className="bg-secondary/50 border-border"
-            onKeyDown={e => e.key === 'Enter' && handleGenerate()}
             autoFocus
           />
           <Button onClick={handleGenerate} disabled={!raceInput.trim()} className={`font-bold px-5 shrink-0 ${cfg.accentCls}`}>
