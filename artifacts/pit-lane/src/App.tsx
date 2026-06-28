@@ -8,7 +8,7 @@ import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
 import { RacePredictor } from './components/games/RacePredictor';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
-import { MidnightCountdown } from './components/MidnightCountdown';
+import { RaceCountdown } from './components/RaceCountdown';
 import { getCurrentRaceStatus } from './lib/f1Calendar';
 import React from 'react';
 
@@ -16,6 +16,12 @@ const dailyCat = getDailyCategory();
 const streakState = loadStreak();
 const todayKeyHub = getTodayKey();
 const raceStatus = getCurrentRaceStatus();
+
+const yesterday = new Date(Date.now() - 86_400_000);
+const yesterdayKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+const tenabellStreakActive =
+  streakState.current >= 2 &&
+  (streakState.lastDate === todayKeyHub || streakState.lastDate === yesterdayKey);
 
 type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "history" | "schedule" | "predictor" | null;
 
@@ -52,51 +58,58 @@ export default function App() {
     }
   };
 
+  const onHub = !activeGame;
+
   return (
-    <div className="min-h-[100dvh] w-full bg-background text-foreground flex flex-col font-sans selection:bg-primary/30">
+    <div className="min-h-[100dvh] w-full bg-[#0a0a0a] text-foreground flex flex-col font-sans selection:bg-primary/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="max-w-[680px] mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#1a1a1a]">
+        <div className="max-w-[680px] mx-auto px-5 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {activeGame && (
               <button
                 onClick={() => setActiveGame(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors shrink-0"
                 aria-label="Back to hub"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <div>
-              <h1 className="font-black text-xl tracking-widest leading-none text-white">PIT LANE</h1>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] leading-tight mt-0.5">Fan Zone</p>
+            <div className="min-w-0">
+              <h1 className="font-['Barlow_Condensed'] font-black text-[26px] tracking-[0.16em] leading-none text-white">
+                PIT LANE
+              </h1>
+              <p className="text-[9px] font-bold text-[#e10600] uppercase tracking-[0.25em] leading-tight mt-0.5">
+                Fan Zone
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {!activeGame && raceStatus.kind !== "offseason" && (
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            {onHub && raceStatus.kind !== "offseason" && (
               <button
                 onClick={() => setActiveGame("schedule")}
+                className="text-right group"
                 title={
                   raceStatus.kind === "weekend"
                     ? `Race weekend — ${raceStatus.race.name}`
                     : `${raceStatus.daysUntil} day${raceStatus.daysUntil === 1 ? "" : "s"} until ${raceStatus.race.name} — view full schedule`
                 }
-                className={`text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 transition-opacity hover:opacity-80 ${raceStatus.kind === "weekend" ? "bg-[#e10600]" : "bg-primary/80"}`}
               >
-                {raceStatus.kind === "weekend" && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
-                )}
-                {raceStatus.race.shortName}
-                <span className="opacity-60">&middot;</span>
-                Round {raceStatus.race.round}
-                {raceStatus.kind === "upcoming" && (
-                  <span className="opacity-50 font-normal normal-case tracking-normal ml-0.5">
-                    &middot; {raceStatus.daysUntil}d
-                  </span>
-                )}
+                <div className="text-[9px] font-bold tracking-wider text-[#555] uppercase mb-[3px]">
+                  Next Race
+                </div>
+                <div className="bg-[#e10600] text-white text-[12px] font-bold px-3 py-1 rounded-full tracking-wide flex items-center gap-1.5 group-hover:opacity-90 transition-opacity">
+                  {raceStatus.kind === "weekend" && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
+                  )}
+                  {raceStatus.race.shortName}
+                  <span className="opacity-60">&middot;</span>
+                  R{raceStatus.race.round}
+                </div>
               </button>
             )}
-            {!activeGame && (
+            {onHub && raceStatus.kind === "offseason" && (
               <button
                 onClick={() => setActiveGame("schedule")}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
@@ -106,7 +119,7 @@ export default function App() {
                 <CalendarDays className="w-4 h-4" />
               </button>
             )}
-            {!activeGame && (
+            {onHub && (
               <button
                 onClick={() => setActiveGame("history")}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
@@ -120,122 +133,143 @@ export default function App() {
         </div>
       </header>
 
+      {/* Race weekend countdown strip */}
+      {onHub && raceStatus.kind !== "offseason" && <RaceCountdown status={raceStatus} />}
+
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[680px] w-full mx-auto p-4 py-6 md:py-8">
-        {!activeGame ? (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-xl font-bold mb-6 text-white/90">Select a game</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {onHub ? (
+        <main className="flex-1 max-w-[680px] w-full mx-auto p-4">
+          <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-              {/* Race Bingo */}
-              <button
-                onClick={() => setActiveGame("bingo")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-primary/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#e10600]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5 uppercase">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> Live Race
+            {/* Race Bingo — featured */}
+            <button
+              onClick={() => setActiveGame("bingo")}
+              className="group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.98] bg-gradient-to-br from-[#1a0a0a] to-[#111] border border-[#2a1a1a] border-l-[3px] border-l-[#e10600] hover:border-[#e10600]"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-bold tracking-[0.15em] text-[#e10600] uppercase mb-1.5 flex items-center gap-1.5">
+                    <span className="w-[5px] h-[5px] rounded-full bg-[#e10600] animate-pulse" />
+                    Live Race
+                  </div>
+                  <div className="font-['Barlow_Condensed'] text-[28px] font-extrabold text-white leading-none tracking-wide mb-1.5">
+                    Race Bingo
+                  </div>
+                  <div className="text-[12px] text-[#777] leading-relaxed">
+                    Build your card before lights out. Tick off events as they happen live.
+                  </div>
                 </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-primary transition-colors">Race Bingo</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">Build your card before lights out. Tick off events as they happen live.</p>
-              </button>
+                <div className="text-[32px] ml-3 opacity-80 shrink-0">⬛</div>
+              </div>
+            </button>
 
+            {/* Tenabell + F1 Knowledge — two column */}
+            <div className="grid grid-cols-2 gap-2">
               {/* Tenabell */}
               <button
                 onClick={() => setActiveGame("tenabell")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#e65100]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#e65100] hover:border-[#e65100]"
               >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#e65100]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase flex items-center gap-1.5">
-                  <span className="text-[#e65100]">Daily</span>
+                <div className="text-[20px] mb-2">🔟</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#e65100] uppercase mb-1">Daily</div>
+                <div className="font-['Barlow_Condensed'] text-[22px] font-extrabold text-white leading-none mb-1.5">
+                  Tenabell
                 </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#e65100] transition-colors">Tenabell</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-3">Name 10 answers in a category before the 2-minute timer runs out.</p>
-                <div className="mt-auto pt-2 border-t border-border/40 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-bold shrink-0">Today</span>
-                    <span className="text-xs font-semibold text-[#e65100]/90 truncate">{dailyCat.teaser}</span>
-                    {dailyCat.ordered && (
-                      <span className="ml-auto text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 shrink-0">ordered</span>
-                    )}
+                <div className="text-[11px] text-[#666] leading-snug mb-2">Name 10 in a category</div>
+                <div className="mt-auto flex flex-col gap-0.5">
+                  <div className="text-[10px] font-semibold text-[#e65100]/90 truncate">
+                    Today: {dailyCat.teaser}
                   </div>
-                  {streakState.current >= 2 && (streakState.lastDate === todayKeyHub || (() => { const y = new Date(Date.now()-86400000); const yk = `${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`; return streakState.lastDate === yk; })()) && (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#e65100]/80">
-                      <span>🔥</span>
-                      <span>{streakState.current} day streak</span>
-                      {streakState.lastDate !== todayKeyHub && <span className="font-normal text-muted-foreground/50">— play today!</span>}
-                    </div>
-                  )}
-                  {streakState.lastDate === todayKeyHub && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
-                      <span className="uppercase tracking-wider font-bold">Next</span>
-                      <MidnightCountdown className="font-mono font-semibold tabular-nums" />
+                  {tenabellStreakActive && (
+                    <div className="text-[10px] font-bold text-[#e65100]/80">
+                      🔥 {streakState.current} day streak
                     </div>
                   )}
                 </div>
               </button>
 
-              {/* F1 Wheel Knowledge Quiz */}
+              {/* F1 Knowledge */}
               <button
                 onClick={() => setActiveGame("wheel")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#2e7d32]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#2e7d32] hover:border-[#2e7d32]"
               >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#2e7d32]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
-                  Any Time
+                <div className="text-[20px] mb-2">❓</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#2e7d32] uppercase mb-1">Any Time</div>
+                <div className="font-['Barlow_Condensed'] text-[22px] font-extrabold text-white leading-none mb-1.5">
+                  F1 Knowledge
                 </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#2e7d32] transition-colors">F1 Wheel Knowledge</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">General trivia or AI-generated race questions — pick your challenge.</p>
+                <div className="text-[11px] text-[#666] leading-snug mb-2">Trivia &amp; AI race quizzes</div>
+                <div className="mt-auto text-[10px] font-semibold text-[#2e7d32]/80">2 modes · Mixed types</div>
               </button>
-
-              {/* 24-0 */}
-              <button
-                onClick={() => setActiveGame("twentyfour")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#b45309]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#b45309]" />
-                <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase">
-                  Season Sim
-                </div>
-                <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#b45309] transition-colors">24-0</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">Build your dream constructor — 2 drivers, engine &amp; chassis. Simulate a 24-race season. Can you go unbeaten?</p>
-              </button>
-
-              {/* Race Predictor (full width) */}
-              <button
-                onClick={() => setActiveGame("predictor")}
-                className="group relative overflow-hidden rounded-xl bg-card border border-card-border hover:border-[#7c3aed]/50 text-left transition-all p-5 hover:bg-secondary/50 shadow-sm flex flex-col sm:col-span-2"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#7c3aed]" />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-bold tracking-wider text-muted-foreground mb-2 uppercase flex items-center gap-1.5">
-                      <Zap className="w-3 h-3 text-[#7c3aed]/60" />
-                      Next Race
-                    </div>
-                    <h3 className="font-black text-lg mb-1 text-white group-hover:text-[#7c3aed] transition-colors">Race Predictor</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">AI-powered predictions for the next Grand Prix — podium, top 10, key factors &amp; championship impact.</p>
-                  </div>
-                  {raceStatus.kind !== 'offseason' && (
-                    <div className="shrink-0 text-right mt-1">
-                      <p className="text-xs font-bold text-[#7c3aed]/80">{raceStatus.race.shortName}</p>
-                      <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Round {raceStatus.race.round}</p>
-                    </div>
-                  )}
-                </div>
-              </button>
-
             </div>
+
+            {/* 24-0 — featured */}
+            <button
+              onClick={() => setActiveGame("twentyfour")}
+              className="group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.98] bg-gradient-to-br from-[#0a0a14] to-[#111] border border-[#1a1a2a] border-l-[3px] border-l-[#7c3aed] hover:border-[#7c3aed]"
+            >
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="text-[9px] font-bold tracking-[0.15em] text-[#7c3aed] uppercase mb-1.5">
+                    Season Sim
+                  </div>
+                  <div className="font-['Barlow_Condensed'] text-[32px] font-black text-white leading-none tracking-tight">
+                    24-0
+                  </div>
+                  <div className="text-[12px] text-[#777] mt-1 leading-relaxed">
+                    Draft your constructor — 2 drivers, engine &amp; chassis. Can you go unbeaten?
+                  </div>
+                </div>
+                <div className="text-center bg-[#7c3aed]/10 border border-[#7c3aed]/25 rounded-lg px-3.5 py-2.5 shrink-0 ml-3">
+                  <div className="font-['Barlow_Condensed'] text-[28px] font-black text-[#7c3aed] leading-none">24</div>
+                  <div className="text-[8px] text-[#666] font-bold tracking-[0.1em] mt-0.5">RACES</div>
+                </div>
+              </div>
+            </button>
+
+            {/* Race Predictor — full width */}
+            <button
+              onClick={() => setActiveGame("predictor")}
+              className="group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.98] bg-gradient-to-br from-[#0a0f0a] to-[#111] border border-[#1a2a1a] border-l-[3px] border-l-[#2e7d32] hover:border-[#2e7d32]"
+            >
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="text-[9px] font-bold tracking-[0.15em] text-[#2e7d32] uppercase mb-1.5 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3" />
+                    Next Race
+                    {raceStatus.kind !== "offseason" && (
+                      <span className="text-[#666] normal-case tracking-normal font-semibold">
+                        · {raceStatus.race.shortName}
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-['Barlow_Condensed'] text-[26px] font-extrabold text-white leading-none mb-1">
+                    Race Predictor
+                  </div>
+                  <div className="text-[12px] text-[#777] leading-relaxed">
+                    AI predictions — podium, top 10, strategy &amp; title impact.
+                  </div>
+                </div>
+                <div className="font-['Barlow_Condensed'] text-[40px] font-black text-[#2e7d32] opacity-40 ml-3 shrink-0 group-hover:opacity-70 transition-opacity">
+                  →
+                </div>
+              </div>
+            </button>
+
           </div>
-        ) : (
+        </main>
+      ) : (
+        <main className="flex-1 max-w-[680px] w-full mx-auto p-4 py-6 md:py-8">
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
-              <h2 className="text-2xl font-black tracking-wide text-white">{getGameTitle()}</h2>
+              <h2 className="font-['Barlow_Condensed'] text-3xl font-black tracking-wide text-white">
+                {getGameTitle()}
+              </h2>
             </div>
             {renderGame()}
           </div>
-        )}
-      </main>
+        </main>
+      )}
     </div>
   );
 }

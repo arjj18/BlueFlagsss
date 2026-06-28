@@ -1,0 +1,475 @@
+"Please redesign the home screen to look more visually impressive and polished. Here is exactly what needs to change:
+The overall page feel
+
+The home screen should feel like opening a premium sports app — tight, confident, fast. Everything should feel intentional. Use the existing dark colour scheme but add more visual depth and personality.
+The header — make it more dramatic
+
+Replace the current plain header with this more impactful version:
+html<header style='
+  background: #0a0a0a;
+  padding: 16px 20px 14px;
+  border-bottom: 0.5px solid #1a1a1a;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+'>
+  <div style='display: flex; align-items: center; justify-content: space-between;'>
+    <div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 26px;
+        font-weight: 900;
+        color: white;
+        letter-spacing: 3px;
+        line-height: 1;
+      '>PIT LANE</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: #e10600;
+        text-transform: uppercase;
+      '>Fan Zone</div>
+    </div>
+    <div style='text-align: right;'>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #555;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+      '>Next Race</div>
+      <div style='
+        background: #e10600;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+      '>Austrian GP · R8</div>
+    </div>
+  </div>
+</header>
+Add a race weekend countdown strip below the header
+
+This gives the home screen an immediate sense of urgency and context:
+html<div style='
+  background: #111;
+  border-bottom: 0.5px solid #1a1a1a;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+'>
+  <div style='display: flex; align-items: center; gap: 8px;'>
+    <div style='
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #e10600;
+      animation: pulse 1.5s infinite;
+    '></div>
+    <span style='font-size: 12px; font-weight: 600; color: #aaa;'>Race weekend in</span>
+  </div>
+  <div style='display: flex; gap: 12px;'>
+    <div style='text-align: center;'>
+      <div style='font-family: Barlow Condensed, sans-serif; font-size: 22px; font-weight: 700; color: white; line-height: 1;' id='cd-days'>04</div>
+      <div style='font-size: 8px; color: #555; font-weight: 600; letter-spacing: 1px;'>DAYS</div>
+    </div>
+    <div style='font-size: 20px; color: #333; align-self: flex-start; margin-top: 2px;'>:</div>
+    <div style='text-align: center;'>
+      <div style='font-family: Barlow Condensed, sans-serif; font-size: 22px; font-weight: 700; color: white; line-height: 1;' id='cd-hours'>14</div>
+      <div style='font-size: 8px; color: #555; font-weight: 600; letter-spacing: 1px;'>HRS</div>
+    </div>
+    <div style='font-size: 20px; color: #333; align-self: flex-start; margin-top: 2px;'>:</div>
+    <div style='text-align: center;'>
+      <div style='font-family: Barlow Condensed, sans-serif; font-size: 22px; font-weight: 700; color: white; line-height: 1;' id='cd-mins'>32</div>
+      <div style='font-size: 8px; color: #555; font-weight: 600; letter-spacing: 1px;'>MINS</div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+
+<script>
+// Point this to the next race weekend start date
+const nextRace = new Date('2026-07-04T10:30:00Z') // Update this each race weekend
+
+function updateCountdown() {
+  const now = new Date()
+  const diff = nextRace - now
+  if (diff <= 0) {
+    document.getElementById('cd-days').textContent = '00'
+    document.getElementById('cd-hours').textContent = '00'
+    document.getElementById('cd-mins').textContent = '00'
+    return
+  }
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  document.getElementById('cd-days').textContent = String(days).padStart(2, '0')
+  document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0')
+  document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0')
+}
+
+updateCountdown()
+setInterval(updateCountdown, 60000)
+</script>
+Completely redesign the game cards
+The current cards are too tall and too uniform. Redesign them to be much more compact and visually varied. Each card should feel different from the others:
+html<!-- Make the game grid tighter -->
+<div style='
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+'>
+
+  <!-- RACE BINGO — featured card, slightly larger -->
+  <div onclick='launch("bingo")' style='
+    background: linear-gradient(135deg, #1a0a0a 0%, #111 100%);
+    border: 0.5px solid #2a1a1a;
+    border-left: 3px solid #e10600;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  ' onmouseover='this.style.borderColor="#e10600"' onmouseout='this.style.borderLeftColor="#e10600";this.style.borderTopColor="#2a1a1a";this.style.borderRightColor="#2a1a1a";this.style.borderBottomColor="#2a1a1a"'>
+    <div style='display: flex; align-items: flex-start; justify-content: space-between;'>
+      <div style='flex: 1;'>
+        <div style='
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          color: #e10600;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        '>
+          <div style='width: 5px; height: 5px; border-radius: 50%; background: #e10600; animation: pulse 1.5s infinite;'></div>
+          Live Race
+        </div>
+        <div style='
+          font-family: Barlow Condensed, sans-serif;
+          font-size: 28px;
+          font-weight: 800;
+          color: white;
+          line-height: 1;
+          letter-spacing: 1px;
+          margin-bottom: 6px;
+        '>Race Bingo</div>
+        <div style='font-size: 12px; color: #666; line-height: 1.4;'>
+          Build your card before lights out. Tick off predictions live.
+        </div>
+      </div>
+      <div style='
+        font-size: 32px;
+        margin-left: 12px;
+        opacity: 0.8;
+      '>⬛</div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN ROW for Tenabell and General Quiz -->
+  <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 8px;'>
+    
+    <!-- TENABELL -->
+    <div onclick='launch("tenabell")' style='
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid #e65100;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    ' onmouseover='this.style.borderColor="#e65100"' onmouseout='this.style.borderColor="#222";this.style.borderTopColor="#e65100"'>
+      <div style='font-size: 20px; margin-bottom: 8px;'>🔟</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #e65100;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      '>Daily</div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        margin-bottom: 6px;
+      '>Tenabell</div>
+      <div style='font-size: 11px; color: #555; line-height: 1.35;'>
+        Name 10 in a category
+      </div>
+      <div style='
+        margin-top: 8px;
+        font-size: 10px;
+        color: #e65100;
+        font-weight: 600;
+      ' id='tenabell-today'>Loading...</div>
+    </div>
+
+    <!-- GENERAL QUIZ -->
+    <div onclick='launch("gquiz")' style='
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid #2e7d32;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    ' onmouseover='this.style.borderColor="#2e7d32"' onmouseout='this.style.borderColor="#222";this.style.borderTopColor="#2e7d32"'>
+      <div style='font-size: 20px; margin-bottom: 8px;'>❓</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #2e7d32;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      '>Any Time</div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        margin-bottom: 6px;
+      '>F1 Quiz</div>
+      <div style='font-size: 11px; color: #555; line-height: 1.35;'>
+        History, drivers, circuits
+      </div>
+      <div style='
+        margin-top: 8px;
+        font-size: 10px;
+        color: #2e7d32;
+        font-weight: 600;
+      '>10 questions · Mixed types</div>
+    </div>
+
+  </div>
+
+  <!-- 24-0 CONSTRUCTOR GAME -->
+  <div onclick='launch("sim24")' style='
+    background: linear-gradient(135deg, #0a0a14 0%, #111 100%);
+    border: 0.5px solid #1a1a2a;
+    border-left: 3px solid #7c3aed;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  ' onmouseover='this.style.borderColor="#7c3aed"' onmouseout='this.style.borderLeftColor="#7c3aed";this.style.borderTopColor="#1a1a2a";this.style.borderRightColor="#1a1a2a";this.style.borderBottomColor="#1a1a2a"'>
+    <div style='display: flex; align-items: center; justify-content: space-between;'>
+      <div>
+        <div style='
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          color: #7c3aed;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+        '>Season Sim</div>
+        <div style='
+          font-family: Barlow Condensed, sans-serif;
+          font-size: 32px;
+          font-weight: 900;
+          color: white;
+          line-height: 1;
+          letter-spacing: -1px;
+        '>24-0</div>
+        <div style='font-size: 12px; color: #555; margin-top: 4px; line-height: 1.4;'>
+          Draft your constructor. Simulate a season.
+        </div>
+      </div>
+      <div style='
+        text-align: center;
+        background: #7c3aed15;
+        border: 0.5px solid #7c3aed40;
+        border-radius: 8px;
+        padding: 10px 14px;
+      '>
+        <div style='font-family: Barlow Condensed, sans-serif; font-size: 28px; font-weight: 900; color: #7c3aed; line-height: 1;'>24</div>
+        <div style='font-size: 8px; color: #555; font-weight: 700; letter-spacing: 1px;'>RACES</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN ROW for Quiz modes -->
+  <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 8px;'>
+
+    <!-- PREVIEW QUIZ -->
+    <div onclick='launch("preview")' style='
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid #1565c0;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    ' onmouseover='this.style.borderColor="#1565c0"' onmouseout='this.style.borderColor="#222";this.style.borderTopColor="#1565c0"'>
+      <div style='font-size: 20px; margin-bottom: 8px;'>🔭</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #1565c0;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      '>Thursday</div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        margin-bottom: 6px;
+      '>Preview Quiz</div>
+      <div style='font-size: 11px; color: #555; line-height: 1.35;'>
+        Circuit history and records
+      </div>
+    </div>
+
+    <!-- REVIEW QUIZ -->
+    <div onclick='launch("review")' style='
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid #e10600;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    ' onmouseover='this.style.borderColor="#e10600"' onmouseout='this.style.borderColor="#222";this.style.borderTopColor="#e10600"'>
+      <div style='font-size: 20px; margin-bottom: 8px;'>🏁</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #e10600;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      '>Tuesday</div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        margin-bottom: 6px;
+      '>Review Quiz</div>
+      <div style='font-size: 11px; color: #555; line-height: 1.35;'>
+        AI quiz from last race
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RACE PREDICTOR — full width bottom card -->
+  <div onclick='launch("predictor")' style='
+    background: linear-gradient(135deg, #0a0f0a 0%, #111 100%);
+    border: 0.5px solid #1a2a1a;
+    border-left: 3px solid #2e7d32;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  ' onmouseover='this.style.borderColor="#2e7d32"' onmouseout='this.style.borderLeftColor="#2e7d32";this.style.borderTopColor="#1a2a1a";this.style.borderRightColor="#1a2a1a";this.style.borderBottomColor="#1a2a1a"'>
+    <div style='display: flex; align-items: center; justify-content: space-between;'>
+      <div>
+        <div style='
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          color: #2e7d32;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        '>
+          ⚡ Next Race · Austrian GP
+        </div>
+        <div style='
+          font-family: Barlow Condensed, sans-serif;
+          font-size: 26px;
+          font-weight: 800;
+          color: white;
+          line-height: 1;
+          margin-bottom: 4px;
+        '>Race Predictor</div>
+        <div style='font-size: 12px; color: #555; line-height: 1.4;'>
+          AI predictions — podium, strategy & more
+        </div>
+      </div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 40px;
+        font-weight: 900;
+        color: #2e7d32;
+        opacity: 0.4;
+        margin-left: 12px;
+      '>→</div>
+    </div>
+  </div>
+
+</div>
+Global CSS improvements
+
+Add these global styles to make everything feel tighter and more polished:
+css* { 
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0a;
+  color: white;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  font-family: Inter, sans-serif;
+}
+
+/* Smooth transitions on all interactive elements */
+[onclick] {
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+[onclick]:active {
+  transform: scale(0.98);
+  opacity: 0.85;
+}
+
+/* Better scrollbar on mobile */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
+/* Load Barlow Condensed if not already loaded */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+Show today's Tenabell category on the card
+
+Update the Tenabell card to show a preview of today's category:
+javascript// After home screen renders update the tenabell preview
+function updateTenabellPreview() {
+  const el = document.getElementById('tenabell-today')
+  if (!el) return
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)
+  const todaysCat = TCATS[dayOfYear % TCATS.length]
+  if (todaysCat) {
+    const preview = todaysCat.q.replace('Name 10 ', '').substring(0, 30) + '...'
+    el.textContent = 'Today: ' + preview
+  }
+}
+setTimeout(updateTenabellPreview, 100)
+Do not change any game logic, scoring, or functionality. Only update the visual design of the home screen. Keep all existing game IDs and launch functions so navigation still works correctly."
