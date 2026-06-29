@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Lock } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { Lock, Flame } from 'lucide-react';
 import { GeneralQuiz } from './GeneralQuiz';
 import { PostRaceQuiz } from './PostRaceQuiz';
+import { hasCompletedThisWeek, getWeeklyStreak, getLastScore } from '@/lib/weeklyQuiz';
 
 type View = 'home' | 'preview' | 'review' | 'general';
 
@@ -49,10 +50,11 @@ type CardProps = {
   iconBg: string;
   hoverCls: string;
   onClick: () => void;
+  trailing?: ReactNode;
 };
 
 function QuizModeCard({
-  emoji, title, schedule, desc, unlockMsg, available, accent, iconBg, hoverCls, onClick,
+  emoji, title, schedule, desc, unlockMsg, available, accent, iconBg, hoverCls, onClick, trailing,
 }: CardProps) {
   const inner = (
     <>
@@ -69,6 +71,7 @@ function QuizModeCard({
             {schedule}
           </p>
         </div>
+        {trailing && <div className="ml-auto shrink-0">{trailing}</div>}
       </div>
       <p className={`text-sm leading-relaxed mt-2.5 ${available ? 'text-muted-foreground' : 'text-muted-foreground/70 font-medium'}`}>
         {available ? desc : `🔒 ${unlockMsg}`}
@@ -107,6 +110,10 @@ export function WheelKnowledgeQuiz() {
   const previewOpen = devUnlock || isPreviewQuizAvailable();
   const reviewOpen = devUnlock || isReviewQuizAvailable();
 
+  const generalDone = hasCompletedThisWeek();
+  const generalStreak = getWeeklyStreak();
+  const generalLastScore = getLastScore();
+
   return (
     <div className="flex flex-col gap-4">
       {/* Weekly schedule */}
@@ -122,7 +129,7 @@ export function WheelKnowledgeQuiz() {
             <span className="font-semibold text-[#e10600]">🏁 Review Quiz</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground/70">Any time</span>
+            <span className="text-muted-foreground/70">Weekly — resets Monday</span>
             <span className="font-semibold text-[#2e7d32]">❓ General Quiz</span>
           </div>
         </div>
@@ -158,14 +165,29 @@ export function WheelKnowledgeQuiz() {
       <QuizModeCard
         emoji="❓"
         title="General Quiz"
-        schedule="Any time"
-        desc="10 questions spanning every era of F1 — drivers, liveries, helmets, team radio and more."
+        schedule={generalDone ? 'Completed this week' : 'Weekly — resets Monday'}
+        desc={
+          generalDone
+            ? `You scored ${generalLastScore ?? 0}/100 this week. Come back Monday for a fresh set.`
+            : '10 questions spanning every era of F1 — drivers, liveries, helmets, team radio and more. One play per week.'
+        }
         unlockMsg=""
         available={true}
         accent="#2e7d32"
         iconBg="bg-[#2e7d32]/15"
         hoverCls="hover:border-[#2e7d32]/50 hover:bg-[#2e7d32]/5"
         onClick={() => setView('general')}
+        trailing={
+          generalStreak > 0 ? (
+            <div className="flex flex-col items-center rounded-lg border border-[#2e7d32]/40 bg-[#2e7d32]/15 px-2.5 py-1.5">
+              <Flame className="w-4 h-4 text-[#6fcf78]" />
+              <span className="font-black text-[#6fcf78] text-base leading-none mt-0.5">{generalStreak}</span>
+              <span className="text-[8px] font-bold text-muted-foreground tracking-wider">
+                WEEK{generalStreak === 1 ? '' : 'S'}
+              </span>
+            </div>
+          ) : undefined
+        }
       />
 
       {/* Dev: bypass day gating for testing */}

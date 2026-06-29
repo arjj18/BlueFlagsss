@@ -1,0 +1,456 @@
+"Please make the following improvements to the General Quiz:
+Change 1 — Weekly quiz that resets on Monday
+The general quiz should only be playable once per week. It resets every Monday at midnight. Use localStorage to track whether the player has completed this week's quiz:
+javascriptfunction hasCompletedWeeklyQuiz() {
+  const lastCompleted = localStorage.getItem('generalQuizCompleted')
+  if (!lastCompleted) return false
+  
+  const lastDate = new Date(lastCompleted)
+  const now = new Date()
+  
+  // Find the most recent Monday
+  const dayOfWeek = now.getDay()
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  const lastMonday = new Date(now)
+  lastMonday.setDate(now.getDate() - daysSinceMonday)
+  lastMonday.setHours(0, 0, 0, 0)
+  
+  return lastDate >= lastMonday
+}
+
+function markWeeklyQuizCompleted() {
+  localStorage.setItem('generalQuizCompleted', new Date().toISOString())
+}
+
+function getNextMondayCountdown() {
+  const now = new Date()
+  const nextMonday = new Date(now)
+  const daysUntilMonday = now.getDay() === 1 ? 7 : (8 - now.getDay()) % 7 || 7
+  nextMonday.setDate(now.getDate() + daysUntilMonday)
+  nextMonday.setHours(0, 0, 0, 0)
+  
+  const diff = nextMonday - now
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  
+  return `${days}d ${hours}h ${mins}m`
+}
+When the player has already completed this week's quiz show a locked screen instead of the quiz:
+javascriptfunction renderWeeklyQuizLocked(score) {
+  document.getElementById('gi').innerHTML = `
+    <div class='card' style='text-align:center; padding:32px 20px;'>
+      <div style='font-size:48px; margin-bottom:12px;'>🏁</div>
+      <div style='font-family:Barlow Condensed,sans-serif; font-size:32px; font-weight:900; color:white; margin-bottom:4px;'>
+        This week done!
+      </div>
+      <div style='font-size:14px; color:#666; margin-bottom:20px;'>
+        You scored <strong style='color:#e10600;'>${score}/100</strong> this week
+      </div>
+      <div style='background:#1a1a1a; border-radius:10px; padding:16px; margin-bottom:20px;'>
+        <div style='font-size:11px; color:#555; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;'>Next quiz unlocks in</div>
+        <div style='font-family:Barlow Condensed,sans-serif; font-size:36px; font-weight:900; color:white;' id='weekly-countdown'>${getNextMondayCountdown()}</div>
+      </div>
+      <p style='font-size:13px; color:#555; margin-bottom:16px;'>Come back every Monday for a fresh challenge</p>
+      <button onclick='shareWeeklyScore(${score})' class='btn btn-red btn-full'>Share my score →</button>
+    </div>
+  `
+  
+  // Update countdown every minute
+  setInterval(() => {
+    const el = document.getElementById('weekly-countdown')
+    if (el) el.textContent = getNextMondayCountdown()
+  }, 60000)
+}
+Show the weekly quiz card on the home screen with a streak counter showing how many consecutive weeks the player has completed it:
+javascriptfunction getWeeklyStreak() {
+  return parseInt(localStorage.getItem('generalQuizStreak') || '0')
+}
+
+function updateStreak() {
+  const streak = getWeeklyStreak()
+  localStorage.setItem('generalQuizStreak', streak + 1)
+}
+Change 2 — Career path questions with team logos
+For career path questions replace the plain text team name boxes with team logo images from Wikimedia Commons. Use this mapping of team names to their Wikimedia logo URLs:
+javascriptconst TEAM_LOGOS = {
+  'Ferrari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Scuderia_Ferrari_Logo.svg/120px-Scuderia_Ferrari_Logo.svg.png',
+  'McLaren': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/McLaren_Racing_logo.svg/120px-McLaren_Racing_logo.svg.png',
+  'Mercedes': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Mercedes_AMG_Petronas_F1_Logo.svg/120px-Mercedes_AMG_Petronas_F1_Logo.svg.png',
+  'Red Bull': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Red_Bull_Racing_logo.svg/120px-Red_Bull_Racing_logo.svg.png',
+  'Red Bull Racing': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Red_Bull_Racing_logo.svg/120px-Red_Bull_Racing_logo.svg.png',
+  'Williams': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Williams_Racing_logo.svg/120px-Williams_Racing_logo.svg.png',
+  'Renault': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Renault_F1_Team_logo.svg/120px-Renault_F1_Team_logo.svg.png',
+  'Alpine': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Alpine_F1_Team_Logo.svg/120px-Alpine_F1_Team_Logo.svg.png',
+  'Aston Martin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Aston_Martin_F1_Logo.svg/120px-Aston_Martin_F1_Logo.svg.png',
+  'Haas': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Haas_F1_team_logo.svg/120px-Haas_F1_team_logo.svg.png',
+  'AlphaTauri': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Scuderia_AlphaTauri_Logo.svg/120px-Scuderia_AlphaTauri_Logo.svg.png',
+  'Toro Rosso': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Scuderia_Toro_Rosso_Logo.svg/120px-Scuderia_Toro_Rosso_Logo.svg.png',
+  'Racing Bulls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Scuderia_AlphaTauri_Logo.svg/120px-Scuderia_AlphaTauri_Logo.svg.png',
+  'Sauber': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Sauber_Motorsport_logo.svg/120px-Sauber_Motorsport_logo.svg.png',
+  'Alfa Romeo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Alfa_Romeo_Racing_Logo.svg/120px-Alfa_Romeo_Racing_Logo.svg.png',
+  'Lotus': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Lotus_F1_Team_logo.svg/120px-Lotus_F1_Team_logo.svg.png',
+  'Jordan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Jordan_Grand_Prix_logo.svg/120px-Jordan_Grand_Prix_logo.svg.png',
+  'Minardi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Minardi_logo.svg/120px-Minardi_logo.svg.png',
+  'Benetton': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Benetton_Formula_logo.svg/120px-Benetton_Formula_logo.svg.png',
+  'Brabham': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Brabham_logo.svg/120px-Brabham_logo.svg.png',
+  'Tyrrell': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Tyrrell_Racing_logo.svg/120px-Tyrrell_Racing_logo.svg.png',
+  'Brawn GP': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Brawn_GP_logo.svg/120px-Brawn_GP_logo.svg.png',
+  'Force India': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Force_India_logo.svg/120px-Force_India_logo.svg.png',
+  'Racing Point': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/BWT_Racing_Point_F1_Team_Logo.svg/120px-BWT_Racing_Point_F1_Team_Logo.svg.png',
+}
+
+function getTeamLogo(teamName) {
+  return TEAM_LOGOS[teamName] || null
+}
+Render career path questions like this with logos instead of plain text:
+javascriptfunction renderCareerQuestion(q, questionNumber, totalQuestions, onAnswer) {
+  const timeline = q.career.map((team, i) => {
+    const logoUrl = getTeamLogo(team)
+    return `
+      <div style='display:flex; align-items:center; gap:6px;'>
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:8px;
+          padding:8px 10px;
+          text-align:center;
+          min-width:70px;
+        '>
+          ${logoUrl ? `
+            <img 
+              src='${logoUrl}' 
+              alt='${team}'
+              style='height:24px; width:auto; object-fit:contain; margin-bottom:4px; display:block; margin-left:auto; margin-right:auto;'
+              onerror='this.style.display="none"'
+            />
+          ` : ''}
+          <div style='font-size:10px; font-weight:600; color:#aaa; line-height:1.2;'>${team}</div>
+          ${q.years && q.years[i] ? `<div style='font-size:9px; color:#e10600; margin-top:2px;'>${q.years[i]}</div>` : ''}
+        </div>
+        ${i < q.career.length - 1 ? `<div style='color:#e10600; font-size:18px; font-weight:700;'>→</div>` : ''}
+      </div>
+    `
+  }).join('')
+  
+  return `
+    <div style='
+      overflow-x:auto; 
+      padding:12px; 
+      background:#111; 
+      border-radius:10px; 
+      margin-bottom:16px;
+      -webkit-overflow-scrolling:touch;
+    '>
+      <div style='display:flex; align-items:center; gap:6px; min-width:max-content;'>
+        ${timeline}
+      </div>
+    </div>
+  `
+}
+Change 3 — Helmet questions with real images
+Add a helmet image database using Wikimedia Commons URLs. For each helmet question show the actual helmet image above the question:
+javascriptconst HELMET_IMAGES = {
+  'Max Verstappen': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Max_Verstappen_2022_helmet.png/200px-Max_Verstappen_2022_helmet.png',
+  'Lewis Hamilton': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lewis_Hamilton_2020_helmet.png/200px-Lewis_Hamilton_2020_helmet.png',
+  'Ayrton Senna': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Ayrton_Senna_helmet.svg/200px-Ayrton_Senna_helmet.svg.png',
+  'Lando Norris': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Lando_Norris_2023_helmet.png/200px-Lando_Norris_2023_helmet.png',
+  'Charles Leclerc': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Charles_Leclerc_2023_helmet.png/200px-Charles_Leclerc_2023_helmet.png',
+  'Sebastian Vettel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Sebastian_Vettel_helmet_2013.png/200px-Sebastian_Vettel_helmet_2013.png',
+  'Nigel Mansell': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Nigel_Mansell_helmet.png/200px-Nigel_Mansell_helmet.png',
+  'Michael Schumacher': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Michael_Schumacher_helmet.png/200px-Michael_Schumacher_helmet.png',
+}
+
+function renderHelmetQuestion(q) {
+  const helmetUrl = HELMET_IMAGES[q.answer] || null
+  return `
+    <div style='text-align:center; margin-bottom:16px;'>
+      ${helmetUrl ? `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          padding:20px;
+          display:inline-block;
+        '>
+          <img 
+            src='${helmetUrl}'
+            alt='Mystery helmet'
+            style='height:140px; width:auto; object-fit:contain;'
+            onerror='this.parentElement.innerHTML="<div style=\\"font-size:64px\\">🪖</div>"'
+          />
+        </div>
+        <div style='font-size:11px; color:#555; margin-top:8px;'>Whose helmet is this?</div>
+      ` : `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          padding:24px;
+          font-size:64px;
+        '>🪖</div>
+      `}
+    </div>
+  `
+}
+Update all helmet questions in the question bank to include the answer field so the image lookup works:
+javascript{
+  type: 'helmet',
+  q: 'Whose helmet is this?',
+  answer: 'Max Verstappen',
+  helmet: 'A bright orange helmet with a red lion motif and Dutch national colours',
+  opts: ['Max Verstappen', 'Lando Norris', 'Daniel Ricciardo', 'Nyck de Vries'],
+  ans: 0,
+  fact: 'Verstappen chose orange in tribute to the Dutch national colour and Dutch motorsport tradition.'
+},
+Change 4 — Car livery questions with images
+Add a livery image database and render livery questions with the actual car image:
+javascriptconst LIVERY_IMAGES = {
+  'Jordan Grand Prix': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Jordan_191_-_1991_Formula_One_season.jpg/320px-Jordan_191_-_1991_Formula_One_season.jpg',
+  'McLaren 1988': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/McLaren_MP4-4_1988.jpg/320px-McLaren_MP4-4_1988.jpg',
+  'Lotus JPS': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Lotus_72_1970.jpg/320px-Lotus_72_1970.jpg',
+  'Williams Rothmans': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Williams_FW15C_1993.jpg/320px-Williams_FW15C_1993.jpg',
+  'Brawn GP': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Brawn_BGP001_2009.jpg/320px-Brawn_BGP001_2009.jpg',
+  'McLaren West': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/McLaren_MP4-13_1998.jpg/320px-McLaren_MP4-13_1998.jpg',
+}
+
+function renderLiveryQuestion(q) {
+  const liveryUrl = q.liveryImage ? LIVERY_IMAGES[q.liveryKey] : null
+  return `
+    <div style='margin-bottom:16px;'>
+      ${liveryUrl ? `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          overflow:hidden;
+          margin-bottom:8px;
+        '>
+          <img 
+            src='${liveryUrl}'
+            alt='Mystery F1 car'
+            style='width:100%; height:180px; object-fit:cover; display:block;'
+            onerror='this.parentElement.innerHTML="<div style=\\"padding:40px;text-align:center;font-size:48px\\">🏎️</div>"'
+          />
+        </div>
+        <div style='font-size:11px; color:#555; text-align:center;'>Which team raced with this livery?</div>
+      ` : `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          padding:24px;
+          text-align:center;
+          font-size:48px;
+          margin-bottom:8px;
+        '>🏎️</div>
+      `}
+    </div>
+  `
+}
+Update all livery questions to include a liveryKey field:
+javascript{
+  type: 'livery',
+  q: 'Which F1 team raced with this famous car livery?',
+  liveryKey: 'Jordan Grand Prix',
+  liveryImage: true,
+  livery: 'Bright yellow car with black detailing — one of the most loved liveries in F1 history',
+  opts: ['Renault', 'Jordan Grand Prix', 'Minardi', 'Arrows'],
+  ans: 1,
+  fact: 'The Jordan yellow livery became iconic on the F1 grid in the late 1990s.'
+},
+Change 5 — Famous moment questions with images
+Add a famous moment image database from Wikimedia Commons:
+javascriptconst MOMENT_IMAGES = {
+  'senna_imola_1994': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ayrton_Senna_1994_Imola.jpg/320px-Ayrton_Senna_1994_Imola.jpg',
+  'schumacher_2006_japan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Michael_Schumacher_2006_Japan.jpg/320px-Michael_Schumacher_2006_Japan.jpg',
+  'hamilton_2008_brazil': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Lewis_Hamilton_2008_Brazil.jpg/320px-Lewis_Hamilton_2008_Brazil.jpg',
+  'senna_prost_1990': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Senna_Prost_1990_Japan.jpg/320px-Senna_Prost_1990_Japan.jpg',
+}
+
+function renderMomentQuestion(q) {
+  const imageUrl = q.momentKey ? MOMENT_IMAGES[q.momentKey] : null
+  return `
+    <div style='margin-bottom:16px;'>
+      ${imageUrl ? `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          overflow:hidden;
+          margin-bottom:8px;
+          position:relative;
+        '>
+          <img 
+            src='${imageUrl}'
+            alt='Famous F1 moment'
+            style='width:100%; height:200px; object-fit:cover; display:block; filter:brightness(0.85);'
+            onerror='this.parentElement.innerHTML="<div style=\\"padding:40px;text-align:center;font-size:48px\\">📸</div>"'
+          />
+          <div style='
+            position:absolute;
+            bottom:0;
+            left:0;
+            right:0;
+            background:linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding:12px;
+            font-size:10px;
+            color:#aaa;
+          '>What happened in this moment?</div>
+        </div>
+      ` : `
+        <div style='
+          background:#1a1a1a;
+          border:0.5px solid #333;
+          border-radius:12px;
+          padding:24px;
+          text-align:center;
+          margin-bottom:8px;
+        '>
+          <div style='font-size:48px; margin-bottom:8px;'>📸</div>
+          <div style='font-size:13px; color:#555;'>${q.moment}</div>
+        </div>
+      `}
+    </div>
+  `
+}
+Update all famous moment questions to include a momentKey field:
+javascript{
+  type: 'moment',
+  q: 'What happened immediately after this famous F1 moment?',
+  momentKey: 'senna_imola_1994',
+  moment: 'Ayrton Senna\'s Williams exits Tamburello corner at Imola 1994',
+  opts: [
+    'Senna pitted for a tyre change',
+    'Senna\'s car hit the wall causing fatal injuries',
+    'Senna recovered and continued racing',
+    'Senna retired with a mechanical failure'
+  ],
+  ans: 1,
+  fact: 'Senna\'s death on 1 May 1994 led to major safety reforms that transformed F1.'
+},
+Change 6 — Fix autocomplete to only show relevant options
+Update the autocomplete component so it only searches within categories relevant to the current question type. Remove the red bold highlighting from matching text and replace with a subtle underline or just plain white text:
+javascriptfunction getAutocompleteCategories(questionType) {
+  switch(questionType) {
+    case 'career':
+      return ['drivers']
+    case 'helmet':
+      return ['drivers']
+    case 'graph':
+      return ['drivers']
+    case 'radio':
+      return ['drivers']
+    case 'livery':
+      return ['teams']
+    case 'sponsor':
+      return ['teams']
+    case 'standard':
+      // Detect from question content
+      return ['drivers', 'teams', 'circuits']
+    default:
+      return ['drivers', 'teams', 'circuits']
+  }
+}
+
+// Update the autocomplete initialisation to pass the current question type
+function initQuizAutocomplete(questionType) {
+  const input = document.getElementById('quiz-answer-input')
+  if (!input || input.dataset.autocomplete) return
+  input.dataset.autocomplete = 'true'
+  
+  const categories = getAutocompleteCategories(questionType)
+  
+  createAutocomplete(input, categories, (selectedValue) => {
+    input.value = selectedValue
+    GENERALQUIZ.submitTypedAnswer(selectedValue)
+  })
+}
+
+// Update the highlight function to remove red text
+function highlightMatch(text, query) {
+  const lower = text.toLowerCase()
+  const queryLower = query.toLowerCase()
+  const index = lower.indexOf(queryLower)
+  if (index === -1) return text
+  // Use underline instead of red bold text
+  return text.substring(0, index) +
+    '<span style="text-decoration:underline;text-underline-offset:2px;">' + 
+    text.substring(index, index + query.length) + 
+    '</span>' +
+    text.substring(index + query.length)
+}
+Change 7 — Weekly quiz completion flow
+When the player finishes the general quiz call markWeeklyQuizCompleted and show the locked screen with their score. Also update the streak counter:
+javascriptfunction completeWeeklyQuiz(finalScore) {
+  const previousStreak = getWeeklyStreak()
+  
+  // Check if they completed last week to maintain streak
+  const lastCompleted = localStorage.getItem('generalQuizCompleted')
+  const streakValid = lastCompleted ? checkStreakValid(lastCompleted) : false
+  
+  if (streakValid) {
+    localStorage.setItem('generalQuizStreak', previousStreak + 1)
+  } else {
+    localStorage.setItem('generalQuizStreak', 1)
+  }
+  
+  localStorage.setItem('generalQuizLastScore', finalScore)
+  markWeeklyQuizCompleted()
+  
+  renderWeeklyQuizLocked(finalScore)
+}
+
+function checkStreakValid(lastCompletedISO) {
+  const lastDate = new Date(lastCompletedISO)
+  const now = new Date()
+  const diffDays = (now - lastDate) / (1000 * 60 * 60 * 24)
+  return diffDays <= 14 // Allow up to 2 weeks gap before streak breaks
+}
+Show the streak on the general quiz home card:
+javascriptfunction renderGeneralQuizCard() {
+  const streak = getWeeklyStreak()
+  const completed = hasCompletedWeeklyQuiz()
+  const lastScore = localStorage.getItem('generalQuizLastScore')
+  
+  return `
+    <div onclick='${completed ? '' : 'launch("gquiz")'}' style='
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid #2e7d32;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: ${completed ? 'default' : 'pointer'};
+      opacity: ${completed ? '0.7' : '1'};
+      transition: all 0.15s;
+    '>
+      <div style='display:flex; align-items:flex-start; justify-content:space-between;'>
+        <div>
+          <div style='font-size:9px; font-weight:700; letter-spacing:1.5px; color:#2e7d32; text-transform:uppercase; margin-bottom:4px;'>
+            ${completed ? 'Completed this week' : 'Weekly Challenge'}
+          </div>
+          <div style='font-family:Barlow Condensed,sans-serif; font-size:22px; font-weight:800; color:white; margin-bottom:6px;'>
+            F1 Quiz
+          </div>
+          <div style='font-size:11px; color:#555;'>
+            ${completed ? `Your score: ${lastScore}/100` : 'Resets every Monday'}
+          </div>
+        </div>
+        ${streak > 0 ? `
+          <div style='
+            background:#2e7d3220;
+            border:0.5px solid #2e7d3240;
+            border-radius:8px;
+            padding:8px 10px;
+            text-align:center;
+          '>
+            <div style='font-size:18px;'>🔥</div>
+            <div style='font-family:Barlow Condensed,sans-serif; font-size:20px; font-weight:900; color:#2e7d32;'>${streak}</div>
+            <div style='font-size:8px; color:#555; font-weight:700;'>WEEK${streak === 1 ? '' : 'S'}</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `
+}
+Please keep all existing game logic and other features exactly as they are. Only make the changes described above to the General Quiz."

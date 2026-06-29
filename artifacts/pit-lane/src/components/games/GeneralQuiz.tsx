@@ -1,8 +1,17 @@
-import { useState } from 'react';
-import { Trophy, Share2, Check } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Share2, Check, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
+import { resolveTeamLogo } from '@/lib/teamLogos';
+import {
+  hasCompletedThisWeek,
+  completeWeeklyQuiz,
+  getWeeklyStreak,
+  getLastScore,
+  getNextMondayCountdown,
+  type WeeklyCompletion,
+} from '@/lib/weeklyQuiz';
 
 type QuestionType =
   | 'standard'
@@ -28,6 +37,7 @@ type StandardQuestion = BaseQuestion & {
   moment?: string;
   livery?: string;
   sponsor?: string;
+  image?: string;
 };
 
 type CareerQuestion = BaseQuestion & {
@@ -227,6 +237,7 @@ const BANK: Question[] = [
     type: 'moment',
     q: 'What happened immediately after this famous F1 moment?',
     moment: "It is the 1994 San Marino Grand Prix at Imola. Ayrton Senna's Williams car exits the Tamburello corner at high speed during the race. The car appears to be going straight.",
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ayrton_Senna_1994_Imola.jpg/320px-Ayrton_Senna_1994_Imola.jpg',
     opts: [
       'Senna pitted immediately for a tyre change',
       'Senna\'s car hit the concrete wall and he sustained fatal injuries',
@@ -240,6 +251,7 @@ const BANK: Question[] = [
     type: 'moment',
     q: 'What happened in this famous F1 moment?',
     moment: 'It is the final corner of the final lap of the 2008 Brazilian Grand Prix. Lewis Hamilton is in fifth place and needs to be fourth or higher to win the championship by one point. Timo Glock is ahead of him.',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Lewis_Hamilton_2008_Brazil.jpg/320px-Lewis_Hamilton_2008_Brazil.jpg',
     opts: [
       'Hamilton crashed out and lost the championship',
       'Hamilton overtook Glock on the last corner to clinch the championship',
@@ -253,6 +265,7 @@ const BANK: Question[] = [
     type: 'moment',
     q: 'What happened before this famous F1 moment?',
     moment: 'Michael Schumacher is standing on the pit wall at the 2006 Japanese Grand Prix looking devastated as his Ferrari sits stationary on track with smoke coming from the engine.',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Michael_Schumacher_2006_Japan.jpg/320px-Michael_Schumacher_2006_Japan.jpg',
     opts: [
       'Schumacher had just crashed into Alonso deliberately',
       'Schumacher\'s engine failed while he was leading the race from pole position',
@@ -266,6 +279,7 @@ const BANK: Question[] = [
     type: 'moment',
     q: 'What happened in this famous F1 moment?',
     moment: 'It is the start of the 1990 Japanese Grand Prix. Ayrton Senna lines up on pole position but is moved to the dirty side of the grid by the FIA after protesting his grid position.',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Senna_Prost_1990_Japan.jpg/320px-Senna_Prost_1990_Japan.jpg',
     opts: [
       'Senna made a perfect start and won the race comfortably',
       'Senna immediately drove into Prost at the first corner handing himself the championship',
@@ -440,6 +454,33 @@ const BANK: Question[] = [
 // Season: 2026 F1 World Championship
 // Grid: 11 teams, 22 drivers
 
+// Best-effort real images for spotlight questions. Keyed by the correct answer
+// (driver for helmets, team for liveries). Many of these are external URLs that
+// may not always resolve — QuizImage hides itself on error so the descriptive
+// text below always remains as a graceful fallback.
+const HELMET_IMAGES: Record<string, string> = {
+  'Max Verstappen': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Max_Verstappen_2022_helmet.png/200px-Max_Verstappen_2022_helmet.png',
+  'Lewis Hamilton': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lewis_Hamilton_2020_helmet.png/200px-Lewis_Hamilton_2020_helmet.png',
+  'Ayrton Senna': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Ayrton_Senna_helmet.svg/200px-Ayrton_Senna_helmet.svg.png',
+  'Lando Norris': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Lando_Norris_2023_helmet.png/200px-Lando_Norris_2023_helmet.png',
+  'Charles Leclerc': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Charles_Leclerc_2023_helmet.png/200px-Charles_Leclerc_2023_helmet.png',
+  'Sebastian Vettel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Sebastian_Vettel_helmet_2013.png/200px-Sebastian_Vettel_helmet_2013.png',
+  'Nigel Mansell': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Nigel_Mansell_helmet.png/200px-Nigel_Mansell_helmet.png',
+  'Michael Schumacher': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Michael_Schumacher_helmet.png/200px-Michael_Schumacher_helmet.png',
+};
+
+const LIVERY_IMAGES: Record<string, string> = {
+  'Jordan Grand Prix': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Jordan_191_-_1991_Formula_One_season.jpg/320px-Jordan_191_-_1991_Formula_One_season.jpg',
+  Lotus: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Lotus_72_1970.jpg/320px-Lotus_72_1970.jpg',
+};
+
+function imageForQuestion(q: Question): string | null {
+  if (q.type === 'helmet') return HELMET_IMAGES[q.opts[q.ans]] ?? null;
+  if (q.type === 'livery') return LIVERY_IMAGES[q.opts[q.ans]] ?? null;
+  if (q.type === 'moment') return q.image ?? null;
+  return null;
+}
+
 const TYPE_META: Record<QuestionType, { label: string; badge: string }> = {
   career: { label: 'Career Path', badge: 'bg-[#1565c0]/15 text-[#6db1ec] border-[#1565c0]/40' },
   graph: { label: 'Position Graph', badge: 'bg-[#2e7d32]/15 text-[#6fcf78] border-[#2e7d32]/40' },
@@ -487,21 +528,45 @@ function ratingFor(score: number): string {
   return 'Are you sure you watch F1? 😅';
 }
 
+function QuizImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  // Reset failure state when the source changes so a single broken image in one
+  // question never suppresses valid images in later questions (same instance is
+  // reused across the quiz).
+  useEffect(() => setFailed(false), [src]);
+  if (failed) return null;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={className}
+    />
+  );
+}
+
 function CareerTimeline({ q }: { q: CareerQuestion }) {
   return (
     <div className="overflow-x-auto pb-2 mb-4">
       <div className="flex items-center gap-1.5 min-w-max">
-        {q.career.map((team, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <div className="bg-black/50 border border-border rounded-lg px-3 py-2 text-center">
-              <div className="text-xs font-semibold text-white whitespace-nowrap">{team}</div>
-              {q.years[i] ? (
-                <div className="text-[9px] text-primary font-medium mt-0.5">{q.years[i]}</div>
-              ) : null}
+        {q.career.map((team, i) => {
+          const logo = resolveTeamLogo(team);
+          return (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="bg-black/50 border border-border rounded-lg px-3 py-2 text-center min-w-[64px]">
+                {logo ? (
+                  <QuizImage src={logo} alt={team} className="h-5 w-auto object-contain mx-auto mb-1" />
+                ) : null}
+                <div className="text-xs font-semibold text-white whitespace-nowrap">{team}</div>
+                {q.years[i] ? (
+                  <div className="text-[9px] text-primary font-medium mt-0.5">{q.years[i]}</div>
+                ) : null}
+              </div>
+              {i < q.career.length - 1 && <div className="text-primary text-base font-bold">→</div>}
             </div>
-            {i < q.career.length - 1 && <div className="text-primary text-base font-bold">→</div>}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -554,15 +619,90 @@ function PromptMedia({ q }: { q: Question }) {
     : q.type === 'sponsor' ? q.sponsor
     : undefined;
 
-  if (description) {
+  const imageSrc = imageForQuestion(q);
+
+  if (imageSrc || description) {
     return (
-      <div className="mb-4 bg-secondary/40 border border-border rounded-lg px-4 py-3">
-        <p className="text-sm text-foreground/90 leading-relaxed">{description}</p>
+      <div className="mb-4 space-y-2">
+        {imageSrc && (
+          <div className="bg-black/40 border border-border rounded-lg overflow-hidden flex items-center justify-center p-2">
+            <QuizImage src={imageSrc} alt={q.q} className="max-h-48 w-auto object-contain rounded" />
+          </div>
+        )}
+        {description && (
+          <div className="bg-secondary/40 border border-border rounded-lg px-4 py-3">
+            <p className="text-sm text-foreground/90 leading-relaxed">{description}</p>
+          </div>
+        )}
       </div>
     );
   }
 
   return null;
+}
+
+function WeeklyLockedScreen({
+  score,
+  streak,
+  justFinished,
+}: {
+  score: number;
+  streak: number;
+  justFinished: boolean;
+}) {
+  const [countdown, setCountdown] = useState(() => getNextMondayCountdown());
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setCountdown(getNextMondayCountdown()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleShare = async () => {
+    const text = `I scored ${score}/${MAX_SCORE} on the Pit Lane Fan Zone weekly F1 quiz — can you beat me?`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard unavailable — silently ignore
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center space-y-5 animate-in fade-in py-8 text-center">
+      <div className="text-5xl">🏁</div>
+      <div>
+        <h2 className="text-3xl font-black">{justFinished ? 'This week done!' : 'Already played this week'}</h2>
+        <p className="text-muted-foreground mt-1">
+          You scored <strong className="text-primary">{score}/{MAX_SCORE}</strong> this week
+        </p>
+      </div>
+
+      {streak > 0 && (
+        <div className="flex items-center gap-2 rounded-full border border-[#2e7d32]/40 bg-[#2e7d32]/15 px-4 py-1.5">
+          <Flame className="w-4 h-4 text-[#6fcf78]" />
+          <span className="font-bold text-[#6fcf78]">
+            {streak} week{streak === 1 ? '' : 's'} streak
+          </span>
+        </div>
+      )}
+
+      <div className="w-full max-w-xs rounded-xl border border-border bg-secondary/30 px-4 py-4">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+          Next quiz unlocks in
+        </div>
+        <div className="text-3xl font-black font-mono tabular-nums">{countdown}</div>
+      </div>
+
+      <p className="text-sm text-muted-foreground">Come back every Monday for a fresh challenge.</p>
+
+      <Button onClick={handleShare} size="lg" variant="outline" className="font-bold tracking-widest">
+        {copied ? <Check className="w-4 h-4 mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
+        {copied ? 'COPIED' : 'SHARE MY SCORE'}
+      </Button>
+    </div>
+  );
 }
 
 export function GeneralQuiz() {
@@ -571,7 +711,8 @@ export function GeneralQuiz() {
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState<number | null>(null);
   const [gameOver, setGameOver] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [lockedAtMount] = useState(() => hasCompletedThisWeek());
+  const [completion, setCompletion] = useState<WeeklyCompletion | null>(null);
 
   const q = questions[currentIdx];
   const meta = TYPE_META[q.type];
@@ -589,38 +730,30 @@ export function GeneralQuiz() {
       setAnswered(null);
     } else {
       saveScore({ game: 'quiz', label: 'General Quiz', score, total: MAX_SCORE });
+      setCompletion(completeWeeklyQuiz(score));
       setGameOver(true);
     }
   };
 
-  const handleShare = async () => {
-    const text = `I scored ${score}/${MAX_SCORE} on the Pit Lane Fan Zone General Quiz — can you beat me?`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard unavailable — silently ignore
-    }
-  };
+  if (lockedAtMount && !gameOver) {
+    return (
+      <WeeklyLockedScreen
+        score={getLastScore() ?? 0}
+        streak={getWeeklyStreak()}
+        justFinished={false}
+      />
+    );
+  }
 
   if (gameOver) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in py-8">
-        <Trophy className="w-16 h-16 text-primary" />
-        <h2 className="text-4xl font-black">
-          {score} / {MAX_SCORE}
-        </h2>
-        <p className="text-muted-foreground text-center max-w-sm text-lg font-medium">{ratingFor(score)}</p>
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mt-4">
-          <Button onClick={() => window.location.reload()} size="lg" className="flex-1 font-bold tracking-widest">
-            PLAY AGAIN
-          </Button>
-          <Button onClick={handleShare} size="lg" variant="outline" className="flex-1 font-bold tracking-widest">
-            {copied ? <Check className="w-4 h-4 mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
-            {copied ? 'COPIED' : 'SHARE'}
-          </Button>
-        </div>
+      <div className="flex flex-col items-center gap-4 animate-in fade-in py-2">
+        <p className="text-muted-foreground text-center max-w-sm text-base font-medium">{ratingFor(score)}</p>
+        <WeeklyLockedScreen
+          score={score}
+          streak={completion?.streak ?? getWeeklyStreak()}
+          justFinished
+        />
       </div>
     );
   }
