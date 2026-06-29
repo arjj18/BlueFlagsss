@@ -95,7 +95,7 @@ const CARS: PickItem[] = [
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const BUDGET = 360;
+export const BUDGET = 360;
 
 const RACE_CALENDAR = [
   "Australian GP", "Bahraini GP", "Saudi Arabian GP", "Japanese GP",
@@ -333,7 +333,7 @@ export function TwentyFourO() {
       const t = setTimeout(() => setPhase("results"), 600);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setVisibleCount(v => v + 1), 400);
+    const t = setTimeout(() => setVisibleCount(v => v + 1), 150);
     return () => clearTimeout(t);
   }, [phase, visibleCount]);
 

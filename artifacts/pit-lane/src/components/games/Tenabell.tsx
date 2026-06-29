@@ -139,6 +139,7 @@ export function Tenabell() {
   const [shake, setShake] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect((): (() => void) | void => {
     if (mode === "timed" && timeLeft > 0 && found.length < 10) {
@@ -165,6 +166,14 @@ export function Tenabell() {
     setPlayedMode(currentPlayMode);
     setRevealed(true);
     setMode("over");
+    // Dismiss the mobile keyboard, then smoothly bring the results grid into view.
+    inputRef.current?.blur();
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
   }
 
   const checkAns = (explicit?: string) => {
@@ -379,7 +388,7 @@ export function Tenabell() {
       )}
 
       {/* Slots */}
-      <div className="grid grid-cols-2 gap-1.5">
+      <div ref={resultsRef} className="grid grid-cols-2 gap-1.5 scroll-mt-4">
         {slots.map((slot, i) => {
           let cls = "bg-secondary/30 text-muted-foreground border-transparent";
           if (slot.isFound) cls = "bg-green-600/15 text-green-400 border-green-600/25 font-semibold";

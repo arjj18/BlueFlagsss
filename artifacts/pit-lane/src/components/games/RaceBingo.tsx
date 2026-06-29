@@ -118,6 +118,16 @@ const AI_TAB = -1;
 
 type View = "setup" | "play";
 
+// Scale square text down so long custom strings fit without clipping.
+function squareFontSize(text: string): number {
+  const len = text.trim().length;
+  if (len <= 14) return 11;
+  if (len <= 20) return 10;
+  if (len <= 28) return 9;
+  if (len <= 34) return 8;
+  return 7;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function RaceBingo() {
@@ -132,6 +142,7 @@ export function RaceBingo() {
   // Setup state
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [customText, setCustomText] = useState("");
+  const [customFocused, setCustomFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState(0);
 
   // AI state
@@ -150,6 +161,7 @@ export function RaceBingo() {
 
   const fillSelected = (text: string) => {
     if (selectedIdx === null) return;
+    setCustomFocused(false);
     const next = [...squares];
     next[selectedIdx] = text;
     setSquares(next);
@@ -175,6 +187,7 @@ export function RaceBingo() {
     saveSquares(next);
     setSelectedIdx(i);
     setCustomText("");
+    setCustomFocused(false);
   };
 
   const clearAll = () => {
@@ -182,6 +195,7 @@ export function RaceBingo() {
     saveSquares([...BLANK]);
     setSelectedIdx(null);
     setCustomText("");
+    setCustomFocused(false);
   };
 
   const startGame = () => {
@@ -286,6 +300,7 @@ export function RaceBingo() {
               <button
                 key={i}
                 onClick={() => selectSquare(i)}
+                style={isFilled ? { fontSize: `${squareFontSize(sq)}px` } : undefined}
                 className={`aspect-square p-1.5 rounded text-[9px] md:text-[10px] leading-tight font-semibold flex items-center justify-center text-center overflow-hidden transition-all ${cls}`}
               >
                 {isFilled ? sq : <span className="text-[16px] font-light opacity-30">+</span>}
@@ -326,6 +341,8 @@ export function RaceBingo() {
                 value={customText}
                 onChange={e => setCustomText(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && applyCustom()}
+                onFocus={() => setCustomFocused(true)}
+                onBlur={() => { if (!customText.trim()) setCustomFocused(false); }}
                 maxLength={40}
                 placeholder="Type your own event…"
                 className="flex-1 bg-background border border-border/60 rounded-md px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50 transition-colors"
@@ -341,6 +358,9 @@ export function RaceBingo() {
               )}
             </div>
 
+            {/* Suggestion browser — hidden while typing a custom event so the
+                mobile keyboard doesn't crowd the UI */}
+            {!customFocused && (<>
             {/* Category tabs */}
             <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-none">
               {CATEGORIES.map((cat, ci) => (
@@ -432,6 +452,7 @@ export function RaceBingo() {
                 })}
               </div>
             )}
+            </>)}
           </div>
         )}
 
@@ -508,6 +529,7 @@ export function RaceBingo() {
               onClick={() => toggle(i)}
               disabled={isEmpty}
               data-testid={`button-bingo-square-${i}`}
+              style={isEmpty ? undefined : { fontSize: `${squareFontSize(sq)}px` }}
               className={`aspect-square p-1.5 rounded font-semibold text-[9px] md:text-[11px] leading-tight flex items-center justify-center text-center border border-transparent transition-all duration-150 overflow-hidden ${cls}`}
             >
               {isEmpty ? "—" : sq}

@@ -3,7 +3,7 @@ import { ArrowLeft, BarChart2, CalendarDays, Zap } from 'lucide-react';
 import { RaceBingo } from './components/games/RaceBingo';
 import { WheelKnowledgeQuiz } from './components/games/WheelKnowledgeQuiz';
 import { Tenabell } from './components/games/Tenabell';
-import { TwentyFourO } from './components/games/TwentyFourO';
+import { TwentyFourO, BUDGET as TWENTYFOURO_BUDGET } from './components/games/TwentyFourO';
 import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
 import { RacePredictor } from './components/games/RacePredictor';
@@ -217,7 +217,7 @@ export default function App() {
                     24-0
                   </div>
                   <div className="text-[12px] text-[#777] mt-1 leading-relaxed">
-                    Draft your constructor — 2 drivers, engine &amp; chassis. Can you go unbeaten?
+                    Draft your constructor on a {TWENTYFOURO_BUDGET}-pt budget — 2 drivers, engine &amp; chassis. Can you go unbeaten?
                   </div>
                 </div>
                 <div className="text-center bg-[#7c3aed]/10 border border-[#7c3aed]/25 rounded-lg px-3.5 py-2.5 shrink-0 ml-3">
