@@ -78,6 +78,15 @@ components:
       properties:
         q:
           type: string
+        type:
+          type: string
+          description: Question format (standard, whoami, layout, image). Defaults to standard.
+        image:
+          type: string
+          description: >-
+            Optional image for the question. Either an absolute https URL to a
+            real photo, or a "logo:<TeamName>" token resolved to a bundled team
+            logo on the client. Rendered with a graceful fallback when it fails.
         opts:
           type: array
           items:

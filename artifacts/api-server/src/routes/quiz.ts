@@ -59,7 +59,7 @@ Question 1 — FIRST RACE: When was the first ever Formula 1 Grand Prix held at 
 
 Question 2 — POLE POSITION KING: Which driver has taken the most pole positions at this circuit all time. Give four driver options.
 
-Question 3 — FAMOUS MOMENT PICTURE: Describe a famous historical moment from this circuit in vivid detail — a crash, a celebration, a battle, a landmark moment — without naming the driver or year. Give four options for who was involved or what happened next.
+Question 3 — FAMOUS MOMENT PICTURE: Describe a famous historical moment from this circuit in vivid detail — a crash, a celebration, a battle, a landmark moment — without naming the driver or year. Give four options for who was involved or what happened next. If — and ONLY if — you are confident of a real, working, publicly hosted https image URL of this exact moment, include it as an "image" field; otherwise omit the field entirely (never invent a URL).
 
 Question 4 — SPOT THE DIFFERENCE: Describe how the circuit layout has changed from its original historic version to today. Give four options for the key difference — one correct and three plausible but wrong changes.
 
@@ -104,6 +104,8 @@ Return ONLY a JSON array with no other text. Questions 1-4 and 6-9 use this form
   "ans": 0,
   "fact": "Brief interesting fact"
 }
+
+A standard question MAY optionally include an "image" field — a direct, real, publicly hosted https URL to a relevant photo. The client shows it above the question and hides it gracefully if it fails to load. Only include "image" when you are confident the URL is real and working; otherwise omit it entirely. Never fabricate a URL.
 
 Question 5 uses the layout format shown above.
 
@@ -174,6 +176,8 @@ Return ONLY a JSON array with no other text in this exact format:
     "fact": "Brief interesting fact about the correct answer"
   }
 ]
+
+A question MAY optionally include an "image" field — a direct, real, publicly hosted https URL to a relevant photo from this race weekend. The client shows it above the question and hides it gracefully if it fails to load. Only include "image" when you are confident the URL is real and working; otherwise omit it entirely. Never fabricate a URL.
 
 Every question must use real accurate data from your ${currentYear} web search. Do not guess or use outdated information or any data from ${currentYear - 1} or earlier.`;
 };

@@ -1,11 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import {
-  searchF1,
-  CATEGORY_COLORS,
-  CATEGORY_LABELS,
-  type F1Category,
-} from '@/lib/f1Database';
+import { searchF1, type F1Category } from '@/lib/f1Database';
 
 interface AutocompleteInputProps {
   value: string;
@@ -22,7 +17,7 @@ interface AutocompleteInputProps {
   'data-testid'?: string;
 }
 
-/** Renders the matched portion of `text` in bold red. */
+/** Renders the matched portion of `text` in bold (neutral emphasis, no colour). */
 function HighlightedMatch({ text, query }: { text: string; query: string }) {
   const idx = text.toLowerCase().indexOf(query.trim().toLowerCase());
   if (idx === -1 || !query.trim()) return <span>{text}</span>;
@@ -30,7 +25,7 @@ function HighlightedMatch({ text, query }: { text: string; query: string }) {
   return (
     <span>
       {text.slice(0, idx)}
-      <strong className="font-bold text-[#e10600]">{text.slice(idx, end)}</strong>
+      <strong className="font-bold text-foreground">{text.slice(idx, end)}</strong>
       {text.slice(end)}
     </span>
   );
@@ -153,35 +148,26 @@ export const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputP
             role="listbox"
             className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[240px] overflow-y-auto rounded-lg border border-popover-border bg-popover shadow-lg shadow-black/40"
           >
-            {results.map((r, i) => {
-              const color = CATEGORY_COLORS[r.category];
-              return (
-                <button
-                  key={`${r.category}:${r.item}`}
-                  type="button"
-                  role="option"
-                  aria-selected={i === highlighted}
-                  // Prevent the input from blurring before the click registers.
-                  onMouseDown={(e) => e.preventDefault()}
-                  onMouseEnter={() => setHighlighted(i)}
-                  onClick={() => commit(r.item)}
-                  data-testid={`autocomplete-option-${i}`}
-                  className={`flex min-h-[44px] w-full items-center justify-between gap-2 border-b border-border/40 px-3.5 py-2.5 text-left text-sm font-medium text-popover-foreground transition-colors last:border-b-0 ${
-                    i === highlighted ? 'bg-secondary' : 'bg-transparent'
-                  }`}
-                >
-                  <span className="truncate">
-                    <HighlightedMatch text={r.item} query={value} />
-                  </span>
-                  <span
-                    className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
-                    style={{ color, backgroundColor: `${color}20` }}
-                  >
-                    {CATEGORY_LABELS[r.category]}
-                  </span>
-                </button>
-              );
-            })}
+            {results.map((r, i) => (
+              <button
+                key={`${r.category}:${r.item}`}
+                type="button"
+                role="option"
+                aria-selected={i === highlighted}
+                // Prevent the input from blurring before the click registers.
+                onMouseDown={(e) => e.preventDefault()}
+                onMouseEnter={() => setHighlighted(i)}
+                onClick={() => commit(r.item)}
+                data-testid={`autocomplete-option-${i}`}
+                className={`flex min-h-[44px] w-full items-center gap-2 border-b border-border/40 px-3.5 py-2.5 text-left text-sm font-medium text-popover-foreground transition-colors last:border-b-0 ${
+                  i === highlighted ? 'bg-secondary' : 'bg-transparent'
+                }`}
+              >
+                <span className="truncate">
+                  <HighlightedMatch text={r.item} query={value} />
+                </span>
+              </button>
+            ))}
           </div>
         )}
       </div>

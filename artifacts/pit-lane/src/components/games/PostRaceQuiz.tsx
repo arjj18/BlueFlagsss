@@ -5,13 +5,17 @@ import { AutocompleteInput } from '@/components/AutocompleteInput';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
 import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
+import { resolveQuestionImage } from '@/lib/teamLogos';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type QuizMode = 'preview' | 'review' | 'general';
 type Phase = 'input' | 'loading' | 'quiz' | 'done';
 
-type StandardQ = { type: 'standard'; q: string; opts: string[]; ans: number; fact: string };
+// `image` is optional on standard questions: either a `logo:<Team>` token (a
+// reliable bundled logo) or an https URL to a real photo. It renders above the
+// question with a graceful fallback when it fails to load.
+type StandardQ = { type: 'standard'; q: string; opts: string[]; ans: number; fact: string; image?: string };
 type WhoAmIQ  = { type: 'whoami';   q: string; clues: string[]; opts: string[]; ans: number; fact: string };
 type LayoutQ  = { type: 'layout';   q: string; circuits: string[]; ans: number; fact: string };
 type Question  = StandardQ | WhoAmIQ | LayoutQ;
@@ -46,7 +50,24 @@ const GENERAL_QUESTIONS: StandardQ[] = [
   { type:'standard', q:"How many cars start a Formula 1 race in 2026?", opts:["18","20","22","24"], ans:2, fact:"With 11 teams × 2 drivers there are 22 cars on the starting grid in 2026, after Cadillac joined as the 11th constructor." },
   { type:'standard', q:"Which country hosts the Suzuka circuit?", opts:["South Korea","China","Singapore","Japan"], ans:3, fact:"Suzuka is in Japan's Mie Prefecture and has hosted the Japanese GP since 1987." },
   { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield." },
+  // ── Team-logo identification (real bundled logos, always reliable) ──────────
+  { type:'standard', q:"Which Formula 1 team does this logo belong to?", image:'logo:Ferrari', opts:["McLaren","Ferrari","Williams","Aston Martin"], ans:1, fact:"Ferrari is the oldest and most successful team in F1, racing since the championship began in 1950." },
+  { type:'standard', q:"Which team's logo is this?", image:'logo:Mercedes', opts:["Mercedes","Red Bull","Aston Martin","Williams"], ans:0, fact:"Mercedes won eight consecutive Constructors' titles from 2014 to 2021." },
+  { type:'standard', q:"Identify the team from its logo.", image:'logo:Red Bull', opts:["Ferrari","McLaren","Red Bull","Williams"], ans:2, fact:"Red Bull entered F1 in 2005 after buying the Jaguar team and have since won multiple titles." },
+  { type:'standard', q:"Which constructor uses this logo?", image:'logo:McLaren', opts:["McLaren","Mercedes","Aston Martin","Ferrari"], ans:0, fact:"McLaren is the second-oldest active team and has won the Constructors' title multiple times." },
+  { type:'standard', q:"Whose team logo is shown here?", image:'logo:Williams', opts:["Aston Martin","Williams","Red Bull","McLaren"], ans:1, fact:"Williams won nine Constructors' Championships between 1980 and 1997." },
+  { type:'standard', q:"Which team does this logo represent?", image:'logo:Aston Martin', opts:["Aston Martin","Ferrari","Mercedes","Williams"], ans:0, fact:"Aston Martin returned to F1 as a constructor in 2021, having last competed in 1960." },
+  // ── Career-path questions ──────────────────────────────────────────────────
+  { type:'standard', q:"This driver's F1 path went Sauber → Ferrari → Lotus → Ferrari → Alfa Romeo. Who is it?", opts:["Fernando Alonso","Kimi Räikkönen","Felipe Massa","Sebastian Vettel"], ans:1, fact:"Kimi Räikkönen debuted with Sauber in 2001, won the 2007 title with Ferrari, and retired back at Sauber/Alfa Romeo in 2021." },
+  { type:'standard', q:"Which driver followed this team path: McLaren → Renault → Ferrari → McLaren → Alpine → Aston Martin?", opts:["Lewis Hamilton","Fernando Alonso","Sebastian Vettel","Jenson Button"], ans:1, fact:"Fernando Alonso's career has spanned six different constructors across more than two decades." },
 ];
+
+// Build a fresh 10-question general quiz from the shuffled pool so scoring stays
+// 10 questions × 10 pts = 100, while still giving variety (including image
+// questions) each time it is played.
+function pickGeneralQuestions(): StandardQ[] {
+  return [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
+}
 
 // ── Mode config ──────────────────────────────────────────────────────────────
 
@@ -127,6 +148,28 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
+/**
+ * Renders a question's optional image (bundled team logo or photo URL) with a
+ * graceful fallback: if it fails to load, the image is hidden and the question
+ * text/options carry the question on their own.
+ */
+function QuestionImage({ image }: { image?: string }) {
+  const src = resolveQuestionImage(image);
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return null;
+  const isLogo = (image ?? '').trim().toLowerCase().startsWith('logo:');
+  return (
+    <div className="flex items-center justify-center rounded-xl border border-border/40 bg-white/95 p-5">
+      <img
+        src={src}
+        alt=""
+        onError={() => setFailed(true)}
+        className={isLogo ? 'max-h-24 w-auto object-contain' : 'max-h-60 w-full rounded-lg object-contain'}
+      />
+    </div>
+  );
+}
+
 type PostRaceQuizProps = {
   /** When provided, the quiz launches directly in this mode (set by the quiz home). */
   initialMode?: QuizMode;
@@ -144,7 +187,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   const [raceInput, setRaceInput] = useState('');
   const [raceName, setRaceName] = useState(() => startMode === 'general' ? 'General Quiz' : '');
   const [questions, setQuestions] = useState<Question[]>(() =>
-    startMode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []
+    startMode === 'general' ? pickGeneralQuestions() : []
   );
 
   // Quiz state
@@ -168,7 +211,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     setRaceName(mode === 'general' ? 'General Quiz' : '');
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
     setCluesRevealed(1); setRaceInput(''); setError(null);
-    setQuestions(mode === 'general' ? [...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5) : []);
+    setQuestions(mode === 'general' ? pickGeneralQuestions() : []);
   };
 
   const handleSetTestMode = (mode: QuizMode) => {
@@ -317,7 +360,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
     setCluesRevealed(1); setRaceInput('');
     if (quizMode === 'general') {
-      setQuestions([...GENERAL_QUESTIONS].sort(() => Math.random() - 0.5));
+      setQuestions(pickGeneralQuestions());
     } else {
       setQuestions([]);
     }
@@ -548,6 +591,10 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
       {!isWhoami && (
         <div className="text-xl md:text-2xl font-bold leading-tight py-1">{q.q}</div>
       )}
+
+      {/* Optional question image (team logo / photo) with graceful fallback.
+          Keyed by question index so the internal failed-state resets per question. */}
+      {q.type === 'standard' && q.image && <QuestionImage key={currentIdx} image={q.image} />}
 
       {/* ── Layout question: circuit SVG grid ─────────────────────────────── */}
       {isLayout && (

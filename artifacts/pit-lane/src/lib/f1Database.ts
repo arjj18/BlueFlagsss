@@ -2,7 +2,7 @@
 // Entries are deduplicated per category so the dropdown never shows the same
 // item twice (the raw lists contain some intentional/historical duplicates).
 
-export type F1Category = 'drivers' | 'teams' | 'circuits' | 'engines';
+export type F1Category = 'drivers' | 'teams' | 'circuits' | 'engines' | 'countries';
 
 const drivers: string[] = [
   // Current drivers
@@ -123,6 +123,23 @@ const engines: string[] = [
   'Maserati Engine', 'Alfa Romeo Engine', 'Vanwall', 'Weslake',
 ];
 
+// Nationalities (and the matching country names fans use interchangeably) for
+// quiz/category rounds that ask for countries rather than drivers or teams.
+const countries: string[] = [
+  'British', 'Britain', 'United Kingdom', 'UK', 'England', 'English',
+  'German', 'Germany', 'Brazilian', 'Brazil', 'Argentine', 'Argentina',
+  'French', 'France', 'Austrian', 'Austria', 'Australian', 'Australia',
+  'Dutch', 'Netherlands', 'Holland', 'Finnish', 'Finland', 'Italian', 'Italy',
+  'Spanish', 'Spain', 'American', 'United States', 'USA', 'Canadian', 'Canada',
+  'Mexican', 'Mexico', 'Belgian', 'Belgium', 'Swedish', 'Sweden', 'Swiss',
+  'Switzerland', 'Japanese', 'Japan', 'Monegasque', 'Monaco', 'Thai', 'Thailand',
+  'Danish', 'Denmark', 'Polish', 'Poland', 'Russian', 'Russia', 'New Zealand',
+  'New Zealander', 'South African', 'South Africa', 'Colombian', 'Colombia',
+  'Venezuelan', 'Venezuela', 'Indian', 'India', 'Chinese', 'China', 'Irish',
+  'Ireland', 'Portuguese', 'Portugal', 'Hungarian', 'Hungary', 'Czech',
+  'Czech Republic', 'Indonesian', 'Indonesia', 'Malaysian', 'Malaysia',
+];
+
 const dedupe = (arr: string[]): string[] => Array.from(new Set(arr));
 
 export const F1_DATABASE: Record<F1Category, string[]> = {
@@ -130,20 +147,7 @@ export const F1_DATABASE: Record<F1Category, string[]> = {
   teams: dedupe(teams),
   circuits: dedupe(circuits),
   engines: dedupe(engines),
-};
-
-export const CATEGORY_COLORS: Record<F1Category, string> = {
-  drivers: '#e10600',
-  teams: '#1565c0',
-  circuits: '#2e7d32',
-  engines: '#e65100',
-};
-
-export const CATEGORY_LABELS: Record<F1Category, string> = {
-  drivers: 'Driver',
-  teams: 'Team',
-  circuits: 'Circuit',
-  engines: 'Engine',
+  countries: dedupe(countries),
 };
 
 export type F1SearchResult = { item: string; category: F1Category };

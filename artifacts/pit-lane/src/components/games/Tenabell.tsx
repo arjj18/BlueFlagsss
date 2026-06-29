@@ -369,7 +369,7 @@ export function Tenabell() {
             ref={inputRef}
             value={inputVal}
             onChange={setInputVal}
-            categories={['drivers', 'teams', 'circuits', 'engines']}
+            categories={cat.kind === 'seasons' ? [] : [cat.kind ?? 'drivers']}
             onSelect={(val) => checkAns(val)}
             onSubmit={() => checkAns()}
             placeholder={cat.ordered ? `Who is #${found.length + 1}?` : "Type an answer…"}

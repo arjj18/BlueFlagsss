@@ -16,6 +16,10 @@ export interface QuizInput {
 
 export interface QuizQuestion {
   q: string;
+  /** Question format (standard, whoami, layout, image). Defaults to standard. */
+  type?: string;
+  /** Optional image for the question. Either an absolute https URL to a real photo, or a "logo:<TeamName>" token resolved to a bundled team logo on the client. Rendered with a graceful fallback when it fails. */
+  image?: string;
   opts: string[];
   ans: number;
   fact: string;

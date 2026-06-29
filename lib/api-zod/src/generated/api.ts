@@ -31,6 +31,8 @@ export const GenerateQuizResponse = zod.object({
   "race": zod.string(),
   "questions": zod.array(zod.object({
   "q": zod.string(),
+  "type": zod.string().optional().describe('Question format (standard, whoami, layout, image). Defaults to standard.'),
+  "image": zod.string().optional().describe('Optional image for the question. Either an absolute https URL to a real photo, or a \"logo:<TeamName>\" token resolved to a bundled team logo on the client. Rendered with a graceful fallback when it fails.'),
   "opts": zod.array(zod.string()),
   "ans": zod.number(),
   "fact": zod.string()

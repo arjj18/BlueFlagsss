@@ -1,9 +1,15 @@
+// The answer domain for a round. Drives which autocomplete suggestions appear.
+// 'seasons' rounds expect a year, which has no useful suggestion list.
+export type CategoryKind = 'drivers' | 'teams' | 'circuits' | 'countries' | 'seasons';
+
 export type Category = {
   q: string;
   teaser: string;
   answers: string[];
   hint: string;
   ordered: boolean;
+  /** Answer domain — defaults to 'drivers' when omitted. */
+  kind?: CategoryKind;
 };
 
 export const CATEGORIES: Category[] = [
@@ -41,6 +47,7 @@ export const CATEGORIES: Category[] = [
     answers: ["Red Bull","Mercedes","Ferrari","McLaren","Williams","Benetton","Lotus","Renault","Brawn","Cooper"],
     hint: "Red Bull set the all-time record with 21 wins from 22 races in 2023",
     ordered: false,
+    kind: "teams",
   },
   {
     q: "Name the top 10 drivers who have driven for the most different Formula 1 teams",
@@ -55,6 +62,7 @@ export const CATEGORIES: Category[] = [
     answers: ["Monaco","Monte Carlo","Monza","Italy","Silverstone","Britain","England","Spa","Belgium","Nürburgring","Nurburg","Nurburgring","Germany","Interlagos","Brazil","Hungaroring","Hungary","Budapest","Montreal","Canada","Hockenheim","Suzuka","Japan"],
     hint: "Monaco and Monza have both hosted over 70 championship races each",
     ordered: false,
+    kind: "circuits",
   },
   {
     q: "Name the top 10 drivers with the most podiums without a single race win in Formula 1",
@@ -90,6 +98,7 @@ export const CATEGORIES: Category[] = [
     answers: ["British","Britain","UK","England","German","Germany","Brazilian","Brazil","Argentine","Argentina","French","France","Austrian","Austria","Australian","Australia","Dutch","Netherlands","Holland","Finnish","Finland","Spanish","Spain"],
     hint: "British drivers have won more championships than any other nation — over 15 combined titles",
     ordered: false,
+    kind: "countries",
   },
   {
     q: "Name the top 10 drivers with the most laps led in their Formula 1 career",
@@ -125,6 +134,7 @@ export const CATEGORIES: Category[] = [
     answers: ["1982","1977","1975","2012","2019","1983","1978","1985","1958","2009","2010","2003"],
     hint: "In 1982, 11 different drivers won races across just 16 rounds — a chaotic classic season",
     ordered: false,
+    kind: "seasons",
   },
   {
     q: "Name 10 drivers who have competed in the most Formula 1 World Championship races in their career — career starts leaders",
