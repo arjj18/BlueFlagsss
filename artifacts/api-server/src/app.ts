@@ -72,7 +72,7 @@ const aiRateLimit = rateLimit({
 });
 
 app.use(
-  ["/api/quiz/generate", "/api/standings/refresh", "/api/predict/race"],
+  ["/api/quiz/generate", "/api/predict/race"],
   aiRateLimit,
 );
 

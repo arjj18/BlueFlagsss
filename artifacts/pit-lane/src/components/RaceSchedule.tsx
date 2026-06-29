@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { CheckCircle2, Circle, Zap, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Circle, Zap, RefreshCw, Pencil, Check, X } from 'lucide-react';
 import { CALENDAR_2026, getCurrentRaceStatus, type Race } from '@/lib/f1Calendar';
 import {
-  loadStandings, saveStandings, colorForTeam,
+  loadStandings, saveStandings, sortStandings,
   type StandingsData,
 } from '@/lib/f1Standings';
 
@@ -35,16 +35,21 @@ function formatUpdated(iso: string): string {
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
+function toNum(value: string): number {
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 type Tab = 'schedule' | 'drivers' | 'constructors';
 type Props = { onClose: () => void };
 
-export function RaceSchedule({ onClose }: Props) {
+export function RaceSchedule({ onClose: _onClose }: Props) {
   const status = getCurrentRaceStatus();
   const nextRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<Tab>('schedule');
   const [standings, setStandings] = useState<StandingsData>(loadStandings);
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<StandingsData | null>(null);
 
   useEffect(() => {
     if (tab === 'schedule') {
@@ -52,33 +57,55 @@ export function RaceSchedule({ onClose }: Props) {
     }
   }, [tab]);
 
-  const refreshStandings = useCallback(async () => {
-    setRefreshing(true);
-    setRefreshError('');
-    try {
-      const res = await fetch('/api/standings/refresh', { method: 'POST' });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
-      }
-      const data = await res.json() as StandingsData;
-      const enriched: StandingsData = {
-        ...data,
-        drivers: data.drivers.map(d => ({ ...d, teamColor: colorForTeam(d.team) })),
-        constructors: data.constructors.map(c => ({ ...c, color: colorForTeam(c.name) })),
-      };
-      saveStandings(enriched);
-      setStandings(enriched);
-    } catch (e) {
-      setRefreshError(e instanceof Error ? e.message : 'Update failed');
-    } finally {
-      setRefreshing(false);
-    }
+  // The Refresh button only re-orders the data you've already entered/saved.
+  // It never invents, adds, or alters any points — purely a deterministic sort.
+  const sortNow = useCallback(() => {
+    setStandings(prev => {
+      const next = sortStandings({ ...prev, lastUpdated: new Date().toISOString() });
+      saveStandings(next);
+      return next;
+    });
   }, []);
 
+  const startEdit = useCallback(() => {
+    setDraft(structuredClone(standings));
+    setEditing(true);
+  }, [standings]);
+
+  const cancelEdit = useCallback(() => {
+    setEditing(false);
+    setDraft(null);
+  }, []);
+
+  const saveEdit = useCallback(() => {
+    if (!draft) return;
+    const next = sortStandings({ ...draft, lastUpdated: new Date().toISOString() });
+    saveStandings(next);
+    setStandings(next);
+    setEditing(false);
+    setDraft(null);
+  }, [draft]);
+
+  const updateDriver = (code: string, field: 'points' | 'wins', value: string) => {
+    setDraft(prev => prev && {
+      ...prev,
+      drivers: prev.drivers.map(d => (d.code === code ? { ...d, [field]: toNum(value) } : d)),
+    });
+  };
+
+  const updateConstructor = (name: string, field: 'points' | 'wins', value: string) => {
+    setDraft(prev => prev && {
+      ...prev,
+      constructors: prev.constructors.map(c => (c.name === name ? { ...c, [field]: toNum(value) } : c)),
+    });
+  };
+
   const nextRound = status.kind !== 'offseason' ? status.race.round : null;
-  const maxPoints = standings.drivers[0]?.points ?? 1;
-  const maxTeamPoints = standings.constructors[0]?.points ?? 1;
+
+  // While editing, render the draft so the inputs are controlled; otherwise the saved data.
+  const view = editing && draft ? draft : standings;
+  const maxPoints = Math.max(1, ...view.drivers.map(d => d.points));
+  const maxTeamPoints = Math.max(1, ...view.constructors.map(c => c.points));
 
   const StandingsHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
     <div className="flex items-start justify-between mb-3">
@@ -87,27 +114,54 @@ export function RaceSchedule({ onClose }: Props) {
         <p className="text-xs text-muted-foreground/60">{subtitle}</p>
         {standings.lastUpdated ? (
           <p className="text-[10px] text-muted-foreground/40 mt-0.5">
-            AI updated · {formatUpdated(standings.lastUpdated)}
+            Sorted · {formatUpdated(standings.lastUpdated)}
           </p>
         ) : (
-          <p className="text-[10px] text-muted-foreground/30 mt-0.5">Default data · tap ✦ to sync</p>
+          <p className="text-[10px] text-muted-foreground/30 mt-0.5">Built-in 2026 data · tap Edit to change</p>
         )}
       </div>
       <div className="flex flex-col items-end gap-1">
         <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
-          After R{standings.afterRound}
+          After R{view.afterRound}
         </p>
-        <button
-          onClick={refreshStandings}
-          disabled={refreshing}
-          title="Update standings with AI"
-          className="flex items-center gap-1 text-[10px] font-bold text-primary/70 hover:text-primary transition-colors disabled:opacity-40 uppercase tracking-wider"
-        >
-          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Syncing…' : 'AI Sync'}
-        </button>
-        {refreshError && (
-          <p className="text-[10px] text-destructive/70 max-w-[140px] text-right">{refreshError}</p>
+        {editing ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={cancelEdit}
+              data-testid="button-standings-cancel"
+              title="Discard changes"
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/70 hover:text-foreground transition-colors uppercase tracking-wider"
+            >
+              <X className="w-3 h-3" /> Cancel
+            </button>
+            <button
+              onClick={saveEdit}
+              data-testid="button-standings-save"
+              title="Save and sort by points"
+              className="flex items-center gap-1 text-[10px] font-bold text-primary/80 hover:text-primary transition-colors uppercase tracking-wider"
+            >
+              <Check className="w-3 h-3" /> Save
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startEdit}
+              data-testid="button-standings-edit"
+              title="Edit points and wins"
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/70 hover:text-foreground transition-colors uppercase tracking-wider"
+            >
+              <Pencil className="w-3 h-3" /> Edit
+            </button>
+            <button
+              onClick={sortNow}
+              data-testid="button-standings-sort"
+              title="Sort by points (highest first)"
+              className="flex items-center gap-1 text-[10px] font-bold text-primary/70 hover:text-primary transition-colors uppercase tracking-wider"
+            >
+              <RefreshCw className="w-3 h-3" /> Sort
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -210,45 +264,78 @@ export function RaceSchedule({ onClose }: Props) {
       {tab === 'drivers' && (
         <div className="flex flex-col gap-1 py-1">
           <StandingsHeader title="DRIVERS" subtitle="Championship standings" />
-          <div className="flex flex-col gap-1">
-            {standings.drivers.map(d => {
-              const barPct = Math.round((d.points / maxPoints) * 100);
-              const isLeader = d.pos === 1;
-              return (
-                <div
-                  key={d.code}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
-                >
-                  <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
-                    {d.pos}
-                  </span>
-                  <span className="text-base leading-none shrink-0">{countryFlag(d.country)}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-sm font-bold leading-tight ${isLeader ? 'text-white' : 'text-white/90'}`}>
-                        {d.name}
-                      </span>
-                      {d.wins > 0 && (
-                        <span className="text-[10px] font-bold text-primary/80">{d.wins}W</span>
+          {view.drivers.length === 0 ? (
+            <p className="text-center text-xs text-muted-foreground/50 py-8">No standings data provided.</p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {view.drivers.map(d => {
+                const barPct = Math.round((d.points / maxPoints) * 100);
+                const isLeader = !editing && d.pos === 1;
+                return (
+                  <div
+                    key={d.code}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
+                  >
+                    <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
+                      {d.pos}
+                    </span>
+                    <span className="text-base leading-none shrink-0">{countryFlag(d.country)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className={`text-sm font-bold leading-tight ${isLeader ? 'text-white' : 'text-white/90'}`}>
+                          {d.name}
+                        </span>
+                        {!editing && d.wins > 0 && (
+                          <span className="text-[10px] font-bold text-primary/80">{d.wins}W</span>
+                        )}
+                      </div>
+                      {!editing && (
+                        <div className="mt-1 h-1 rounded-full bg-secondary/60 overflow-hidden w-full">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${barPct}%`, backgroundColor: d.teamColor }}
+                          />
+                        </div>
                       )}
                     </div>
-                    <div className="mt-1 h-1 rounded-full bg-secondary/60 overflow-hidden w-full">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${barPct}%`, backgroundColor: d.teamColor }}
-                      />
-                    </div>
+                    {editing ? (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <label className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min={0}
+                            value={d.points}
+                            onChange={e => updateDriver(d.code, 'points', e.target.value)}
+                            data-testid={`input-driver-points-${d.code}`}
+                            className="w-14 bg-secondary/60 rounded px-1.5 py-1 text-xs text-white text-right tabular-nums outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <span className="text-[10px] text-muted-foreground/40">pts</span>
+                        </label>
+                        <label className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min={0}
+                            value={d.wins}
+                            onChange={e => updateDriver(d.code, 'wins', e.target.value)}
+                            data-testid={`input-driver-wins-${d.code}`}
+                            className="w-10 bg-secondary/60 rounded px-1.5 py-1 text-xs text-white text-right tabular-nums outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <span className="text-[10px] text-muted-foreground/40">W</span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="text-right shrink-0">
+                        <span className={`text-sm font-black tabular-nums ${isLeader ? 'text-primary' : 'text-white/80'}`}>
+                          {d.points}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/40 ml-0.5">pts</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className={`text-sm font-black tabular-nums ${isLeader ? 'text-primary' : 'text-white/80'}`}>
-                      {d.points}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/40 ml-0.5">pts</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -256,47 +343,84 @@ export function RaceSchedule({ onClose }: Props) {
       {tab === 'constructors' && (
         <div className="flex flex-col gap-1 py-1">
           <StandingsHeader title="TEAMS" subtitle="Constructors championship" />
-          <div className="flex flex-col gap-2">
-            {standings.constructors.map(c => {
-              const barPct = Math.round((c.points / maxTeamPoints) * 100);
-              const isLeader = c.pos === 1;
-              return (
-                <div
-                  key={c.name}
-                  className={`px-3 py-3 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
-                      {c.pos}
-                    </span>
-                    <span className="flex-1 text-sm font-bold text-white leading-tight">{c.name}</span>
-                    {c.wins > 0 && (
-                      <span className="text-[10px] font-bold text-primary/80 shrink-0">{c.wins}W</span>
-                    )}
-                    <div className="text-right shrink-0">
-                      <span className={`text-sm font-black tabular-nums ${isLeader ? 'text-primary' : 'text-white/80'}`}>
-                        {c.points}
+          {view.constructors.length === 0 ? (
+            <p className="text-center text-xs text-muted-foreground/50 py-8">No standings data provided.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {view.constructors.map(c => {
+                const barPct = Math.round((c.points / maxTeamPoints) * 100);
+                const isLeader = !editing && c.pos === 1;
+                return (
+                  <div
+                    key={c.name}
+                    className={`px-3 py-3 rounded-lg transition-colors ${isLeader ? 'bg-primary/10 ring-1 ring-primary/25' : 'hover:bg-secondary/40'}`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`text-sm font-black w-5 text-right shrink-0 tabular-nums ${isLeader ? 'text-primary' : 'text-muted-foreground/40'}`}>
+                        {c.pos}
                       </span>
-                      <span className="text-[10px] text-muted-foreground/40 ml-0.5">pts</span>
+                      <span className="flex-1 text-sm font-bold text-white leading-tight">{c.name}</span>
+                      {editing ? (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              value={c.points}
+                              onChange={e => updateConstructor(c.name, 'points', e.target.value)}
+                              data-testid={`input-constructor-points-${c.name}`}
+                              className="w-14 bg-secondary/60 rounded px-1.5 py-1 text-xs text-white text-right tabular-nums outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground/40">pts</span>
+                          </label>
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              value={c.wins}
+                              onChange={e => updateConstructor(c.name, 'wins', e.target.value)}
+                              data-testid={`input-constructor-wins-${c.name}`}
+                              className="w-10 bg-secondary/60 rounded px-1.5 py-1 text-xs text-white text-right tabular-nums outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground/40">W</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <>
+                          {c.wins > 0 && (
+                            <span className="text-[10px] font-bold text-primary/80 shrink-0">{c.wins}W</span>
+                          )}
+                          <div className="text-right shrink-0">
+                            <span className={`text-sm font-black tabular-nums ${isLeader ? 'text-primary' : 'text-white/80'}`}>
+                              {c.points}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/40 ml-0.5">pts</span>
+                          </div>
+                        </>
+                      )}
                     </div>
+                    {!editing && (
+                      <>
+                        <div className="ml-8 h-1.5 rounded-full bg-secondary/60 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${barPct}%`, backgroundColor: c.color }}
+                          />
+                        </div>
+                        <div className="ml-8 mt-1.5 flex gap-2">
+                          {view.drivers.filter(d => d.team === c.name).map(d => (
+                            <span key={d.code} className="text-[10px] text-muted-foreground/50 font-bold">
+                              {d.code} {d.points}
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="ml-8 h-1.5 rounded-full bg-secondary/60 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${barPct}%`, backgroundColor: c.color }}
-                    />
-                  </div>
-                  <div className="ml-8 mt-1.5 flex gap-2">
-                    {standings.drivers.filter(d => d.team === c.name).map(d => (
-                      <span key={d.code} className="text-[10px] text-muted-foreground/50 font-bold">
-                        {d.code} {d.points}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

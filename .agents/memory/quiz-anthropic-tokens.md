@@ -20,8 +20,9 @@ one the integration supports (we use claude-sonnet-4-6).
 review-mode quizzes return live race results. Preview mode runs without web search
 (history-based); review mode enables it.
 
-Note: `bingo.ts` and `standings.ts` still use a personal ANTHROPIC_API_KEY (not
-migrated). Mixed credential model is intentional for now.
+Note: `bingo.ts` still uses a personal ANTHROPIC_API_KEY (not migrated). The
+standings feature no longer calls AI at all — standings are sorted client-side
+from user-entered data, so there is no `/api/standings/refresh` route anymore.
 
 ## Rule: keep max_tokens generous (8192)
 A small output budget truncates the JSON mid-string. The symptom is a server-side

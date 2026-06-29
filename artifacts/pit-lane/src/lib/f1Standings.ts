@@ -89,12 +89,33 @@ export const DEFAULT_STANDINGS: StandingsData = {
   ],
 };
 
+/**
+ * Pure, deterministic re-sort of standings the user has entered/saved.
+ * Never invents, adds, removes, or alters points — it only orders the rows.
+ *
+ * - Sort by points (highest → lowest).
+ * - Tie-break by wins (highest → lowest).
+ * - Equal points AND wins keep their existing relative order (Array.sort is stable).
+ * - Positions are renumbered 1..n and team colors re-applied.
+ */
+export function sortStandings(data: StandingsData): StandingsData {
+  const drivers = [...data.drivers]
+    .sort((a, b) => b.points - a.points || b.wins - a.wins)
+    .map((d, i) => ({ ...d, pos: i + 1, teamColor: colorForTeam(d.team) }));
+  const constructors = [...data.constructors]
+    .sort((a, b) => b.points - a.points || b.wins - a.wins)
+    .map((c, i) => ({ ...c, pos: i + 1, color: colorForTeam(c.name) }));
+  return { ...data, drivers, constructors };
+}
+
 export function loadStandings(): StandingsData {
   try {
     const raw = localStorage.getItem(STANDINGS_LS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as StandingsData;
-      if (parsed.drivers?.length && parsed.constructors?.length) {
+      // Validate shape, not length: an explicitly empty saved list is valid
+      // (it represents "no standings data provided") and must survive reload.
+      if (Array.isArray(parsed.drivers) && Array.isArray(parsed.constructors)) {
         return {
           ...parsed,
           drivers: parsed.drivers.map(d => ({ ...d, teamColor: colorForTeam(d.team) })),

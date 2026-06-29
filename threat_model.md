@@ -28,7 +28,7 @@ Production assumptions for this scan:
 
 - Production entry points: `artifacts/api-server/src/index.ts`, `artifacts/api-server/src/app.ts`, `artifacts/pit-lane/src/main.tsx`.
 - Highest-risk code areas: `artifacts/api-server/src/routes/*.ts` (public AI-backed endpoints), `artifacts/api-server/src/lib/logger.ts`, and frontend components that call `/api/*`.
-- Public surface: `/api/healthz`, `/api/quiz/generate`, `/api/standings/refresh`, `/api/predict/race` plus the pit-lane SPA.
+- Public surface: `/api/healthz`, `/api/quiz/generate`, `/api/predict/race` plus the pit-lane SPA. (Standings are now sorted client-side from user-entered data; the former AI-backed `/api/standings/refresh` route was removed.)
 - Dev-only by default: `artifacts/mockup-sandbox/**`, `attached_assets/**`, generated mockup HTML unless separately deployed.
 
 ## Threat Categories
