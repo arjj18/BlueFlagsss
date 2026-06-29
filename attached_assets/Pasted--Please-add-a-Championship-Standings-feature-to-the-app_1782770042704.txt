@@ -1,0 +1,668 @@
+"Please add a Championship Standings feature to the app. This feature stores driver and constructor standings data that the user manually enters and updates themselves. It never calls any API or AI. Here is every detail:
+How it works
+
+The user manually enters driver names and their points after each race. The app sorts them automatically and displays a clean standings table. There is a Refresh button that re-sorts the data the user has already entered. There is an Add Driver button to add new entries. There is an Edit button on each row to update points after a race. All data is saved to localStorage so it persists between sessions.
+The data structure
+
+Store standings in localStorage like this:
+javascriptconst STANDINGS_KEY = 'f1_driver_standings'
+const CONSTRUCTOR_KEY = 'f1_constructor_standings'
+const STANDINGS_META_KEY = 'f1_standings_meta'
+
+function getDriverStandings() {
+  try {
+    return JSON.parse(localStorage.getItem(STANDINGS_KEY)) || getDefaultDriverStandings()
+  } catch {
+    return getDefaultDriverStandings()
+  }
+}
+
+function getConstructorStandings() {
+  try {
+    return JSON.parse(localStorage.getItem(CONSTRUCTOR_KEY)) || getDefaultConstructorStandings()
+  } catch {
+    return getDefaultConstructorStandings()
+  }
+}
+
+function getStandingsMeta() {
+  try {
+    return JSON.parse(localStorage.getItem(STANDINGS_META_KEY)) || {
+      lastUpdated: null,
+      lastRace: null,
+      round: null,
+      season: new Date().getFullYear()
+    }
+  } catch {
+    return { lastUpdated: null, lastRace: null, round: null, season: new Date().getFullYear() }
+  }
+}
+
+function saveDriverStandings(standings) {
+  localStorage.setItem(STANDINGS_KEY, JSON.stringify(standings))
+}
+
+function saveConstructorStandings(standings) {
+  localStorage.setItem(CONSTRUCTOR_KEY, JSON.stringify(standings))
+}
+
+function saveStandingsMeta(meta) {
+  localStorage.setItem(STANDINGS_META_KEY, JSON.stringify(meta))
+}
+Pre-populate with the current 2026 standings
+
+Give the app sensible default data so it does not start empty. Use approximate 2026 standings based on what is publicly known — the user can update these after each race:
+javascriptfunction getDefaultDriverStandings() {
+  return [
+    { pos: 1, driver: 'Max Verstappen', team: 'Red Bull Racing', nationality: '🇳🇱', points: 0, wins: 0 },
+    { pos: 2, driver: 'Lewis Hamilton', team: 'Ferrari', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 3, driver: 'Charles Leclerc', team: 'Ferrari', nationality: '🇲🇨', points: 0, wins: 0 },
+    { pos: 4, driver: 'Lando Norris', team: 'McLaren', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 5, driver: 'Oscar Piastri', team: 'McLaren', nationality: '🇦🇺', points: 0, wins: 0 },
+    { pos: 6, driver: 'George Russell', team: 'Mercedes', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 7, driver: 'Fernando Alonso', team: 'Aston Martin', nationality: '🇪🇸', points: 0, wins: 0 },
+    { pos: 8, driver: 'Carlos Sainz', team: 'Williams', nationality: '🇪🇸', points: 0, wins: 0 },
+    { pos: 9, driver: 'Lance Stroll', team: 'Aston Martin', nationality: '🇨🇦', points: 0, wins: 0 },
+    { pos: 10, driver: 'Pierre Gasly', team: 'Alpine', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 11, driver: 'Esteban Ocon', team: 'Haas', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 12, driver: 'Nico Hulkenberg', team: 'Kick Sauber', nationality: '🇩🇪', points: 0, wins: 0 },
+    { pos: 13, driver: 'Yuki Tsunoda', team: 'Red Bull Racing', nationality: '🇯🇵', points: 0, wins: 0 },
+    { pos: 14, driver: 'Alexander Albon', team: 'Williams', nationality: '🇹🇭', points: 0, wins: 0 },
+    { pos: 15, driver: 'Liam Lawson', team: 'Racing Bulls', nationality: '🇳🇿', points: 0, wins: 0 },
+    { pos: 16, driver: 'Isack Hadjar', team: 'Racing Bulls', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 17, driver: 'Jack Doohan', team: 'Alpine', nationality: '🇦🇺', points: 0, wins: 0 },
+    { pos: 18, driver: 'Gabriel Bortoleto', team: 'Kick Sauber', nationality: '🇧🇷', points: 0, wins: 0 },
+    { pos: 19, driver: 'Oliver Bearman', team: 'Haas', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 20, driver: 'Kimi Antonelli', team: 'Mercedes', nationality: '🇮🇹', points: 0, wins: 0 },
+    { pos: 21, driver: 'Kevin Magnussen', team: 'Cadillac', nationality: '🇩🇰', points: 0, wins: 0 },
+    { pos: 22, driver: 'Callum Ilott', team: 'Cadillac', nationality: '🇬🇧', points: 0, wins: 0 },
+  ]
+}
+
+function getDefaultConstructorStandings() {
+  return [
+    { pos: 1, team: 'Red Bull Racing', points: 0, wins: 0, color: '#1E41FF' },
+    { pos: 2, team: 'Ferrari', points: 0, wins: 0, color: '#DC0000' },
+    { pos: 3, team: 'McLaren', points: 0, wins: 0, color: '#FF8000' },
+    { pos: 4, team: 'Mercedes', points: 0, wins: 0, color: '#00D2BE' },
+    { pos: 5, team: 'Aston Martin', points: 0, wins: 0, color: '#006F62' },
+    { pos: 6, team: 'Alpine', points: 0, wins: 0, color: '#0090FF' },
+    { pos: 7, team: 'Williams', points: 0, wins: 0, color: '#005AFF' },
+    { pos: 8, team: 'Racing Bulls', points: 0, wins: 0, color: '#6692FF' },
+    { pos: 9, team: 'Haas', points: 0, wins: 0, color: '#FFFFFF' },
+    { pos: 10, team: 'Kick Sauber', points: 0, wins: 0, color: '#52E252' },
+    { pos: 11, team: 'Cadillac', points: 0, wins: 0, color: '#CC0000' },
+  ]
+}
+The sort function — this is what the Refresh button triggers
+javascriptfunction sortStandings(standings) {
+  return standings
+    .sort((a, b) => {
+      // Sort by points descending
+      if (b.points !== a.points) return b.points - a.points
+      // Tiebreak by wins descending
+      return b.wins - a.wins
+    })
+    .map((entry, index) => ({ ...entry, pos: index + 1 }))
+}
+
+function refreshStandings() {
+  // Sort drivers
+  const drivers = getDriverStandings()
+  const sortedDrivers = sortStandings(drivers)
+  saveDriverStandings(sortedDrivers)
+  
+  // Sort constructors
+  const constructors = getConstructorStandings()
+  const sortedConstructors = sortStandings(constructors)
+  saveConstructorStandings(sortedConstructors)
+  
+  // Update last refreshed time
+  renderStandings()
+  
+  // Show a brief confirmation
+  showToast('Standings refreshed!')
+}
+The main standings UI
+Render the standings as two tabs — Drivers and Constructors — with a clean table layout:
+javascriptlet activeStandingsTab = 'drivers'
+
+function renderStandings() {
+  const drivers = getDriverStandings()
+  const constructors = getConstructorStandings()
+  const meta = getStandingsMeta()
+  
+  document.getElementById('gi').innerHTML = `
+    
+    <!-- Header info bar -->
+    <div style='
+      background:#1a1a1a;
+      border-radius:10px;
+      padding:12px 14px;
+      margin-bottom:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:8px;
+    '>
+      <div>
+        <div style='font-size:10px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;'>
+          ${new Date().getFullYear()} Championship
+        </div>
+        <div style='font-size:13px;color:#aaa;'>
+          ${meta.lastRace ? `Last updated after ${meta.lastRace}` : 'Enter points after each race'}
+        </div>
+      </div>
+      <div style='display:flex;gap:8px;align-items:center;'>
+        <button 
+          onclick='showEditMeta()' 
+          style='
+            background:none;
+            border:0.5px solid #333;
+            border-radius:6px;
+            color:#555;
+            font-size:11px;
+            padding:5px 10px;
+            cursor:pointer;
+            font-family:Inter,sans-serif;
+          '
+        >✏️ Set race</button>
+        <button 
+          onclick='refreshStandings()' 
+          style='
+            background:#e10600;
+            border:none;
+            border-radius:6px;
+            color:white;
+            font-size:12px;
+            font-weight:700;
+            padding:6px 14px;
+            cursor:pointer;
+            font-family:Inter,sans-serif;
+            display:flex;
+            align-items:center;
+            gap:5px;
+          '
+        >↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style='display:flex;gap:0;margin-bottom:12px;background:#1a1a1a;border-radius:8px;padding:3px;'>
+      <button 
+        onclick='setStandingsTab("drivers")' 
+        style='
+          flex:1;padding:8px;border:none;border-radius:6px;cursor:pointer;
+          font-family:Inter,sans-serif;font-size:13px;font-weight:600;
+          background:${activeStandingsTab === 'drivers' ? '#e10600' : 'transparent'};
+          color:${activeStandingsTab === 'drivers' ? 'white' : '#555'};
+          transition:all 0.15s;
+        '
+      >Drivers</button>
+      <button 
+        onclick='setStandingsTab("constructors")' 
+        style='
+          flex:1;padding:8px;border:none;border-radius:6px;cursor:pointer;
+          font-family:Inter,sans-serif;font-size:13px;font-weight:600;
+          background:${activeStandingsTab === 'constructors' ? '#e10600' : 'transparent'};
+          color:${activeStandingsTab === 'constructors' ? 'white' : '#555'};
+          transition:all 0.15s;
+        '
+      >Constructors</button>
+    </div>
+
+    <!-- Standings table -->
+    <div id='standings-table'>
+      ${activeStandingsTab === 'drivers' ? renderDriverTable(drivers) : renderConstructorTable(constructors)}
+    </div>
+
+    <!-- Add button -->
+    <button 
+      onclick='showAddEntryModal()' 
+      style='
+        width:100%;margin-top:10px;padding:12px;
+        background:#1a1a1a;border:0.5px dashed #333;
+        border-radius:10px;color:#555;
+        font-family:Inter,sans-serif;font-size:13px;font-weight:500;
+        cursor:pointer;
+      '
+    >+ Add driver / team</button>
+
+  `
+}
+
+function setStandingsTab(tab) {
+  activeStandingsTab = tab
+  renderStandings()
+}
+The driver standings table
+javascriptfunction renderDriverTable(drivers) {
+  const leader = drivers[0]
+  
+  return `
+    <div style='display:flex;flex-direction:column;gap:4px;'>
+      ${drivers.map((d, i) => {
+        const gap = i === 0 ? '' : `−${leader.points - d.points}`
+        const isTop3 = i < 3
+        const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32']
+        
+        return `
+          <div style='
+            background:#111;
+            border:0.5px solid ${isTop3 ? '#333' : '#1a1a1a'};
+            border-left:3px solid ${isTop3 ? medalColors[i] : '#222'};
+            border-radius:8px;
+            padding:10px 12px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+          '>
+            <!-- Position -->
+            <div style='
+              font-family:Barlow Condensed,sans-serif;
+              font-size:20px;font-weight:900;
+              color:${isTop3 ? medalColors[i] : '#333'};
+              min-width:28px;text-align:center;
+            '>${d.pos}</div>
+            
+            <!-- Flag and name -->
+            <div style='flex:1;min-width:0;'>
+              <div style='display:flex;align-items:center;gap:6px;margin-bottom:2px;'>
+                <span style='font-size:14px;'>${d.nationality}</span>
+                <span style='
+                  font-size:14px;font-weight:600;color:white;
+                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+                '>${d.driver}</span>
+              </div>
+              <div style='font-size:10px;color:#555;'>${d.team}</div>
+            </div>
+            
+            <!-- Points and gap -->
+            <div style='text-align:right;'>
+              <div style='
+                font-family:Barlow Condensed,sans-serif;
+                font-size:22px;font-weight:900;color:white;line-height:1;
+              '>${d.points}</div>
+              <div style='font-size:10px;color:#555;'>${gap}</div>
+            </div>
+            
+            <!-- Edit button -->
+            <button 
+              onclick='showEditModal(${i}, "drivers")' 
+              style='
+                background:none;border:0.5px solid #333;
+                border-radius:6px;color:#555;
+                font-size:11px;padding:4px 8px;
+                cursor:pointer;font-family:Inter,sans-serif;
+                flex-shrink:0;
+              '
+            >Edit</button>
+          </div>
+        `
+      }).join('')}
+    </div>
+  `
+}
+The constructor standings table
+javascriptfunction renderConstructorTable(constructors) {
+  const leader = constructors[0]
+  
+  return `
+    <div style='display:flex;flex-direction:column;gap:4px;'>
+      ${constructors.map((c, i) => {
+        const gap = i === 0 ? '' : `−${leader.points - c.points}`
+        
+        return `
+          <div style='
+            background:#111;
+            border:0.5px solid #1a1a1a;
+            border-left:3px solid ${c.color || '#333'};
+            border-radius:8px;
+            padding:10px 12px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+          '>
+            <!-- Position -->
+            <div style='
+              font-family:Barlow Condensed,sans-serif;
+              font-size:20px;font-weight:900;
+              color:#333;min-width:28px;text-align:center;
+            '>${c.pos}</div>
+            
+            <!-- Team name -->
+            <div style='flex:1;'>
+              <div style='font-size:14px;font-weight:600;color:white;margin-bottom:2px;'>${c.team}</div>
+              <div style='font-size:10px;color:#555;'>${c.wins} win${c.wins === 1 ? '' : 's'}</div>
+            </div>
+            
+            <!-- Points and gap -->
+            <div style='text-align:right;'>
+              <div style='
+                font-family:Barlow Condensed,sans-serif;
+                font-size:22px;font-weight:900;color:white;line-height:1;
+              '>${c.points}</div>
+              <div style='font-size:10px;color:#555;'>${gap}</div>
+            </div>
+            
+            <!-- Edit button -->
+            <button 
+              onclick='showEditModal(${i}, "constructors")' 
+              style='
+                background:none;border:0.5px solid #333;
+                border-radius:6px;color:#555;
+                font-size:11px;padding:4px 8px;
+                cursor:pointer;font-family:Inter,sans-serif;
+                flex-shrink:0;
+              '
+            >Edit</button>
+          </div>
+        `
+      }).join('')}
+    </div>
+  `
+}
+The edit modal
+When the user clicks Edit on any row show a modal to update that entry's points and wins:
+javascriptfunction showEditModal(index, type) {
+  const standings = type === 'drivers' ? getDriverStandings() : getConstructorStandings()
+  const entry = standings[index]
+  const label = type === 'drivers' ? entry.driver : entry.team
+  
+  const modal = document.createElement('div')
+  modal.id = 'edit-modal'
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:20px;
+  `
+  modal.innerHTML = `
+    <div style='
+      background:#1a1a1a;border:0.5px solid #333;
+      border-radius:14px;padding:24px;
+      width:100%;max-width:340px;
+    '>
+      <div style='font-size:16px;font-weight:700;color:white;margin-bottom:4px;'>${label}</div>
+      <div style='font-size:12px;color:#555;margin-bottom:20px;'>Update points and wins</div>
+      
+      <label style='font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;'>Championship Points</label>
+      <input 
+        type='number' 
+        id='edit-points' 
+        value='${entry.points}'
+        min='0'
+        style='
+          width:100%;padding:12px 14px;
+          background:#111;border:0.5px solid #333;
+          border-radius:8px;color:white;
+          font-size:18px;font-family:Inter,sans-serif;
+          font-weight:700;margin-bottom:14px;outline:none;
+        '
+      />
+      
+      <label style='font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;'>Race Wins</label>
+      <input 
+        type='number' 
+        id='edit-wins' 
+        value='${entry.wins}'
+        min='0'
+        style='
+          width:100%;padding:12px 14px;
+          background:#111;border:0.5px solid #333;
+          border-radius:8px;color:white;
+          font-size:18px;font-family:Inter,sans-serif;
+          font-weight:700;margin-bottom:20px;outline:none;
+        '
+      />
+      
+      <div style='display:flex;gap:10px;'>
+        <button 
+          onclick='closeEditModal()' 
+          style='
+            flex:1;padding:12px;background:none;
+            border:0.5px solid #333;border-radius:8px;
+            color:#555;font-family:Inter,sans-serif;
+            font-size:14px;font-weight:600;cursor:pointer;
+          '
+        >Cancel</button>
+        <button 
+          onclick='saveEdit(${index}, "${type}")' 
+          style='
+            flex:2;padding:12px;background:#e10600;
+            border:none;border-radius:8px;
+            color:white;font-family:Inter,sans-serif;
+            font-size:14px;font-weight:700;cursor:pointer;
+          '
+        >Save & Refresh</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(modal)
+  document.getElementById('edit-points').focus()
+}
+
+function saveEdit(index, type) {
+  const points = parseInt(document.getElementById('edit-points').value) || 0
+  const wins = parseInt(document.getElementById('edit-wins').value) || 0
+  
+  if (type === 'drivers') {
+    const standings = getDriverStandings()
+    standings[index].points = points
+    standings[index].wins = wins
+    saveDriverStandings(sortStandings(standings))
+  } else {
+    const standings = getConstructorStandings()
+    standings[index].points = points
+    standings[index].wins = wins
+    saveConstructorStandings(sortStandings(standings))
+  }
+  
+  closeEditModal()
+  renderStandings()
+  showToast('Updated and sorted!')
+}
+
+function closeEditModal() {
+  const modal = document.getElementById('edit-modal')
+  if (modal) modal.remove()
+}
+The set race modal
+When the user clicks Set Race let them record which race was just updated:
+javascriptfunction showEditMeta() {
+  const meta = getStandingsMeta()
+  const modal = document.createElement('div')
+  modal.id = 'meta-modal'
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:20px;
+  `
+  modal.innerHTML = `
+    <div style='
+      background:#1a1a1a;border:0.5px solid #333;
+      border-radius:14px;padding:24px;
+      width:100%;max-width:340px;
+    '>
+      <div style='font-size:16px;font-weight:700;color:white;margin-bottom:20px;'>Last race updated</div>
+      
+      <label style='font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;'>Race Name</label>
+      <input 
+        type='text' 
+        id='meta-race' 
+        value='${meta.lastRace || ''}'
+        placeholder='e.g. Austrian Grand Prix'
+        style='
+          width:100%;padding:11px 14px;
+          background:#111;border:0.5px solid #333;
+          border-radius:8px;color:white;
+          font-size:14px;font-family:Inter,sans-serif;
+          margin-bottom:14px;outline:none;
+        '
+      />
+      
+      <label style='font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;'>Round Number</label>
+      <input 
+        type='number' 
+        id='meta-round' 
+        value='${meta.round || ''}'
+        placeholder='e.g. 8'
+        min='1' max='24'
+        style='
+          width:100%;padding:11px 14px;
+          background:#111;border:0.5px solid #333;
+          border-radius:8px;color:white;
+          font-size:14px;font-family:Inter,sans-serif;
+          margin-bottom:20px;outline:none;
+        '
+      />
+      
+      <div style='display:flex;gap:10px;'>
+        <button onclick='closeMetaModal()' style='flex:1;padding:12px;background:none;border:0.5px solid #333;border-radius:8px;color:#555;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer;'>Cancel</button>
+        <button onclick='saveMeta()' style='flex:2;padding:12px;background:#e10600;border:none;border-radius:8px;color:white;font-family:Inter,sans-serif;font-size:14px;font-weight:700;cursor:pointer;'>Save</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(modal)
+}
+
+function saveMeta() {
+  const meta = getStandingsMeta()
+  meta.lastRace = document.getElementById('meta-race').value.trim()
+  meta.round = parseInt(document.getElementById('meta-round').value) || null
+  meta.lastUpdated = new Date().toISOString()
+  saveStandingsMeta(meta)
+  closeMetaModal()
+  renderStandings()
+  showToast('Race info saved!')
+}
+
+function closeMetaModal() {
+  const modal = document.getElementById('meta-modal')
+  if (modal) modal.remove()
+}
+The add entry modal
+javascriptfunction showAddEntryModal() {
+  const modal = document.createElement('div')
+  modal.id = 'add-modal'
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:20px;
+  `
+  modal.innerHTML = `
+    <div style='
+      background:#1a1a1a;border:0.5px solid #333;
+      border-radius:14px;padding:24px;
+      width:100%;max-width:340px;
+    '>
+      <div style='font-size:16px;font-weight:700;color:white;margin-bottom:20px;'>Add entry</div>
+      
+      <div style='display:flex;gap:8px;margin-bottom:14px;background:#111;border-radius:8px;padding:3px;'>
+        <button onclick='setAddType("drivers")' id='add-type-drivers' style='flex:1;padding:8px;border:none;border-radius:6px;background:#e10600;color:white;font-family:Inter,sans-serif;font-size:12px;font-weight:700;cursor:pointer;'>Driver</button>
+        <button onclick='setAddType("constructors")' id='add-type-constructors' style='flex:1;padding:8px;border:none;border-radius:6px;background:transparent;color:#555;font-family:Inter,sans-serif;font-size:12px;font-weight:700;cursor:pointer;'>Constructor</button>
+      </div>
+      
+      <div id='add-driver-fields'>
+        <input type='text' id='add-name' placeholder='Driver name' style='width:100%;padding:11px 14px;background:#111;border:0.5px solid #333;border-radius:8px;color:white;font-size:14px;font-family:Inter,sans-serif;margin-bottom:10px;outline:none;'/>
+        <input type='text' id='add-team' placeholder='Team name' style='width:100%;padding:11px 14px;background:#111;border:0.5px solid #333;border-radius:8px;color:white;font-size:14px;font-family:Inter,sans-serif;margin-bottom:10px;outline:none;'/>
+        <input type='text' id='add-nationality' placeholder='Flag emoji e.g. 🇬🇧' style='width:100%;padding:11px 14px;background:#111;border:0.5px solid #333;border-radius:8px;color:white;font-size:14px;font-family:Inter,sans-serif;margin-bottom:10px;outline:none;'/>
+      </div>
+      
+      <div style='display:flex;gap:8px;margin-bottom:20px;'>
+        <div style='flex:1;'>
+          <input type='number' id='add-points' placeholder='Points' min='0' style='width:100%;padding:11px 14px;background:#111;border:0.5px solid #333;border-radius:8px;color:white;font-size:14px;font-family:Inter,sans-serif;outline:none;'/>
+        </div>
+        <div style='flex:1;'>
+          <input type='number' id='add-wins' placeholder='Wins' min='0' style='width:100%;padding:11px 14px;background:#111;border:0.5px solid #333;border-radius:8px;color:white;font-size:14px;font-family:Inter,sans-serif;outline:none;'/>
+        </div>
+      </div>
+      
+      <div style='display:flex;gap:10px;'>
+        <button onclick='closeAddModal()' style='flex:1;padding:12px;background:none;border:0.5px solid #333;border-radius:8px;color:#555;font-family:Inter,sans-serif;font-size:14px;font-weight:600;cursor:pointer;'>Cancel</button>
+        <button onclick='saveNewEntry()' style='flex:2;padding:12px;background:#e10600;border:none;border-radius:8px;color:white;font-family:Inter,sans-serif;font-size:14px;font-weight:700;cursor:pointer;'>Add & Sort</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(modal)
+}
+
+let addType = 'drivers'
+
+function setAddType(type) {
+  addType = type
+  document.getElementById('add-type-drivers').style.background = type === 'drivers' ? '#e10600' : 'transparent'
+  document.getElementById('add-type-drivers').style.color = type === 'drivers' ? 'white' : '#555'
+  document.getElementById('add-type-constructors').style.background = type === 'constructors' ? '#e10600' : 'transparent'
+  document.getElementById('add-type-constructors').style.color = type === 'constructors' ? 'white' : '#555'
+}
+
+function saveNewEntry() {
+  const points = parseInt(document.getElementById('add-points').value) || 0
+  const wins = parseInt(document.getElementById('add-wins').value) || 0
+  
+  if (addType === 'drivers') {
+    const name = document.getElementById('add-name').value.trim()
+    const team = document.getElementById('add-team').value.trim()
+    const nationality = document.getElementById('add-nationality').value.trim()
+    if (!name) return
+    
+    const standings = getDriverStandings()
+    standings.push({ pos: standings.length + 1, driver: name, team, nationality: nationality || '🏁', points, wins })
+    saveDriverStandings(sortStandings(standings))
+  } else {
+    const team = document.getElementById('add-name').value.trim()
+    if (!team) return
+    
+    const standings = getConstructorStandings()
+    standings.push({ pos: standings.length + 1, team, points, wins, color: '#333' })
+    saveConstructorStandings(sortStandings(standings))
+  }
+  
+  closeAddModal()
+  renderStandings()
+  showToast('Added and sorted!')
+}
+
+function closeAddModal() {
+  const modal = document.getElementById('add-modal')
+  if (modal) modal.remove()
+}
+Add standings to the home screen and navigation
+Add a Championship Standings card to the home screen grid:
+javascript// Add this card to the home screen
+`<div onclick='launch("standings")' style='
+  background: linear-gradient(135deg, #0a0a14 0%, #111 100%);
+  border: 0.5px solid #1a1a2a;
+  border-left: 3px solid #FFD700;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+'>
+  <div style='display:flex;align-items:center;justify-content:space-between;'>
+    <div>
+      <div style='font-size:9px;font-weight:700;letter-spacing:2px;color:#FFD700;text-transform:uppercase;margin-bottom:6px;'>
+        ${new Date().getFullYear()} Season
+      </div>
+      <div style='font-family:Barlow Condensed,sans-serif;font-size:26px;font-weight:900;color:white;line-height:1;margin-bottom:4px;'>
+        Standings
+      </div>
+      <div style='font-size:12px;color:#555;'>
+        Track the championship race
+      </div>
+    </div>
+    <div style='font-size:32px;opacity:0.6;'>🏆</div>
+  </div>
+</div>`
+Add standings to the launch function:
+javascript// In your main launch function add this case
+case 'standings':
+  scr('')
+  renderStandings()
+  break
+Important — this feature must never call any API
+The standings feature is completely offline. It only reads and writes to localStorage. The Refresh button only calls sortStandings on the locally stored data. There are no fetch calls, no API calls, no AI calls anywhere in this feature. All it does is sort the numbers the user has manually entered."

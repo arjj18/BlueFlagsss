@@ -1,2 +1,3 @@
 - [Quiz/predict AI generation](quiz-anthropic-tokens.md) — quiz+predictor use Replit-billed managed AI (shared @workspace/integrations-anthropic-ai client); web search works via proxy; keep max_tokens 8192 or JSON truncates.
 - [General Quiz weekly + images](general-quiz-weekly.md) — General Quiz is GeneralQuiz.tsx, once-per-week (Monday reset, lib/weeklyQuiz.ts); reused image components must reset failed-state on src change.
+- [Standings entry identity](standings-identity.md) — standings is client-only (RaceSchedule.tsx); constructors are keyed by name (no id), so reject duplicate team names; drivers use a generated unique code.
