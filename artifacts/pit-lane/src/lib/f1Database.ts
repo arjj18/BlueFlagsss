@@ -46,7 +46,7 @@ const drivers: string[] = [
 const teams: string[] = [
   // Current teams
   'Red Bull Racing', 'Ferrari', 'McLaren', 'Mercedes', 'Aston Martin',
-  'Alpine', 'Williams', 'Racing Bulls', 'Haas', 'Kick Sauber',
+  'Alpine', 'Williams', 'Racing Bulls', 'Haas', 'Audi',
 
   // Historic team names
   'Toro Rosso', 'AlphaTauri', 'Force India', 'Racing Point', 'Sahara Force India',

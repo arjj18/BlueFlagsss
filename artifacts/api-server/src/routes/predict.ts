@@ -11,7 +11,7 @@ const SYSTEM_PROMPT = `You are an F1 race prediction model. Use ONLY the informa
 
 Alpine: Pierre Gasly, Franco Colapinto
 Aston Martin: Fernando Alonso, Lance Stroll
-Kick Sauber: Nico Hülkenberg, Gabriel Bortoleto
+Audi: Nico Hülkenberg, Gabriel Bortoleto
 Cadillac: Sergio Pérez, Valtteri Bottas
 Ferrari: Charles Leclerc, Lewis Hamilton
 Haas: Esteban Ocon, Oliver Bearman
@@ -64,7 +64,7 @@ Alpine: Good reliability.
 Racing Bulls: Medium reliability.
 Haas: Moderate reliability.
 Williams: Medium reliability.
-Kick Sauber: Poor reliability; frequent DNFs.
+Audi: Poor reliability; frequent DNFs.
 Aston Martin: Extremely high DNF rate.
 Cadillac: Very low pace + high DNF rate.
 
@@ -89,7 +89,7 @@ Ocon: Consistent but limited by car.
 Sainz: Strong race craft; limited by Williams.
 Albon: Reliable; occasional points.
 Bortoleto: Struggles for pace; occasional points.
-Hülkenberg: Limited by slow Kick Sauber.
+Hülkenberg: Limited by slow Audi.
 Alonso: Very high DNF rate.
 Stroll: Very high DNF rate.
 Pérez: Very low pace; frequent DNFs.
@@ -115,9 +115,9 @@ Bottas: Extremely low performance.
 14. Carlos Sainz        – Williams        –   6 pts
 15. Alex Albon          – Williams        –   5 pts
 16. Esteban Ocon        – Haas            –   3 pts
-17. Gabriel Bortoleto   – Kick Sauber    –   2 pts
+17. Gabriel Bortoleto   – Audi    –   2 pts
 18. Fernando Alonso     – Aston Martin    –   1 pt
-19. Nico Hülkenberg     – Kick Sauber    –   0 pts
+19. Nico Hülkenberg     – Audi    –   0 pts
 20. Valtteri Bottas     – Cadillac        –   0 pts
 21. Sergio Pérez        – Cadillac        –   0 pts
 22. Lance Stroll        – Aston Martin    –   0 pts
@@ -140,7 +140,7 @@ Alpine: Aero upgrade R4; suspension update R6.
 Racing Bulls: Aero upgrade R5; mechanical grip R7.
 Haas: Aero update R4.
 Williams: Aero update R5.
-Kick Sauber: Reliability patch R6.
+Audi: Reliability patch R6.
 Aston Martin: Minor aero R5; no major gains.
 Cadillac: Minor reliability R4.
 
@@ -156,7 +156,7 @@ Alpine: Good warm-up; strong Softs/Intermediates.
 Racing Bulls: Balanced tyre usage.
 Haas: Mediums best; Softs overheat.
 Williams: Good warm-up; poor long-run degradation.
-Kick Sauber: Poor tyre management overall.
+Audi: Poor tyre management overall.
 Aston Martin: Very poor degradation.
 Cadillac: Weakest tyre performance.
 
@@ -165,9 +165,10 @@ Prediction Rules
 ====================================================================
 
 - Consider track type, weather, tyre behaviour, reliability, upgrades, and driver form.
-- Penalise teams with high DNF rates (Aston Martin, Red Bull, Cadillac, Kick Sauber).
+- Penalise teams with high DNF rates (Aston Martin, Red Bull, Cadillac, Audi).
 - Boost drivers who excel in specific conditions (wet, hot, cold, etc.).
 - Do NOT invent narratives not supported by the data above.
+- TEAM NAME RULE: Nico Hülkenberg and Gabriel Bortoleto race for "Audi". Always call this team "Audi" — NEVER "Sauber" or "Kick Sauber".
 - CONSISTENCY RULE: every claim in "wildcard" and "factors" must agree with the positions in "top10". If a driver is called a top-6 finisher in the wildcard, they must appear in positions 1–6 of top10. Never contradict your own top10 in the narrative fields.`;
 
 router.post("/predict/race", async (req, res) => {
@@ -212,7 +213,10 @@ Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every positio
     }
 
     const jsonText = textBlock.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-    const data = JSON.parse(jsonText);
+    // Defensive guard: the team is "Audi", never "Sauber"/"Kick Sauber". Normalise
+    // any stray reference the model emits before returning the prediction.
+    const normalised = jsonText.replace(/Kick Sauber/g, "Audi").replace(/Sauber/g, "Audi");
+    const data = JSON.parse(normalised);
 
     res.json({ ...data, race, round, generatedAt: new Date().toISOString() });
   } catch (err) {
