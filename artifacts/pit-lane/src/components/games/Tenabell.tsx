@@ -3,7 +3,7 @@ import { Clock, ChevronRight, CalendarDays, Trophy, Copy, Check } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { AutocompleteInput } from '@/components/AutocompleteInput';
 import { saveScore } from '@/lib/scoreHistory';
-import { getDailyCategory, getTodayKey, updateStreak, loadStreak, type StreakState } from '@/lib/tenabellCategories';
+import { getDailyCategory, getTodayKey, updateStreak, loadStreak, type StreakState, type Answer } from '@/lib/tenabellCategories';
 import { MidnightCountdown } from '@/components/MidnightCountdown';
 
 function formatDateLong(key: string): string {
@@ -125,6 +125,12 @@ function fuzzyMatch(guess: string, target: string): boolean {
   return false;
 }
 
+// An answer matches if the guess fuzzy-matches its canonical name or any alias.
+function answerMatches(guess: string, ans: Answer): boolean {
+  if (fuzzyMatch(guess, ans.name)) return true;
+  return ans.aliases?.some(a => fuzzyMatch(guess, a)) ?? false;
+}
+
 export function Tenabell() {
   const todayKey = getTodayKey();
   const cat = getDailyCategory();
@@ -182,8 +188,8 @@ export function Tenabell() {
 
     if (cat.ordered) {
       const nextAnswer = cat.answers[found.length];
-      if (fuzzyMatch(guess, nextAnswer)) {
-        const next = [...found, nextAnswer];
+      if (nextAnswer && answerMatches(guess, nextAnswer)) {
+        const next = [...found, nextAnswer.name];
         setFound(next);
         setInputVal("");
         if (next.length === 10) endGame(next);
@@ -193,9 +199,9 @@ export function Tenabell() {
         setTimeout(() => setShake(false), 500);
       }
     } else {
-      const match = cat.answers.find(a => !found.includes(a) && fuzzyMatch(guess, a));
+      const match = cat.answers.find(a => !found.includes(a.name) && answerMatches(guess, a));
       if (match) {
-        const next = [...found, match];
+        const next = [...found, match.name];
         setFound(next);
         setInputVal("");
         if (next.length === 10) endGame(next);
@@ -314,23 +320,16 @@ export function Tenabell() {
   const secs = timeLeft % 60;
   const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-  const slots = Array.from({ length: 10 }, (_, i) => {
-    const isFound = i < found.length;
+  // Slots are rank-positioned: slot i represents rank #(i+1). A found answer
+  // appears in its ranked slot (revealing its rank position), and on game end
+  // every slot reveals its answer, marked as found or missed.
+  const foundSet = new Set(found);
+  const slots = cat.answers.map((ans, i) => {
+    const isFound = foundSet.has(ans.name);
     const isActive = cat.ordered && i === found.length && mode !== "over";
-    let displayText: string | null = null;
+    const displayText = isFound || revealed ? ans.name : null;
 
-    if (isFound) {
-      displayText = found[i];
-    } else if (revealed) {
-      if (cat.ordered) {
-        displayText = cat.answers[i];
-      } else {
-        const remaining = cat.answers.filter(a => !found.includes(a));
-        displayText = remaining[i - found.length] ?? null;
-      }
-    }
-
-    return { displayText, isFound, isActive, isMissed: revealed && !isFound };
+    return { rank: i + 1, displayText, isFound, isActive, isMissed: revealed && !isFound };
   });
 
   return (
@@ -401,7 +400,7 @@ export function Tenabell() {
               data-testid={`slot-tenabell-${i}`}
               className={`h-11 rounded border flex items-center px-3 gap-2 transition-colors ${cls}`}
             >
-              <span className="text-[10px] font-mono opacity-50 shrink-0 w-5">{i + 1}.</span>
+              <span className="text-[10px] font-mono font-bold opacity-50 shrink-0 w-6">#{slot.rank}</span>
               <span className="text-sm truncate">
                 {slot.displayText ?? (slot.isActive ? <span className="opacity-40 text-xs">← type here</span> : "???")}
               </span>
