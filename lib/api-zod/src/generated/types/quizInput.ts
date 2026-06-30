@@ -7,6 +7,11 @@
  */
 
 export interface QuizInput {
-  /** @minLength 1 */
-  race: string;
+  /**
+     * Grand Prix name. Required for preview quizzes. Omitted for review quizzes, where the server asks the AI to detect the single most recent completed race weekend.
+     * @minLength 1
+     */
+  race?: string;
+  /** Quiz mode — "preview" or "review". Defaults to review. */
+  mode?: string;
 }

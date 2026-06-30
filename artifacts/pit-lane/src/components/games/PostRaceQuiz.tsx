@@ -1,16 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trophy, RefreshCw, AlertTriangle, Share2, Check, X } from 'lucide-react';
+import { Trophy, RefreshCw, AlertTriangle, Share2, Check, X, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AutocompleteInput } from '@/components/AutocompleteInput';
 import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
 import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
 import { resolveQuestionImage } from '@/lib/teamLogos';
+import {
+  hasCompletedReviewThisWeek,
+  completeReviewQuiz,
+  getNextReviewTuesdayLabel,
+} from '@/lib/weeklyQuiz';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type QuizMode = 'preview' | 'review' | 'general';
-type Phase = 'input' | 'loading' | 'quiz' | 'done';
+type Phase = 'input' | 'loading' | 'quiz' | 'done' | 'locked' | 'error';
 
 // `image` is optional on standard questions: either a `logo:<Team>` token (a
 // reliable bundled logo) or an https URL to a real photo. It renders above the
@@ -33,8 +38,15 @@ type AnswerRecord = {
 function getTodayMode(): QuizMode {
   const day = new Date().getDay();
   if (day === 4 || day === 5 || day === 6) return 'preview'; // Thursday–Saturday
-  if (day === 2 || day === 3) return 'review';               // Tuesday–Wednesday
+  if (day === 2) return 'review';                            // Tuesday only
   return 'general';
+}
+
+/** Initial phase for a freshly mounted/reset quiz of the given mode. */
+function initialPhaseFor(mode: QuizMode): Phase {
+  if (mode === 'general') return 'quiz';
+  if (mode === 'review') return hasCompletedReviewThisWeek() ? 'locked' : 'loading';
+  return 'input';
 }
 
 // ── Static questions (general mode) ─────────────────────────────────────────
@@ -183,7 +195,10 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   const quizMode: QuizMode = testModeOverride ?? startMode;
   const cfg = MODE_CONFIG[quizMode];
 
-  const [phase, setPhase] = useState<Phase>(() => startMode === 'general' ? 'quiz' : 'input');
+  const [phase, setPhase] = useState<Phase>(() => initialPhaseFor(startMode));
+  // Guards the auto-generate effect against React StrictMode's double-invoke and
+  // against re-firing on unrelated re-renders within the same mode.
+  const autoGenKey = useRef<string | null>(null);
   const [raceInput, setRaceInput] = useState('');
   const [raceName, setRaceName] = useState(() => startMode === 'general' ? 'General Quiz' : '');
   const [questions, setQuestions] = useState<Question[]>(() =>
@@ -207,7 +222,9 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   // ── Dev: test mode override ────────────────────────────────────────────────
 
   const resetQuizState = (mode: QuizMode) => {
-    setPhase(mode === 'general' ? 'quiz' : 'input');
+    // Allow the auto-generate effect to fire again for the new mode.
+    autoGenKey.current = null;
+    setPhase(initialPhaseFor(mode));
     setRaceName(mode === 'general' ? 'General Quiz' : '');
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
     setCluesRevealed(1); setRaceInput(''); setError(null);
@@ -270,22 +287,26 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
 
   // ── Generate ───────────────────────────────────────────────────────────────
 
-  const handleGenerate = async () => {
-    if (!raceInput.trim()) return;
+  // `race` is the named circuit for the Preview quiz. The Review quiz omits it —
+  // the backend web-searches and detects the most recent completed race itself.
+  const runGenerate = async (mode: QuizMode, race: string | null) => {
     setPhase('loading');
     setLoadingStep(0);
     setError(null);
+
+    const body: { mode: QuizMode; race?: string } = { mode };
+    if (race && race.trim()) body.race = race.trim();
 
     try {
       const res = await fetch('/api/quiz/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ race: raceInput.trim(), mode: quizMode }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string };
-        throw new Error(body.error ?? `HTTP ${res.status}`);
+        const resBody = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(resBody.error ?? `HTTP ${res.status}`);
       }
 
       const data = await res.json() as { race: string; questions: Question[] };
@@ -294,9 +315,31 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
       setPhase('quiz');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn\'t generate quiz — please try again.');
-      setPhase('input');
+      // Preview can return to its input form; Review has no input, so show a
+      // dedicated error screen with a retry button.
+      setPhase(mode === 'review' ? 'error' : 'input');
     }
   };
+
+  const handleGenerate = () => {
+    if (!raceInput.trim()) return;
+    void runGenerate('preview', raceInput);
+  };
+
+  // ── Review auto-generate ─────────────────────────────────────────────────────
+  // The Review quiz has no race picker: on entering review mode we either show
+  // the locked screen (already played this Tuesday cycle) or auto-generate.
+  useEffect(() => {
+    if (quizMode !== 'review') return;
+    if (autoGenKey.current === 'review') return;
+    autoGenKey.current = 'review';
+    if (hasCompletedReviewThisWeek()) {
+      setPhase('locked');
+    } else {
+      void runGenerate('review', null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizMode]);
 
   // ── Answer ─────────────────────────────────────────────────────────────────
 
@@ -337,6 +380,8 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
         score: Math.min(score, MAX_SCORE),
         total: MAX_SCORE,
       });
+      // Review is one-attempt-per-week: lock it out until next Tuesday.
+      if (quizMode === 'review') completeReviewQuiz();
       setPhase('done');
     }
   };
@@ -356,13 +401,18 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   // ── Reset ──────────────────────────────────────────────────────────────────
 
   const handleReset = () => {
-    setPhase(quizMode === 'general' ? 'quiz' : 'input');
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
     setCluesRevealed(1); setRaceInput('');
     if (quizMode === 'general') {
       setQuestions(pickGeneralQuestions());
+      setPhase('quiz');
+    } else if (quizMode === 'review') {
+      // Already played this week — go straight to the locked screen.
+      setQuestions([]);
+      setPhase('locked');
     } else {
       setQuestions([]);
+      setPhase('input');
     }
   };
 
@@ -447,6 +497,75 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
             </p>
           ))}
         </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: locked (review already played this week) ───────────────────────
+
+  if (phase === 'locked') {
+    return (
+      <div className="space-y-5">
+        {devBar}
+        <div className="flex flex-col items-center justify-center text-center py-12 gap-4">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${cfg.accent}22` }}>
+            <Lock className="w-7 h-7" style={{ color: cfg.accent }} />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-black">You've completed this week's Review Quiz</h2>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+              Come back next Tuesday for a fresh quiz on the latest race —{' '}
+              <span className="font-bold text-foreground">{getNextReviewTuesdayLabel()}</span>.
+            </p>
+          </div>
+          {onPlayGeneral && (
+            <Button
+              onClick={onPlayGeneral}
+              className="font-bold bg-[#2e7d32] hover:bg-[#2e7d32]/85 mt-1"
+            >
+              Play General Quiz instead →
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: error (review failed to generate, no input form) ───────────────
+
+  if (phase === 'error') {
+    return (
+      <div className="space-y-5">
+        {devBar}
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg space-y-3">
+          <div className="flex items-start gap-2.5 text-destructive">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold">Couldn't generate the Review Quiz right now.</p>
+              {error && <p className="text-xs text-muted-foreground mt-1">{error}</p>}
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                The AI quiz needs a live connection. You can try again, or play the General Quiz which always works offline.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            {onPlayGeneral && (
+              <Button
+                onClick={onPlayGeneral}
+                className="flex-1 font-bold bg-[#2e7d32] hover:bg-[#2e7d32]/85"
+              >
+                Play General Quiz instead →
+              </Button>
+            )}
+            <Button
+              onClick={() => void runGenerate('review', null)}
+              variant="outline"
+              className="flex-1 font-bold gap-2"
+            >
+              <RefreshCw className="w-4 h-4" /> Try again
+            </Button>
+          </div>
         </div>
       </div>
     );

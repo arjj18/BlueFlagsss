@@ -24,7 +24,8 @@ export const HealthCheckResponse = zod.object({
 
 
 export const GenerateQuizBody = zod.object({
-  "race": zod.string().min(1)
+  "race": zod.string().min(1).optional().describe('Grand Prix name. Required for preview quizzes. Omitted for review quizzes, where the server asks the AI to detect the single most recent completed race weekend.'),
+  "mode": zod.string().optional().describe('Quiz mode — \"preview\" or \"review\". Defaults to review.')
 })
 
 export const GenerateQuizResponse = zod.object({

@@ -23,11 +23,14 @@ type QuestionType =
   | 'livery'
   | 'sponsor';
 
+type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+
 type BaseQuestion = {
   q: string;
   opts: string[];
   ans: number;
   fact: string;
+  difficulty: Difficulty;
 };
 
 type StandardQuestion = BaseQuestion & {
@@ -62,6 +65,7 @@ const BANK: Question[] = [
     years: ['2018', '2019–present', '', '', ''],
     opts: ['Charles Leclerc', 'Kimi Räikkönen', 'Sebastian Vettel', 'Fernando Alonso'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Räikkönen returned to Sauber in 2019 when the team was rebranded Alfa Romeo, completing a full circle in his career.',
   },
   {
@@ -71,6 +75,7 @@ const BANK: Question[] = [
     years: ['2001', '2003–06', '2007', '2008–09', '2010–14', '2015', '2021–22', '2023–'],
     opts: ['Michael Schumacher', 'Fernando Alonso', 'Jenson Button', 'Rubens Barrichello'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Alonso is one of the most well travelled drivers in F1 history having raced for 8 different teams across his career.',
   },
   {
@@ -80,6 +85,7 @@ const BANK: Question[] = [
     years: ['1991', '1991–95', '1996–2006', '2010–12'],
     opts: ['Damon Hill', 'Michael Schumacher', 'Eddie Irvine', 'Rubens Barrichello'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Schumacher won all five of his consecutive titles at Ferrari before a brief retirement and comeback with Mercedes.',
   },
   {
@@ -89,6 +95,7 @@ const BANK: Question[] = [
     years: ['2007–12', '2013–24', '2025–'],
     opts: ['Nico Rosberg', 'Lewis Hamilton', 'Valtteri Bottas', 'George Russell'],
     ans: 1,
+    difficulty: 'easy',
     fact: 'Hamilton shocked the F1 world in 2024 by announcing he would join Ferrari for the 2025 season after 12 years at Mercedes.',
   },
   {
@@ -98,6 +105,7 @@ const BANK: Question[] = [
     years: ['2015', '2016–'],
     opts: ['Daniel Ricciardo', 'Carlos Sainz', 'Max Verstappen', 'Daniil Kvyat'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'Verstappen became the youngest driver to start an F1 race at 17 years and 166 days old with Toro Rosso in 2015.',
   },
   {
@@ -107,6 +115,7 @@ const BANK: Question[] = [
     years: ['2001', '2002–06', '2007–09', '2010–12', '2014–18', '2019–21'],
     opts: ['Fernando Alonso', 'Kimi Räikkönen', 'Felipe Massa', 'Romain Grosjean'],
     ans: 1,
+    difficulty: 'expert',
     fact: 'Räikkönen holds the record for most F1 race starts with 349 appearances across his career.',
   },
 
@@ -124,6 +133,7 @@ const BANK: Question[] = [
     ],
     opts: ['Lewis Hamilton', 'Nico Rosberg', 'Sebastian Vettel', 'Valtteri Bottas'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Rosberg retired just five days after winning the 2016 World Championship, one of the most shocking retirements in F1 history.',
   },
   {
@@ -139,6 +149,7 @@ const BANK: Question[] = [
     ],
     opts: ['Fernando Alonso', 'Sebastian Vettel', 'Lewis Hamilton', 'Mark Webber'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Vettel dominated F1 from 2010 to 2013 with Red Bull but struggled badly when the sport moved to turbo hybrid engines in 2014.',
   },
   {
@@ -153,6 +164,7 @@ const BANK: Question[] = [
     ],
     opts: ['Charles Leclerc', 'Lewis Hamilton', 'Max Verstappen', 'Lando Norris'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'Verstappen won three consecutive World Championships from 2021 to 2023 and dominated the 2023 season winning 19 of 22 races.',
   },
 
@@ -163,6 +175,7 @@ const BANK: Question[] = [
     radio: '"Multi 21 Seb, Multi 21." — and the driver ignored the instruction and overtook his teammate anyway.',
     opts: ['Lewis Hamilton', 'Sebastian Vettel', 'Mark Webber', 'Nico Rosberg'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Multi 21 was a Red Bull coded instruction telling Vettel to hold position behind Webber at the 2013 Malaysian GP. Vettel ignored it and passed Webber to win.',
   },
   {
@@ -171,6 +184,7 @@ const BANK: Question[] = [
     radio: '"Leave me alone, I know what I am doing!"',
     opts: ['Fernando Alonso', 'Sebastian Vettel', 'Kimi Räikkönen', 'Max Verstappen'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'Räikkönen said this iconic line to his Ferrari engineer at the 2012 Abu Dhabi Grand Prix while managing his tyres on the way to victory.',
   },
   {
@@ -179,6 +193,7 @@ const BANK: Question[] = [
     radio: '"Somebody is squeezing me... this is not right. Somebody is doing this on purpose."',
     opts: ['Ayrton Senna', 'Alain Prost', 'Nigel Mansell', 'Nelson Piquet'],
     ans: 0,
+    difficulty: 'hard',
     fact: 'Senna said this at the 1990 Japanese Grand Prix shortly before his collision with Prost that handed Senna the World Championship.',
   },
   {
@@ -187,6 +202,7 @@ const BANK: Question[] = [
     radio: '"Oh my God. Oh my God. Is this real? Is this real?"',
     opts: ['Jenson Button', 'Sebastian Vettel', 'Lewis Hamilton', 'Kimi Räikkönen'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'Hamilton said this after winning his first World Championship at the 2008 Brazilian Grand Prix on the very last corner of the last lap.',
   },
   {
@@ -195,6 +211,7 @@ const BANK: Question[] = [
     radio: '"I am not a lion. I am a Ferrari."',
     opts: ['Felipe Massa', 'Kimi Räikkönen', 'Michael Schumacher', 'Eddie Irvine'],
     ans: 1,
+    difficulty: 'expert',
     fact: 'Räikkönen made this comment during a 2018 race when his engineer told him to be aggressive like a lion on the restart.',
   },
 
@@ -205,6 +222,7 @@ const BANK: Question[] = [
     helmet: 'A bright orange helmet with a red lion motif on the top and Dutch national colours running down the sides. Clean modern design with minimal sponsor logos on the visor strip.',
     opts: ['Max Verstappen', 'Lando Norris', 'Daniel Ricciardo', 'Nyck de Vries'],
     ans: 0,
+    difficulty: 'easy',
     fact: 'Verstappen chose orange as his primary colour in tribute to the Dutch national colour and the Dutch motorsport tradition of orange racing.',
   },
   {
@@ -213,6 +231,7 @@ const BANK: Question[] = [
     helmet: 'A striking papaya orange and yellow gradient helmet with a tropical sunset design. Features a small cartoon character detail and has become one of the most recognised helmets in the modern paddock.',
     opts: ['George Russell', 'Lando Norris', 'Oscar Piastri', 'Charles Leclerc'],
     ans: 1,
+    difficulty: 'easy',
     fact: 'Norris worked with a helmet designer to create his distinctive gradient designs which change slightly each season but always feature warm orange and yellow tones.',
   },
   {
@@ -221,6 +240,7 @@ const BANK: Question[] = [
     helmet: 'A yellow helmet with a distinctive green and blue Brazilian flag inspired design running across the top. Simple, instantly recognisable, and became one of the most iconic helmets in motorsport history.',
     opts: ['Nelson Piquet', 'Rubens Barrichello', 'Ayrton Senna', 'Felipe Massa'],
     ans: 2,
+    difficulty: 'medium',
     fact: "Senna's yellow helmet became so iconic that it is now displayed in museums around the world and inspired countless tribute designs by modern drivers.",
   },
   {
@@ -229,6 +249,7 @@ const BANK: Question[] = [
     helmet: 'A distinctive red and white design with a large number 1 on the back even before he was champion. Clean lines, British flag elements, and a very recognisable visor strip colour.',
     opts: ['Nigel Mansell', 'Damon Hill', 'Jenson Button', 'David Coulthard'],
     ans: 0,
+    difficulty: 'hard',
     fact: "Mansell's red and white helmet became famous worldwide when he won the 1992 World Championship with Williams in dominant fashion.",
   },
 
@@ -245,6 +266,7 @@ const BANK: Question[] = [
       'Senna retired with a mechanical failure',
     ],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Senna\'s death on 1 May 1994 devastated the motorsport world. He remains one of the greatest drivers in F1 history and his loss led to major safety reforms in the sport.',
   },
   {
@@ -259,6 +281,7 @@ const BANK: Question[] = [
       'The race was red flagged and Hamilton was awarded the championship',
     ],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Hamilton overtook Glock who was on dry tyres in wet conditions on the very last corner of the season to claim his first World Championship by one single point.',
   },
   {
@@ -273,6 +296,7 @@ const BANK: Question[] = [
       'Schumacher had just been lapped by Alonso',
     ],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Schumacher\'s engine failure at Suzuka 2006 while leading effectively ended his title challenge against Alonso with just two races remaining.',
   },
   {
@@ -287,6 +311,7 @@ const BANK: Question[] = [
       'Senna and Prost had a clean race with Prost winning',
     ],
     ans: 1,
+    difficulty: 'hard',
     fact: 'Senna later admitted he deliberately drove into Prost in retaliation for Prost doing the same to him at the same corner in 1989. The collision gave Senna his second World Championship.',
   },
 
@@ -297,6 +322,7 @@ const BANK: Question[] = [
     livery: 'A stunning bright yellow car with black detailing. No major tobacco sponsor. Clean and distinctive on the grid. Raced in the late 1990s and became one of the most loved liveries in F1 history.',
     opts: ['Renault', 'Jordan Grand Prix', 'Minardi', 'Arrows'],
     ans: 1,
+    difficulty: 'expert',
     fact: "The Jordan 191 and subsequent yellow Jordans became iconic on the F1 grid. Eddie Jordan's team was known for spotting young talent including Michael Schumacher.",
   },
   {
@@ -305,6 +331,7 @@ const BANK: Question[] = [
     livery: 'Distinctive orange livery covering the entire car. No other colour. Ran in the late 1960s and early 1970s and was the most visually striking car on the grid. Named after a fruit.',
     opts: ['Tyrrell', 'McLaren', 'Lotus', 'BRM'],
     ans: 1,
+    difficulty: 'hard',
     fact: 'McLaren ran papaya orange cars in their early years as an independent team. The colour was revived in 2017 when McLaren returned to their heritage colours.',
   },
   {
@@ -313,6 +340,7 @@ const BANK: Question[] = [
     livery: 'Black and gold car that became one of the most iconic liveries in motorsport history. Sponsored by a cigarette brand. Raced in the 1970s and won multiple World Championships.',
     opts: ['Brabham', 'Tyrrell', 'Lotus', 'Ferrari'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'The John Player Special Lotus in black and gold is considered one of the most beautiful F1 liveries ever created. It was driven by legends including Emerson Fittipaldi and Mario Andretti.',
   },
 
@@ -323,6 +351,7 @@ const BANK: Question[] = [
     sponsor: 'Marlboro — the red and white chevron design that became one of the most recognisable sponsor logos in motorsport history across three decades.',
     opts: ['Williams', 'Ferrari and McLaren', 'Lotus', 'Brabham'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Marlboro sponsored McLaren from 1974 to 1996 and Ferrari from 1984 to 2011 making it the longest running and most valuable sponsorship in F1 history.',
   },
   {
@@ -331,6 +360,7 @@ const BANK: Question[] = [
     sponsor: 'Rothmans — blue white and gold colour scheme that defined one of the most dominant teams of the 1990s.',
     opts: ['McLaren', 'Benetton', 'Williams', 'Ferrari'],
     ans: 2,
+    difficulty: 'hard',
     fact: 'Rothmans Williams dominated F1 in the early 1990s winning four consecutive Constructors Championships from 1992 to 1994 with drivers like Mansell, Prost and Hill.',
   },
   {
@@ -339,6 +369,7 @@ const BANK: Question[] = [
     sponsor: 'West — a cigarette brand whose silver and red livery created one of the most striking car designs of the late 1990s.',
     opts: ['Ferrari', 'McLaren', 'Williams', 'Jordan'],
     ans: 1,
+    difficulty: 'expert',
     fact: 'West McLaren Mercedes in silver and red became iconic during the Hakkinen and Coulthard era of the late 1990s and early 2000s.',
   },
 
@@ -348,6 +379,7 @@ const BANK: Question[] = [
     q: 'Which driver holds the record for the most pole positions in F1 history?',
     opts: ['Michael Schumacher', 'Ayrton Senna', 'Lewis Hamilton', 'Sebastian Vettel'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'Hamilton has taken over 100 pole positions in F1, comfortably ahead of Schumacher in second place.',
   },
   {
@@ -355,6 +387,7 @@ const BANK: Question[] = [
     q: 'What is the name of the famous tunnel section at the Monaco Grand Prix?',
     opts: ['The Tunnel', 'Portier', 'Casino Square', 'Rascasse'],
     ans: 0,
+    difficulty: 'easy',
     fact: 'The Monaco tunnel is one of the most unique features in F1 — drivers go from bright sunlight into near darkness at over 180mph.',
   },
   {
@@ -362,6 +395,7 @@ const BANK: Question[] = [
     q: 'Which team did Brawn GP become after being sold in 2009?',
     opts: ['Force India', 'Mercedes', 'Lotus', 'Aston Martin'],
     ans: 1,
+    difficulty: 'medium',
     fact: 'Brawn GP won the 2009 championship in their only season before being purchased by Mercedes who turned it into their works F1 team.',
   },
   {
@@ -369,6 +403,7 @@ const BANK: Question[] = [
     q: 'What does VSC stand for in Formula 1?',
     opts: ['Variable Speed Control', 'Virtual Safety Car', 'Vehicle Speed Check', 'Velocity Safety Control'],
     ans: 1,
+    difficulty: 'medium',
     fact: "The Virtual Safety Car was introduced in 2015 after Jules Bianchi's fatal accident at the 2014 Japanese Grand Prix to slow cars without a physical safety car.",
   },
   {
@@ -376,6 +411,7 @@ const BANK: Question[] = [
     q: 'How many constructors compete in Formula 1 in 2026?',
     opts: ['9', '10', '11', '12'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'F1 has 11 constructors on the grid for the 2026 season after Cadillac joined as the 11th team, the first new American works constructor in decades.',
   },
   {
@@ -383,6 +419,7 @@ const BANK: Question[] = [
     q: 'How many cars start a Formula 1 race in 2026?',
     opts: ['18', '20', '22', '24'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'There are now 11 teams on the grid with 2 drivers each making 22 cars in total. Cadillac joined as the 11th constructor bringing new American investment to the sport.',
   },
   {
@@ -390,6 +427,7 @@ const BANK: Question[] = [
     q: 'Which circuit hosts the Italian Grand Prix?',
     opts: ['Imola', 'Mugello', 'Monza', 'Pescara'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'Monza has hosted the Italian Grand Prix almost every year since 1950 making it one of the most historic venues in F1.',
   },
   {
@@ -397,6 +435,7 @@ const BANK: Question[] = [
     q: 'What colour are the Soft tyres in modern F1?',
     opts: ['Yellow', 'White', 'Red', 'Orange'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'Pirelli uses red for Soft, yellow for Medium, and white for Hard tyres to make compound identification easy for fans watching on TV.',
   },
   {
@@ -404,6 +443,7 @@ const BANK: Question[] = [
     q: 'Which driver won the first ever Formula 1 World Championship in 1950?',
     opts: ['Alberto Ascari', 'Juan Manuel Fangio', 'Giuseppe Farina', 'Luigi Fagioli'],
     ans: 2,
+    difficulty: 'expert',
     fact: 'Giuseppe Farina won the inaugural F1 World Championship driving an Alfa Romeo, beating Juan Manuel Fangio who would go on to win five titles.',
   },
   {
@@ -411,6 +451,7 @@ const BANK: Question[] = [
     q: 'What is the maximum number of points available in a single F1 race weekend including sprint?',
     opts: ['29', '34', '44', '38'],
     ans: 1,
+    difficulty: 'expert',
     fact: 'A sprint race weekend offers 25 for race win plus 1 fastest lap plus 8 for sprint win totalling 34 maximum points in one weekend.',
   },
   {
@@ -418,6 +459,7 @@ const BANK: Question[] = [
     q: 'Which F1 team is based in Woking, England?',
     opts: ['Williams', 'Aston Martin', 'McLaren', 'Mercedes'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'McLaren Technology Centre in Woking Surrey has been the home of McLaren F1 since 2004 and is considered one of the most impressive facilities in motorsport.',
   },
   {
@@ -425,6 +467,7 @@ const BANK: Question[] = [
     q: 'What year was the DRS overtaking aid introduced to Formula 1?',
     opts: ['2009', '2010', '2011', '2013'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'DRS was introduced for the 2011 season to help overtaking after the 2010 season was criticised for processional racing with limited on track action.',
   },
   {
@@ -432,6 +475,7 @@ const BANK: Question[] = [
     q: 'Which country has produced the most F1 World Champions?',
     opts: ['Germany', 'Brazil', 'United Kingdom', 'France'],
     ans: 2,
+    difficulty: 'easy',
     fact: 'The UK has produced more F1 World Champions than any other country including Hamilton, Button, Hill, Clark, Stewart, Mansell and others.',
   },
   {
@@ -439,6 +483,7 @@ const BANK: Question[] = [
     q: 'What is the name of the Red Bull junior team in F1?',
     opts: ['Alpha Tauri', 'Toro Rosso', 'Racing Bulls', 'RB F1'],
     ans: 2,
+    difficulty: 'hard',
     fact: "The team has gone through several name changes — Minardi, Toro Rosso, AlphaTauri and now Racing Bulls — but has always served as Red Bull's driver development team.",
   },
   {
@@ -446,6 +491,7 @@ const BANK: Question[] = [
     q: 'Which Grand Prix was cancelled in 2020 due to the COVID-19 pandemic and replaced by two races at the same venue?',
     opts: ['British Grand Prix', 'Belgian Grand Prix', 'Austrian Grand Prix', 'Spanish Grand Prix'],
     ans: 2,
+    difficulty: 'medium',
     fact: 'The Red Bull Ring in Austria hosted two consecutive race weekends in July 2020 when the season was severely disrupted by the pandemic.',
   },
 ];
@@ -500,25 +546,37 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
+// Difficulty curve: a 10-question quiz ramps from easy to expert —
+// 3 easy, 3 medium, 3 hard, then 1 expert finisher, presented in that order.
+const DIFFICULTY_PLAN: { tier: Difficulty; count: number }[] = [
+  { tier: 'easy', count: 3 },
+  { tier: 'medium', count: 3 },
+  { tier: 'hard', count: 3 },
+  { tier: 'expert', count: 1 },
+];
+
 function pickQuestions(): Question[] {
-  const byType = (t: QuestionType) => BANK.filter((q) => q.type === t);
   const picked: Question[] = [];
 
-  const career = shuffle(byType('career'))[0];
-  const graph = shuffle(byType('graph'))[0];
-  const spotlight = shuffle([...byType('radio'), ...byType('helmet'), ...byType('moment')])[0];
-
-  for (const q of [career, graph, spotlight]) {
-    if (q && !picked.includes(q)) picked.push(q);
+  for (const { tier, count } of DIFFICULTY_PLAN) {
+    const pool = shuffle(BANK.filter((q) => q.difficulty === tier && !picked.includes(q)));
+    picked.push(...pool.slice(0, count));
   }
 
-  const rest = shuffle(BANK.filter((q) => !picked.includes(q)));
-  for (const q of rest) {
-    if (picked.length >= TOTAL_QUESTIONS) break;
-    picked.push(q);
+  // Backfill from the remaining bank if any tier was short, keeping the
+  // easy→expert ordering by difficulty rank.
+  if (picked.length < TOTAL_QUESTIONS) {
+    const rest = shuffle(BANK.filter((q) => !picked.includes(q)));
+    for (const q of rest) {
+      if (picked.length >= TOTAL_QUESTIONS) break;
+      picked.push(q);
+    }
   }
 
-  return shuffle(picked).slice(0, TOTAL_QUESTIONS);
+  const rank: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2, expert: 3 };
+  return picked
+    .slice(0, TOTAL_QUESTIONS)
+    .sort((a, b) => rank[a.difficulty] - rank[b.difficulty]);
 }
 
 function ratingFor(score: number): string {

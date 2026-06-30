@@ -2,7 +2,13 @@ import { useState, type ReactNode } from 'react';
 import { Lock, Flame } from 'lucide-react';
 import { GeneralQuiz } from './GeneralQuiz';
 import { PostRaceQuiz } from './PostRaceQuiz';
-import { hasCompletedThisWeek, getWeeklyStreak, getLastScore } from '@/lib/weeklyQuiz';
+import {
+  hasCompletedThisWeek,
+  getWeeklyStreak,
+  getLastScore,
+  hasCompletedReviewThisWeek,
+  getNextReviewTuesdayLabel,
+} from '@/lib/weeklyQuiz';
 
 type View = 'home' | 'preview' | 'review' | 'general';
 
@@ -26,15 +32,13 @@ function getPreviewUnlockMessage() {
 }
 
 function isReviewQuizAvailable() {
-  const day = getDay();
-  return day === 2 || day === 3; // Tuesday–Wednesday
+  return getDay() === 2; // Tuesday only
 }
 
 function getReviewUnlockMessage() {
   const daysUntilTuesday = [2, 1, 0, 6, 5, 4, 3][getDay()];
-  if (daysUntilTuesday === 0) return 'Available today!';
-  if (daysUntilTuesday === 1) return 'Unlocks tomorrow — Tuesday';
-  return `Unlocks in ${daysUntilTuesday} days on Tuesday`;
+  if (daysUntilTuesday === 1) return 'Review Quiz available tomorrow — Tuesday';
+  return 'Review Quiz available every Tuesday';
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
@@ -113,6 +117,7 @@ export function WheelKnowledgeQuiz() {
   const generalDone = hasCompletedThisWeek();
   const generalStreak = getWeeklyStreak();
   const generalLastScore = getLastScore();
+  const reviewDone = reviewOpen && hasCompletedReviewThisWeek();
 
   return (
     <div className="flex flex-col gap-4">
@@ -125,7 +130,7 @@ export function WheelKnowledgeQuiz() {
             <span className="font-semibold text-[#1565c0]">🔭 Preview Quiz</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground/70">Tuesday — Wednesday</span>
+            <span className="text-muted-foreground/70">Tuesday only</span>
             <span className="font-semibold text-[#e10600]">🏁 Review Quiz</span>
           </div>
           <div className="flex justify-between items-center">
@@ -152,8 +157,12 @@ export function WheelKnowledgeQuiz() {
       <QuizModeCard
         emoji="🏁"
         title="Review Quiz"
-        schedule="Tuesday — Wednesday"
-        desc="Test how closely you watched the last race — results, strategy and drama. AI-generated."
+        schedule={reviewDone ? 'Completed this week' : 'Tuesday only'}
+        desc={
+          reviewDone
+            ? `You've completed this week's Review Quiz. Come back ${getNextReviewTuesdayLabel()}.`
+            : 'Test how closely you watched the most recent race — results, strategy and drama. AI-generated, one play per week.'
+        }
         unlockMsg={getReviewUnlockMessage()}
         available={reviewOpen}
         accent="#e10600"

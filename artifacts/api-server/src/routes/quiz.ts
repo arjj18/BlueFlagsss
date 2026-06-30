@@ -24,6 +24,32 @@ function extractJsonArray(text: string): unknown[] {
   return JSON.parse(clean.slice(start, end + 1));
 }
 
+// Review quizzes return a wrapper object { race, questions } because the server
+// does not know the race name up front — the model detects the most recent
+// completed Grand Prix itself and reports it back alongside the questions.
+function extractJsonObject(text: string): Record<string, unknown> {
+  const clean = text.replace(/```json|```/g, "").trim();
+  const start = clean.indexOf("{");
+  const end = clean.lastIndexOf("}");
+  if (start === -1 || end === -1) throw new Error("No JSON object found in response");
+  return JSON.parse(clean.slice(start, end + 1)) as Record<string, unknown>;
+}
+
+// Shared difficulty curve + answer-quality rules appended to both AI prompts so
+// every generated quiz ramps Easy → Expert and has four genuinely plausible
+// options per question.
+const DIFFICULTY_GUIDANCE = `DIFFICULTY CURVE — calibrate each question to its position in the quiz:
+- Questions 1-3: EASY. A casual fan who watches occasionally should get these. Well-known facts, but still with believable distractors.
+- Questions 4-6: MEDIUM. Require a regular viewer who pays attention to detail.
+- Questions 7-9: HARD. Reward dedicated fans — specific stats, strategy nuance, lesser-known details.
+- Question 10: EXPERT. Genuinely difficult even for hardcore fans.
+
+ANSWER QUALITY — apply to EVERY question:
+- All four options must be plausible to someone who does not already know the answer. No joke, silly, or obviously-wrong throwaway options.
+- Wrong answers must be believable: real drivers, teams, years, or values that could reasonably be correct in the question's context.
+- The correct answer must NOT stand out. Keep all four options similar in length, specificity, and phrasing. Never make the correct option the longest, most detailed, or the only precisely-worded one.
+- Vary which position (index 0-3) the correct answer sits in across the ten questions; do not cluster it on one index.`;
+
 async function generateQuiz(
   anthropic: Anthropic,
   prompt: string,
@@ -96,6 +122,8 @@ Question 9 — CHAMPIONSHIP MOMENT: Ask about a World Championship decided at th
 
 Question 10 — WHO AM I: Create a four clue reveal about a driver with a legendary connection to this circuit. Clue 1 is very vague, clue 2 narrows it down, clue 3 is more specific, clue 4 almost gives it away. Give four driver options.
 
+${DIFFICULTY_GUIDANCE}
+
 Return ONLY a JSON array with no other text. Questions 1-4 and 6-9 use this format:
 {
   "q": "Question text",
@@ -119,7 +147,7 @@ Question 10 uses this format:
   "fact": "Brief fact about this driver and their connection to this circuit"
 }`;
 
-const REVIEW_PROMPT = (race: string) => {
+const REVIEW_PROMPT = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentDate = now.toLocaleDateString("en-GB", {
@@ -129,22 +157,18 @@ const REVIEW_PROMPT = (race: string) => {
   });
   return `You are an F1 quiz master. Today's date is ${currentDate}. The current F1 season is ${currentYear}.
 
-IMPORTANT: You must search for ${currentYear} race results only. Do not use ${currentYear - 1} or any previous season data under any circumstances.
+STEP 1 — IDENTIFY THE RACE: First, search the web to determine the SINGLE most recent Formula 1 Grand Prix that has ALREADY been completed as of today (${currentDate}). This is the last race weekend that has actually finished on or before today — never an upcoming race that has not happened yet, and never an older race if a more recent one has already finished.
 
-Search specifically for:
-- "${race} ${currentYear} F1 race result"
-- "${race} ${currentYear} F1 qualifying"
-- "${race} ${currentYear} F1 fastest lap"
-- "${race} ${currentYear} F1 championship standings after race"
-- "Formula 1 ${currentYear} ${race} Grand Prix"
+Useful searches for step 1:
+- "F1 ${currentYear} most recent race result"
+- "F1 ${currentYear} last Grand Prix result"
+- "Formula 1 ${currentYear} calendar results so far"
 
-If your search returns results from ${currentYear - 1} or earlier ignore them completely and search again with different terms. The ${race} Grand Prix ${currentYear} has already taken place and results are available online.
+IMPORTANT: Use ${currentYear} season data only. Do not use ${currentYear - 1} or any previous season data under any circumstances. If a search returns results from ${currentYear - 1} or earlier, ignore them and search again with different terms.
 
-You are creating a Tuesday review quiz about the ${currentYear} ${race} Formula 1 Grand Prix that just took place.
+STEP 2 — RESEARCH THAT RACE: Once you have identified the most recent completed Grand Prix, search the web thoroughly for that exact race: full qualifying results, full race results including winner podium finishing order DNFs, all pit stop data including laps compounds and number of stops, fastest lap holder and which lap, safety car or red flag periods and which laps, key overtakes and incidents, championship standings before and after this race, practice session highlights.
 
-First search the web thoroughly for: full qualifying results, full race results including winner podium finishing order DNFs, all pit stop data including laps compounds and number of stops, fastest lap holder and which lap, safety car or red flag periods and which laps, key overtakes and incidents, championship standings before and after this race, practice session highlights.
-
-Then generate exactly 10 questions in this exact order:
+STEP 3 — BUILD THE QUIZ: You are creating a Tuesday review quiz about that most recent ${currentYear} Grand Prix. Generate exactly 10 questions in this exact order (all questions are about that single most recent race):
 
 Question 1 — QUALIFYING: Ask about pole position — who took it, the margin over P2, or which big name was eliminated in Q1. Use actual results.
 
@@ -166,16 +190,23 @@ Question 9 — FINAL RESULT: Ask about the race finish — exact winning margin 
 
 Question 10 — CHAMPIONSHIP IMPLICATIONS: Ask about how this race changed the championship — how many points the leader now leads by, which driver closed the gap most, or what needs to happen at the next race.
 
-Return ONLY a JSON array with no other text in this exact format:
-[
-  {
-    "q": "Question text here",
-    "type": "standard",
-    "opts": ["Option A", "Option B", "Option C", "Option D"],
-    "ans": 0,
-    "fact": "Brief interesting fact about the correct answer"
-  }
-]
+${DIFFICULTY_GUIDANCE}
+
+Return ONLY a JSON object with no other text in this exact shape:
+{
+  "race": "Full Grand Prix name you identified, e.g. British Grand Prix",
+  "questions": [
+    {
+      "q": "Question text here",
+      "type": "standard",
+      "opts": ["Option A", "Option B", "Option C", "Option D"],
+      "ans": 0,
+      "fact": "Brief interesting fact about the correct answer"
+    }
+  ]
+}
+
+The "race" field MUST be the official name of the single most recent completed Grand Prix you identified in step 1 (for example "British Grand Prix", "Italian Grand Prix").
 
 A question MAY optionally include an "image" field — a direct, real, publicly hosted https URL to a relevant photo from this race weekend. The client shows it above the question and hides it gracefully if it fails to load. Only include "image" when you are confident the URL is real and working; otherwise omit it entirely. Never fabricate a URL.
 
@@ -190,16 +221,35 @@ router.post("/quiz/generate", async (req, res) => {
   }
 
   const { race } = parsed.data;
-  const rawMode = (req.body as { mode?: unknown }).mode;
-  const mode: "preview" | "review" = rawMode === "preview" ? "preview" : "review";
+  const mode: "preview" | "review" = parsed.data.mode === "preview" ? "preview" : "review";
+
+  // Preview quizzes are about a specific named circuit, so a race is required.
+  // Review quizzes auto-detect the most recent race, so race is ignored.
+  if (mode === "preview" && (!race || !race.trim())) {
+    res.status(400).json({ error: "A race is required for the preview quiz." });
+    return;
+  }
 
   try {
-    const prompt = mode === "preview" ? PREVIEW_PROMPT(race) : REVIEW_PROMPT(race);
+    const prompt = mode === "preview" ? PREVIEW_PROMPT(race as string) : REVIEW_PROMPT();
     const fullText = await generateQuiz(anthropic, prompt, mode === "review");
 
     let questions: unknown[];
+    // Review wraps its output as { race, questions } so the model can report the
+    // race it detected; preview returns a bare questions array for a known race.
+    let resolvedRace: string = race ?? "";
     try {
-      questions = extractJsonArray(fullText);
+      if (mode === "review") {
+        const obj = extractJsonObject(fullText);
+        questions = Array.isArray(obj.questions) ? obj.questions : [];
+        if (typeof obj.race === "string" && obj.race.trim()) {
+          resolvedRace = obj.race.trim();
+        } else {
+          resolvedRace = "Latest Grand Prix";
+        }
+      } else {
+        questions = extractJsonArray(fullText);
+      }
     } catch (parseErr) {
       req.log.error({ parseErr, fullTextLength: fullText.length }, "Quiz JSON parse failed");
       res.status(502).json({
@@ -213,7 +263,7 @@ router.post("/quiz/generate", async (req, res) => {
       return;
     }
 
-    res.json({ race, mode, questions });
+    res.json({ race: resolvedRace, mode, questions });
   } catch (err) {
     req.log.error({ err }, "Quiz generation failed");
 

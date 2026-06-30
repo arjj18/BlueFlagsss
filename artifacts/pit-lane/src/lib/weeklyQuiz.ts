@@ -101,3 +101,56 @@ export function getNextMondayCountdown(now: Date = new Date()): string {
   const mins = Math.floor((diff % 3_600_000) / 60_000);
   return `${days}d ${hours}h ${mins}m`;
 }
+
+// ── Review Quiz: one attempt per week, resets every Tuesday ──────────────────
+//
+// The Review Quiz is only available on Tuesdays and may be played once per
+// weekly cycle. We store the completion timestamp and treat the player as
+// locked out until the next Tuesday. The prior week's entry naturally expires
+// because `hasCompletedReviewThisWeek` only compares against the most recent
+// Tuesday.
+
+const REVIEW_COMPLETED_KEY = "pitlane-review-quiz-completed"; // ISO timestamp of last completion
+
+/** Midnight (local) of the most recent Tuesday on or before `from`. */
+function mostRecentTuesday(from: Date = new Date()): Date {
+  const d = new Date(from);
+  const day = d.getDay(); // Sun=0 … Sat=6 (Tue=2)
+  const daysSinceTuesday = (day - 2 + 7) % 7;
+  d.setDate(d.getDate() - daysSinceTuesday);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/** True if the Review Quiz has already been completed in this Tuesday cycle. */
+export function hasCompletedReviewThisWeek(): boolean {
+  try {
+    const raw = localStorage.getItem(REVIEW_COMPLETED_KEY);
+    if (!raw) return false;
+    const last = new Date(raw);
+    if (Number.isNaN(last.getTime())) return false;
+    return last >= mostRecentTuesday();
+  } catch {
+    return false;
+  }
+}
+
+/** Record that the Review Quiz was completed in the current Tuesday cycle. */
+export function completeReviewQuiz(): void {
+  try {
+    localStorage.setItem(REVIEW_COMPLETED_KEY, new Date().toISOString());
+  } catch {
+    /* ignore persistence errors */
+  }
+}
+
+/** The date of the next Tuesday the Review Quiz reopens, formatted for display. */
+export function getNextReviewTuesdayLabel(now: Date = new Date()): string {
+  const next = mostRecentTuesday(now);
+  next.setDate(next.getDate() + 7);
+  return next.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
