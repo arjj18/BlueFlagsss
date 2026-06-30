@@ -1,0 +1,166 @@
+"Please slow down the race by race simulation reveal in the 24-0 game so each result is visible long enough to actually read. Here is exactly what needs to change:
+The problem
+Currently the 24 race results are appearing too fast for the player to read each one before the next appears. The simulation needs to feel dramatic and give each race result a moment to land.
+The fix — slow down the reveal timing
+Find the function that reveals each race result one by one and update the timing like this:
+javascriptasync function runSeasonSimulation(picks) {
+  const results = []
+  const resultsContainer = document.getElementById('sim-results')
+  
+  for (let raceIndex = 0; raceIndex < 24; raceIndex++) {
+    const race = CIRCUITS[raceIndex]
+    const result = simulateRace(picks, raceIndex)
+    results.push(result)
+    
+    // Render this race result
+    appendRaceResult(race, result, raceIndex + 1)
+    
+    // Scroll to keep the latest result in view
+    resultsContainer.scrollTop = resultsContainer.scrollHeight
+    
+    // Pause before showing the next race — this is the key fix
+    const delay = getDelayForResult(result)
+    await new Promise(resolve => setTimeout(resolve, delay))
+  }
+  
+  // After all 24 races, show the final results screen
+  await new Promise(resolve => setTimeout(resolve, 800))
+  showFinalResults(results)
+}
+
+function getDelayForResult(result) {
+  // Give wins and podiums extra time since they are more exciting
+  if (result.result === 'win') return 1400
+  if (result.result === 'podium') return 1000
+  if (result.result === 'dnf') return 1200
+  return 700
+}
+Add a visible progress indicator
+While the simulation is running show clearly which race number is currently being revealed so the player has a sense of pacing:
+javascriptfunction appendRaceResult(race, result, raceNumber) {
+  const colors = {
+    win: '#e10600',
+    podium: '#e65100', 
+    points: '#1565c0',
+    dnf: '#333'
+  }
+  
+  const labels = {
+    win: 'WIN 🏆',
+    podium: 'PODIUM',
+    points: 'POINTS',
+    dnf: 'DNF'
+  }
+  
+  const resultsContainer = document.getElementById('sim-results')
+  const entry = document.createElement('div')
+  entry.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #111;
+    border: 0.5px solid #1a1a1a;
+    border-left: 3px solid ${colors[result.result]};
+    border-radius: 8px;
+    margin-bottom: 6px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  `
+  entry.innerHTML = `
+    <div style='display:flex;align-items:center;gap:10px;'>
+      <div style='
+        font-family:Barlow Condensed,sans-serif;
+        font-size:16px;font-weight:800;
+        color:#555;min-width:24px;
+      '>${raceNumber}</div>
+      <div>
+        <div style='font-size:13px;font-weight:600;color:white;'>${race.name}</div>
+        <div style='font-size:10px;color:#555;'>${race.country || ''}</div>
+      </div>
+    </div>
+    <div style='
+      font-size:11px;font-weight:700;
+      color:${colors[result.result]};
+      letter-spacing:0.5px;
+    '>${labels[result.result]}</div>
+  `
+  resultsContainer.appendChild(entry)
+  
+  // Trigger fade in animation
+  requestAnimationFrame(() => {
+    entry.style.opacity = '1'
+    entry.style.transform = 'translateY(0)'
+  })
+}
+Add a live running tally at the top during simulation
+Show a sticky header during the simulation with a running count of wins so far, updating in real time as each race completes:
+javascriptfunction updateRunningTally(results) {
+  const wins = results.filter(r => r.result === 'win').length
+  const podiums = results.filter(r => r.result === 'podium').length
+  const tallyEl = document.getElementById('sim-tally')
+  
+  if (tallyEl) {
+    tallyEl.innerHTML = `
+      <div style='display:flex;gap:16px;justify-content:center;'>
+        <div style='text-align:center;'>
+          <div style='font-family:Barlow Condensed,sans-serif;font-size:28px;font-weight:900;color:#e10600;line-height:1;'>${wins}</div>
+          <div style='font-size:9px;color:#555;font-weight:700;letter-spacing:1px;'>WINS</div>
+        </div>
+        <div style='text-align:center;'>
+          <div style='font-family:Barlow Condensed,sans-serif;font-size:28px;font-weight:900;color:#e65100;line-height:1;'>${podiums}</div>
+          <div style='font-size:9px;color:#555;font-weight:700;letter-spacing:1px;'>PODIUMS</div>
+        </div>
+        <div style='text-align:center;'>
+          <div style='font-family:Barlow Condensed,sans-serif;font-size:28px;font-weight:900;color:#666;line-height:1;'>${results.length}/24</div>
+          <div style='font-size:9px;color:#555;font-weight:700;letter-spacing:1px;'>RACES</div>
+        </div>
+      </div>
+    `
+  }
+}
+Call updateRunningTally inside the simulation loop right after pushing each result so the numbers update live as races are revealed.
+Add a skip button for impatient users
+Some players will want to skip straight to the end. Add a small skip button that completes the simulation instantly:
+javascriptlet skipSimulation = false
+
+function renderSimulationScreen() {
+  document.getElementById('gi').innerHTML = `
+    <div style='position:sticky;top:0;background:#0a0a0a;padding:12px 0;z-index:10;'>
+      <div id='sim-tally'></div>
+      <button onclick='skipSimulation=true' style='
+        position:absolute;top:8px;right:8px;
+        background:#1a1a1a;border:0.5px solid #333;
+        border-radius:20px;color:#555;
+        font-size:11px;padding:4px 10px;
+        cursor:pointer;font-family:Inter,sans-serif;
+      '>Skip →</button>
+    </div>
+    <div id='sim-results' style='max-height:60vh;overflow-y:auto;padding:4px;'></div>
+  `
+}
+
+// Update the main loop to check for skip
+async function runSeasonSimulation(picks) {
+  const results = []
+  
+  for (let raceIndex = 0; raceIndex < 24; raceIndex++) {
+    const race = CIRCUITS[raceIndex]
+    const result = simulateRace(picks, raceIndex)
+    results.push(result)
+    
+    appendRaceResult(race, result, raceIndex + 1)
+    updateRunningTally(results)
+    document.getElementById('sim-results').scrollTop = 999999
+    
+    if (!skipSimulation) {
+      const delay = getDelayForResult(result)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+  
+  await new Promise(resolve => setTimeout(resolve, skipSimulation ? 200 : 800))
+  showFinalResults(results)
+}
+Test this by running a full 24-0 simulation and confirm each race result is clearly readable before the next one appears, the running tally updates correctly, and the skip button works to fast forward if needed."
