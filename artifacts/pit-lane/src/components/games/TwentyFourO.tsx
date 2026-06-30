@@ -151,14 +151,6 @@ function simulateRace(avgRating: number): { result: RaceResult; position: number
   return { result: "dnf", position: 0 };
 }
 
-// Per-result reveal pacing — give the more dramatic outcomes longer to land.
-function getDelayForResult(result: RaceResult): number {
-  if (result === "win")    return 1400;
-  if (result === "dnf")    return 1200;
-  if (result === "podium") return 1000;
-  return 700; // points
-}
-
 const F1_PTS: Record<number, number> = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1};
 
 function performanceLabel(wins: number): string {
@@ -228,9 +220,7 @@ export function TwentyFourO() {
 
   // ── Racing state ───────────────────────────────────────────────────────────
   const [visibleCount, setVisibleCount] = useState(0);
-  const [skipReveal, setSkipReveal] = useState(false);
   const allRaces = useRef<Race[]>([]);
-  const resultsScrollRef = useRef<HTMLDivElement>(null);
 
   // Generate cards for a given tab index
   const genCards = (tabIdx: number, currentPicks: (PickItem | null)[]): PickItem[] => {
@@ -333,33 +323,18 @@ export function TwentyFourO() {
       ...simulateRace(avg),
     }));
     setVisibleCount(0);
-    setSkipReveal(false);
     setPhase("racing");
   };
 
-  // Auto-reveal races — pace each reveal by the drama of the result just shown,
-  // so every race is readable before the next appears (unless the player skips).
+  // Auto-reveal races
   useEffect(() => {
     if (phase !== "racing") return;
     if (visibleCount >= 24) {
-      const t = setTimeout(() => setPhase("results"), skipReveal ? 200 : 800);
+      const t = setTimeout(() => setPhase("results"), 600);
       return () => clearTimeout(t);
     }
-    if (skipReveal) {
-      setVisibleCount(24);
-      return;
-    }
-    const lastRevealed = visibleCount > 0 ? allRaces.current[visibleCount - 1] : null;
-    const delay = lastRevealed ? getDelayForResult(lastRevealed.result) : 500;
-    const t = setTimeout(() => setVisibleCount(v => v + 1), delay);
+    const t = setTimeout(() => setVisibleCount(v => v + 1), 150);
     return () => clearTimeout(t);
-  }, [phase, visibleCount, skipReveal]);
-
-  // Keep the latest revealed race in view as the list grows.
-  useEffect(() => {
-    if (phase !== "racing") return;
-    const el = resultsScrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
   }, [phase, visibleCount]);
 
   // Play again
@@ -378,7 +353,6 @@ export function TwentyFourO() {
     setSelecting(null);
     setPenalty(0);
     setVisibleCount(0);
-    setSkipReveal(false);
     allRaces.current = [];
     setPhase("draft");
   };
@@ -562,44 +536,26 @@ export function TwentyFourO() {
   // ── RACING PHASE ───────────────────────────────────────────────────────────
   const visibleRaces = allRaces.current.slice(0, visibleCount);
   const winsNow = visibleRaces.filter(r => r.result === "win").length;
-  const podiumsNow = visibleRaces.filter(r => r.result === "podium").length;
 
   if (phase === "racing") {
     return (
       <div className="flex flex-col gap-4">
-        {/* Live running tally */}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">Season in progress</p>
             <p className="text-white font-bold text-sm">Race {visibleCount} of 24</p>
           </div>
-          <div className="flex items-center gap-5">
-            <div className="text-center">
-              <p className="text-3xl font-black text-yellow-400 leading-none">{winsNow}</p>
-              <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider font-bold mt-0.5">Wins</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-black text-orange-400 leading-none">{podiumsNow}</p>
-              <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider font-bold mt-0.5">Podiums</p>
-            </div>
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Wins</p>
+            <p className="text-3xl font-black text-yellow-400 leading-none">{winsNow}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="h-1.5 flex-1 rounded-full bg-secondary/40 overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${(visibleCount / 24) * 100}%` }} />
-          </div>
-          {!skipReveal && visibleCount < 24 && (
-            <button
-              onClick={() => setSkipReveal(true)}
-              className="shrink-0 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-border/40 text-muted-foreground/60 hover:text-white hover:bg-secondary/40 transition-all"
-            >
-              Skip <ChevronRight className="w-3 h-3" />
-            </button>
-          )}
+        <div className="h-1.5 rounded-full bg-secondary/40 overflow-hidden">
+          <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${(visibleCount / 24) * 100}%` }} />
         </div>
 
-        <div ref={resultsScrollRef} className="flex flex-col gap-1 max-h-[420px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-1 max-h-[420px] overflow-y-auto pr-0.5">
           {visibleRaces.map((race, i) => (
             <div
               key={i}
