@@ -260,7 +260,7 @@ export function RaceSchedule({ onClose: _onClose }: Props) {
       </div>
       <div className="flex flex-col items-end gap-1">
         <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
-          After R{view.afterRound}
+          {view.afterRound > 0 ? `After R${view.afterRound}` : 'Pre-season'}
         </p>
         {editing ? (
           <div className="flex items-center gap-2">

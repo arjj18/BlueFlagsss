@@ -12,7 +12,7 @@ const drivers: string[] = [
   'Zhou Guanyu', 'Kevin Magnussen', 'Nico Hulkenberg', 'Yuki Tsunoda',
   'Daniel Ricciardo', 'Nyck de Vries', 'Logan Sargeant', 'Alexander Albon',
   'Franco Colapinto', 'Oliver Bearman', 'Kimi Antonelli', 'Jack Doohan',
-  'Isack Hadjar', 'Liam Lawson', 'Gabriel Bortoleto',
+  'Isack Hadjar', 'Liam Lawson', 'Gabriel Bortoleto', 'Arvid Lindblad',
 
   // Legends and historical drivers
   'Ayrton Senna', 'Michael Schumacher', 'Alain Prost', 'Nigel Mansell',

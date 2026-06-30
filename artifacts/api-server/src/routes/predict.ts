@@ -11,14 +11,14 @@ const SYSTEM_PROMPT = `You are an F1 race prediction model. Use ONLY the informa
 
 Alpine: Pierre Gasly, Franco Colapinto
 Aston Martin: Fernando Alonso, Lance Stroll
-Audi: Nico Hülkenberg, Gabriel Bortoleto
+Kick Sauber: Nico Hülkenberg, Gabriel Bortoleto
 Cadillac: Sergio Pérez, Valtteri Bottas
 Ferrari: Charles Leclerc, Lewis Hamilton
 Haas: Esteban Ocon, Oliver Bearman
 McLaren: Lando Norris, Oscar Piastri
 Mercedes: George Russell, Kimi Antonelli
-Racing Bulls: Liam Lawson, Arvid Lindblad
-Red Bull Racing: Max Verstappen, Isack Hadjar
+Racing Bulls: Isack Hadjar, Arvid Lindblad
+Red Bull Racing: Max Verstappen, Liam Lawson
 Williams: Carlos Sainz, Alex Albon
 
 ====================================================================
@@ -64,7 +64,7 @@ Alpine: Good reliability.
 Racing Bulls: Medium reliability.
 Haas: Moderate reliability.
 Williams: Medium reliability.
-Audi: Poor reliability; frequent DNFs.
+Kick Sauber: Poor reliability; frequent DNFs.
 Aston Martin: Extremely high DNF rate.
 Cadillac: Very low pace + high DNF rate.
 
@@ -89,7 +89,7 @@ Ocon: Consistent but limited by car.
 Sainz: Strong race craft; limited by Williams.
 Albon: Reliable; occasional points.
 Bortoleto: Struggles for pace; occasional points.
-Hülkenberg: Limited by slow Audi.
+Hülkenberg: Limited by slow Kick Sauber.
 Alonso: Very high DNF rate.
 Stroll: Very high DNF rate.
 Pérez: Very low pace; frequent DNFs.
@@ -107,17 +107,17 @@ Bottas: Extremely low performance.
 6.  Oscar Piastri       – McLaren         –  68 pts
 7.  Max Verstappen      – Red Bull Racing –  55 pts
 8.  Pierre Gasly        – Alpine          –  41 pts
-9.  Isack Hadjar        – Red Bull Racing –  34 pts
-10. Liam Lawson         – Racing Bulls    –  28 pts
+9.  Isack Hadjar        – Racing Bulls    –  34 pts
+10. Liam Lawson         – Red Bull Racing –  28 pts
 11. Oliver Bearman      – Haas            –  18 pts
 12. Franco Colapinto    – Alpine          –  16 pts
 13. Arvid Lindblad      – Racing Bulls    –  13 pts
 14. Carlos Sainz        – Williams        –   6 pts
 15. Alex Albon          – Williams        –   5 pts
 16. Esteban Ocon        – Haas            –   3 pts
-17. Gabriel Bortoleto   – Audi            –   2 pts
+17. Gabriel Bortoleto   – Kick Sauber    –   2 pts
 18. Fernando Alonso     – Aston Martin    –   1 pt
-19. Nico Hülkenberg     – Audi            –   0 pts
+19. Nico Hülkenberg     – Kick Sauber    –   0 pts
 20. Valtteri Bottas     – Cadillac        –   0 pts
 21. Sergio Pérez        – Cadillac        –   0 pts
 22. Lance Stroll        – Aston Martin    –   0 pts
@@ -140,7 +140,7 @@ Alpine: Aero upgrade R4; suspension update R6.
 Racing Bulls: Aero upgrade R5; mechanical grip R7.
 Haas: Aero update R4.
 Williams: Aero update R5.
-Audi: Reliability patch R6.
+Kick Sauber: Reliability patch R6.
 Aston Martin: Minor aero R5; no major gains.
 Cadillac: Minor reliability R4.
 
@@ -156,7 +156,7 @@ Alpine: Good warm-up; strong Softs/Intermediates.
 Racing Bulls: Balanced tyre usage.
 Haas: Mediums best; Softs overheat.
 Williams: Good warm-up; poor long-run degradation.
-Audi: Poor tyre management overall.
+Kick Sauber: Poor tyre management overall.
 Aston Martin: Very poor degradation.
 Cadillac: Weakest tyre performance.
 
@@ -165,7 +165,7 @@ Prediction Rules
 ====================================================================
 
 - Consider track type, weather, tyre behaviour, reliability, upgrades, and driver form.
-- Penalise teams with high DNF rates (Aston Martin, Red Bull, Cadillac, Audi).
+- Penalise teams with high DNF rates (Aston Martin, Red Bull, Cadillac, Kick Sauber).
 - Boost drivers who excel in specific conditions (wet, hot, cold, etc.).
 - Do NOT invent narratives not supported by the data above.
 - CONSISTENCY RULE: every claim in "wildcard" and "factors" must agree with the positions in "top10". If a driver is called a top-6 finisher in the wildcard, they must appear in positions 1–6 of top10. Never contradict your own top10 in the narrative fields.`;

@@ -1,0 +1,69 @@
+"Please update the default driver standings data to reflect the correct 2026 F1 grid. The current data has wrong drivers — remove Tsunoda, Doohan, Colton Herta and Armstrong and replace with the correct lineup. Here is the complete accurate 2026 driver lineup to use:
+javascriptfunction getDefaultDriverStandings() {
+  return [
+    { pos: 1, driver: 'Max Verstappen', team: 'Red Bull Racing', nationality: '🇳🇱', points: 0, wins: 0 },
+    { pos: 2, driver: 'Liam Lawson', team: 'Red Bull Racing', nationality: '🇳🇿', points: 0, wins: 0 },
+    { pos: 3, driver: 'Lewis Hamilton', team: 'Ferrari', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 4, driver: 'Charles Leclerc', team: 'Ferrari', nationality: '🇲🇨', points: 0, wins: 0 },
+    { pos: 5, driver: 'Lando Norris', team: 'McLaren', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 6, driver: 'Oscar Piastri', team: 'McLaren', nationality: '🇦🇺', points: 0, wins: 0 },
+    { pos: 7, driver: 'George Russell', team: 'Mercedes', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 8, driver: 'Kimi Antonelli', team: 'Mercedes', nationality: '🇮🇹', points: 0, wins: 0 },
+    { pos: 9, driver: 'Fernando Alonso', team: 'Aston Martin', nationality: '🇪🇸', points: 0, wins: 0 },
+    { pos: 10, driver: 'Lance Stroll', team: 'Aston Martin', nationality: '🇨🇦', points: 0, wins: 0 },
+    { pos: 11, driver: 'Pierre Gasly', team: 'Alpine', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 12, driver: 'Franco Colapinto', team: 'Alpine', nationality: '🇦🇷', points: 0, wins: 0 },
+    { pos: 13, driver: 'Alexander Albon', team: 'Williams', nationality: '🇹🇭', points: 0, wins: 0 },
+    { pos: 14, driver: 'Carlos Sainz', team: 'Williams', nationality: '🇪🇸', points: 0, wins: 0 },
+    { pos: 15, driver: 'Isack Hadjar', team: 'Racing Bulls', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 16, driver: 'Arvid Lindblad', team: 'Racing Bulls', nationality: '🇸🇪', points: 0, wins: 0 },
+    { pos: 17, driver: 'Nico Hulkenberg', team: 'Kick Sauber', nationality: '🇩🇪', points: 0, wins: 0 },
+    { pos: 18, driver: 'Gabriel Bortoleto', team: 'Kick Sauber', nationality: '🇧🇷', points: 0, wins: 0 },
+    { pos: 19, driver: 'Oliver Bearman', team: 'Haas', nationality: '🇬🇧', points: 0, wins: 0 },
+    { pos: 20, driver: 'Esteban Ocon', team: 'Haas', nationality: '🇫🇷', points: 0, wins: 0 },
+    { pos: 21, driver: 'Sergio Perez', team: 'Cadillac', nationality: '🇲🇽', points: 0, wins: 0 },
+    { pos: 22, driver: 'Valtteri Bottas', team: 'Cadillac', nationality: '🇫🇮', points: 0, wins: 0 },
+  ]
+}
+And update the constructor standings to match:
+javascriptfunction getDefaultConstructorStandings() {
+  return [
+    { pos: 1, team: 'Red Bull Racing', points: 0, wins: 0, color: '#1E41FF' },
+    { pos: 2, team: 'Ferrari', points: 0, wins: 0, color: '#DC0000' },
+    { pos: 3, team: 'McLaren', points: 0, wins: 0, color: '#FF8000' },
+    { pos: 4, team: 'Mercedes', points: 0, wins: 0, color: '#00D2BE' },
+    { pos: 5, team: 'Aston Martin', points: 0, wins: 0, color: '#006F62' },
+    { pos: 6, team: 'Alpine', points: 0, wins: 0, color: '#FF87BC' },
+    { pos: 7, team: 'Williams', points: 0, wins: 0, color: '#005AFF' },
+    { pos: 8, team: 'Racing Bulls', points: 0, wins: 0, color: '#6692FF' },
+    { pos: 9, team: 'Kick Sauber', points: 0, wins: 0, color: '#52E252' },
+    { pos: 10, team: 'Haas', points: 0, wins: 0, color: '#B6BABD' },
+    { pos: 11, team: 'Cadillac', points: 0, wins: 0, color: '#CC0000' },
+  ]
+}
+Also add this important fix — currently if a user has already visited the standings page the old wrong data is saved in their localStorage and the new default data will not load. Add a version check that forces a reset to the new correct data if the saved data contains any of the wrong drivers:
+javascriptfunction checkAndFixStandingsData() {
+  const saved = localStorage.getItem('f1_driver_standings')
+  if (!saved) return
+  
+  try {
+    const drivers = JSON.parse(saved)
+    const wrongDrivers = ['Tsunoda', 'Doohan', 'Herta', 'Armstrong']
+    const hasWrongData = drivers.some(d => 
+      wrongDrivers.some(wrong => d.driver && d.driver.includes(wrong))
+    )
+    
+    if (hasWrongData) {
+      localStorage.removeItem('f1_driver_standings')
+      localStorage.removeItem('f1_constructor_standings')
+      console.log('Standings data reset to correct 2026 lineup')
+    }
+  } catch {
+    localStorage.removeItem('f1_driver_standings')
+    localStorage.removeItem('f1_constructor_standings')
+  }
+}
+
+// Call this immediately when the app loads
+checkAndFixStandingsData()
+Also update the race predictor and any other features that reference the current driver lineup to use these same correct 22 drivers. The 2026 grid has 11 teams and 22 drivers with Cadillac as the new 11th team running Sergio Perez and Valtteri Bottas."
