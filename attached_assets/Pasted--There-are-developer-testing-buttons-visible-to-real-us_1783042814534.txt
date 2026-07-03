@@ -1,0 +1,85 @@
+"There are developer testing buttons visible to real users in two files that must be hidden before launch. This is the main blocker stopping the app going live. Please fix both immediately.
+The problem
+ In WheelKnowledgeQuiz.tsx there are Force Tue, Force Thu, Force Other and Off buttons visible to everyone. In PostRaceQuiz.tsx there is a DEV bar showing preview, review and general mode buttons. Real users can see these, get confused, and use them to bypass the day-locking system.
+The fix — wrap all dev UI in an environment check
+Find every dev button, dev bar, and testing override UI element in both files and wrap them so they only render when the app is running in development mode, never in production.
+In WheelKnowledgeQuiz.tsx find the dev buttons that look something like this:
+jsx
+<div>
+  <button onClick={() => setTestMode('preview')}>Force Thu</button>
+  <button onClick={() => setTestMode('review')}>Force Tue</button>
+  <button onClick={() => setTestMode('general')}>Force Other</button>
+  <button onClick={() => setTestMode(null)}>Off</button>
+</div>
+Wrap them like this so they only show in development:
+jsx
+{import.meta.env.DEV && (
+  <div style={{
+    background: '#1a0000',
+    border: '1px dashed #e10600',
+    borderRadius: '6px',
+    padding: '8px',
+    marginBottom: '12px',
+    fontSize: '11px',
+  }}>
+    <span style={{ color: '#e10600', fontWeight: 700, marginRight: '8px' }}>DEV ONLY</span>
+    <button onClick={() => setTestMode('preview')}>Force Thu</button>
+    <button onClick={() => setTestMode('review')}>Force Tue</button>
+    <button onClick={() => setTestMode('general')}>Force Other</button>
+    <button onClick={() => setTestMode(null)}>Off</button>
+  </div>
+)}
+In PostRaceQuiz.tsx find the dev bar that looks something like this:
+jsx
+<div className='dev-bar'>
+  <button onClick={() => setMode('preview')}>preview</button>
+  <button onClick={() => setMode('review')}>review</button>
+  <button onClick={() => setMode('general')}>general</button>
+</div>
+Wrap it the same way:
+jsx
+{import.meta.env.DEV && (
+  <div style={{
+    background: '#1a0000',
+    border: '1px dashed #e10600',
+    borderRadius: '6px',
+    padding: '8px',
+    marginBottom: '12px',
+    fontSize: '11px',
+  }}>
+    <span style={{ color: '#e10600', fontWeight: 700, marginRight: '8px' }}>DEV ONLY</span>
+    <button onClick={() => setMode('preview')}>preview</button>
+    <button onClick={() => setMode('review')}>review</button>
+    <button onClick={() => setMode('general')}>general</button>
+  </div>
+)}
+Also hide the testModeOverride state in production
+Make sure the testModeOverride state variable and the setTestMode function are also wrapped so they have no effect in production even if someone tries to call them via the browser console:
+javascript
+function setTestMode(mode) {
+  if (!import.meta.env.DEV) return // do nothing in production
+  setTestModeOverride(mode)
+}
+And update the quiz mode detection to ignore the override in production:
+javascript
+function getQuizMode() {
+  // Only allow test mode override in development
+  if (import.meta.env.DEV && testModeOverride) return testModeOverride
+  
+  const day = new Date().getDay()
+  if (day === 2 || day === 3) return 'review'
+  if (day === 4 || day === 5 || day === 6) return 'preview'
+  return 'general'
+}
+Search the entire codebase for any other dev-only UI
+After fixing those two files search every other component for any of these patterns and wrap them the same way if found:
+Any button with text containing DEV, Force, Override, Test Mode, debug
+Any div with className containing dev, debug, test
+Any console.log statements that log sensitive data like API keys or user scores
+Any hardcoded test data that should not be visible to real users
+How to verify the fix worked
+After making these changes do the following checks:
+In Replit preview — the dev buttons should still be visible because Replit runs in development mode. Confirm they still work for testing.
+Check that the quiz mode detection still works correctly in both dev and production — in dev the Force buttons should override it, in production the day of the week should control it with no override possible.
+This fix makes the app launch ready. The dev buttons remain fully functional for you during development in Replit
+

@@ -110,7 +110,9 @@ export function WheelKnowledgeQuiz() {
   if (view === 'preview') return <PostRaceQuiz initialMode="preview" onPlayGeneral={() => setView('general')} />;
   if (view === 'review') return <PostRaceQuiz initialMode="review" onPlayGeneral={() => setView('general')} />;
 
-  const day = dayOverride ?? new Date().getDay();
+  // The day override only applies in development, so real users in production
+  // can never bypass the day-based gating (even via the console).
+  const day = import.meta.env.DEV && dayOverride !== null ? dayOverride : new Date().getDay();
   const previewOpen = isPreviewQuizAvailable(day);
   const reviewOpen = isReviewQuizAvailable(day);
 
@@ -196,29 +198,31 @@ export function WheelKnowledgeQuiz() {
         }
       />
 
-      {/* Dev: override the day to test gating */}
-      <div className="flex items-center gap-2 mt-1 flex-wrap">
-        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/25">dev:</span>
-        {([
-          { label: 'Force Tue', value: 2 },
-          { label: 'Force Thu', value: 4 },
-          { label: 'Force Other', value: 0 },
-          { label: 'Off', value: null },
-        ] as const).map(({ label, value }) => {
-          const active = dayOverride === value;
-          return (
-            <button
-              key={label}
-              onClick={() => setDayOverride(value)}
-              className={`text-[9px] font-black uppercase tracking-widest transition-colors ${
-                active ? 'text-foreground/70' : 'text-muted-foreground/25 hover:text-muted-foreground/60'
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Dev: override the day to test gating (development only) */}
+      {import.meta.env.DEV && (
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="text-[9px] font-black uppercase tracking-widest text-[#e10600]">DEV ONLY</span>
+          {([
+            { label: 'Force Tue', value: 2 },
+            { label: 'Force Thu', value: 4 },
+            { label: 'Force Other', value: 0 },
+            { label: 'Off', value: null },
+          ] as const).map(({ label, value }) => {
+            const active = dayOverride === value;
+            return (
+              <button
+                key={label}
+                onClick={() => setDayOverride(value)}
+                className={`text-[9px] font-black uppercase tracking-widest transition-colors ${
+                  active ? 'text-foreground/70' : 'text-muted-foreground/25 hover:text-muted-foreground/60'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

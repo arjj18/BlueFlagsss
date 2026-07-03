@@ -192,7 +192,9 @@ type PostRaceQuizProps = {
 export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps = {}) {
   const startMode: QuizMode = initialMode ?? getTodayMode();
   const [testModeOverride, setTestModeOverride] = useState<QuizMode | null>(null);
-  const quizMode: QuizMode = testModeOverride ?? startMode;
+  // The test override only takes effect in development, so real users in
+  // production can never bypass the day-based gating (even via the console).
+  const quizMode: QuizMode = import.meta.env.DEV && testModeOverride ? testModeOverride : startMode;
   const cfg = MODE_CONFIG[quizMode];
 
   const [phase, setPhase] = useState<Phase>(() => initialPhaseFor(startMode));
@@ -232,16 +234,18 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   };
 
   const handleSetTestMode = (mode: QuizMode) => {
+    if (!import.meta.env.DEV) return; // no-op in production
     setTestModeOverride(mode);
     resetQuizState(mode);
   };
 
   const clearTestMode = () => {
+    if (!import.meta.env.DEV) return; // no-op in production
     setTestModeOverride(null);
     resetQuizState(startMode);
   };
 
-  const devBar = (
+  const devBar = import.meta.env.DEV ? (
     <div className="flex items-center gap-1.5 p-2 mb-3 bg-black/50 border border-border/30 rounded-lg">
       <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 mr-0.5 shrink-0">
         DEV
@@ -270,7 +274,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
         </button>
       )}
     </div>
-  );
+  ) : null;
 
   // ── Loading step cycling ───────────────────────────────────────────────────
 
