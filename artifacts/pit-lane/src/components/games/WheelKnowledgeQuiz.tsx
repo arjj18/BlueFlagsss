@@ -15,30 +15,29 @@ type View = 'home' | 'preview' | 'review' | 'general';
 // ── Day-based availability ───────────────────────────────────────────────────
 // getDay(): Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
 
-function getDay() {
-  return new Date().getDay();
-}
-
-function isPreviewQuizAvailable() {
-  const day = getDay();
+function isPreviewQuizAvailable(day: number) {
   return day === 4 || day === 5 || day === 6; // Thursday–Saturday
 }
 
-function getPreviewUnlockMessage() {
-  const daysUntilThursday = [4, 3, 2, 1, 0, 6, 5][getDay()];
-  if (daysUntilThursday === 0) return 'Available today!';
-  if (daysUntilThursday === 1) return 'Unlocks tomorrow — Thursday';
-  return `Unlocks in ${daysUntilThursday} days on Thursday`;
+function getPreviewUnlockMessage(day: number) {
+  if (day === 0) return 'Unlocks Thursday — 4 days away';
+  if (day === 1) return 'Unlocks Thursday — 3 days away';
+  if (day === 2) return 'Unlocks Thursday — 2 days away';
+  if (day === 3) return 'Unlocks tomorrow — Thursday';
+  return 'Available now!'; // Thursday–Saturday
 }
 
-function isReviewQuizAvailable() {
-  return getDay() === 2; // Tuesday only
+function isReviewQuizAvailable(day: number) {
+  return day === 2 || day === 3; // Tuesday–Wednesday
 }
 
-function getReviewUnlockMessage() {
-  const daysUntilTuesday = [2, 1, 0, 6, 5, 4, 3][getDay()];
-  if (daysUntilTuesday === 1) return 'Review Quiz available tomorrow — Tuesday';
-  return 'Review Quiz available every Tuesday';
+function getReviewUnlockMessage(day: number) {
+  if (day === 0) return 'Unlocks Tuesday — 2 days away';
+  if (day === 1) return 'Unlocks tomorrow — Tuesday';
+  if (day === 4) return 'Unlocks next Tuesday — 4 days away';
+  if (day === 5) return 'Unlocks next Tuesday — 3 days away';
+  if (day === 6) return 'Unlocks next Tuesday — 2 days away';
+  return 'Available now!'; // Tuesday–Wednesday
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
@@ -105,14 +104,15 @@ function QuizModeCard({
 
 export function WheelKnowledgeQuiz() {
   const [view, setView] = useState<View>('home');
-  const [devUnlock, setDevUnlock] = useState(false);
+  const [dayOverride, setDayOverride] = useState<number | null>(null);
 
   if (view === 'general') return <GeneralQuiz />;
   if (view === 'preview') return <PostRaceQuiz initialMode="preview" onPlayGeneral={() => setView('general')} />;
   if (view === 'review') return <PostRaceQuiz initialMode="review" onPlayGeneral={() => setView('general')} />;
 
-  const previewOpen = devUnlock || isPreviewQuizAvailable();
-  const reviewOpen = devUnlock || isReviewQuizAvailable();
+  const day = dayOverride ?? new Date().getDay();
+  const previewOpen = isPreviewQuizAvailable(day);
+  const reviewOpen = isReviewQuizAvailable(day);
 
   const generalDone = hasCompletedThisWeek();
   const generalStreak = getWeeklyStreak();
@@ -121,22 +121,19 @@ export function WheelKnowledgeQuiz() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Weekly schedule */}
-      <div className="bg-[#1a1a1a] rounded-[10px] py-3 px-4 text-xs">
-        <div className="text-[10px] font-bold text-[#666] tracking-[0.12em] uppercase mb-2.5">Quiz Schedule</div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground/70">Thursday — Saturday</span>
-            <span className="font-semibold text-[#1565c0]">🔭 Preview Quiz</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground/70">Tuesday only</span>
-            <span className="font-semibold text-[#e10600]">🏁 Review Quiz</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground/70">Weekly — resets Monday</span>
-            <span className="font-semibold text-[#2e7d32]">❓ General Quiz</span>
-          </div>
+      {/* Weekly schedule strip */}
+      <div className="bg-[#1a1a1a] rounded-lg py-2.5 px-3.5 grid grid-cols-3 gap-2 text-center">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#1565c0] mb-0.5">Thu–Sat</div>
+          <div className="text-[11px] text-muted-foreground">🔭 Preview</div>
+        </div>
+        <div className="border-x border-[#333]">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#2e7d32] mb-0.5">Any time</div>
+          <div className="text-[11px] text-muted-foreground">❓ General</div>
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#e10600] mb-0.5">Tue–Wed</div>
+          <div className="text-[11px] text-muted-foreground">🏁 Review</div>
         </div>
       </div>
 
@@ -146,7 +143,7 @@ export function WheelKnowledgeQuiz() {
         title="Preview Quiz"
         schedule="Thursday — Saturday"
         desc="Circuit history, records and famous moments from this weekend's track. AI-generated."
-        unlockMsg={getPreviewUnlockMessage()}
+        unlockMsg={getPreviewUnlockMessage(day)}
         available={previewOpen}
         accent="#1565c0"
         iconBg="bg-[#1565c0]/15"
@@ -157,13 +154,13 @@ export function WheelKnowledgeQuiz() {
       <QuizModeCard
         emoji="🏁"
         title="Review Quiz"
-        schedule={reviewDone ? 'Completed this week' : 'Tuesday only'}
+        schedule={reviewDone ? 'Completed this week' : 'Tuesday — Wednesday'}
         desc={
           reviewDone
             ? `You've completed this week's Review Quiz. Come back ${getNextReviewTuesdayLabel()}.`
             : 'Test how closely you watched the most recent race — results, strategy and drama. AI-generated, one play per week.'
         }
-        unlockMsg={getReviewUnlockMessage()}
+        unlockMsg={getReviewUnlockMessage(day)}
         available={reviewOpen}
         accent="#e10600"
         iconBg="bg-[#e10600]/15"
@@ -199,13 +196,29 @@ export function WheelKnowledgeQuiz() {
         }
       />
 
-      {/* Dev: bypass day gating for testing */}
-      <button
-        onClick={() => setDevUnlock(v => !v)}
-        className="self-start text-[9px] font-black uppercase tracking-widest text-muted-foreground/25 hover:text-muted-foreground/60 transition-colors mt-1"
-      >
-        {devUnlock ? '× dev: gating off' : 'dev: unlock all'}
-      </button>
+      {/* Dev: override the day to test gating */}
+      <div className="flex items-center gap-2 mt-1 flex-wrap">
+        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/25">dev:</span>
+        {([
+          { label: 'Force Tue', value: 2 },
+          { label: 'Force Thu', value: 4 },
+          { label: 'Force Other', value: 0 },
+          { label: 'Off', value: null },
+        ] as const).map(({ label, value }) => {
+          const active = dayOverride === value;
+          return (
+            <button
+              key={label}
+              onClick={() => setDayOverride(value)}
+              className={`text-[9px] font-black uppercase tracking-widest transition-colors ${
+                active ? 'text-foreground/70' : 'text-muted-foreground/25 hover:text-muted-foreground/60'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,133 @@
+"Please make the following four fixes to the app:
+Fix 1 — Lock the Review Quiz to Tuesdays and Wednesdays only
+Find where the quiz mode is determined and update it so the Review Quiz is only accessible on Tuesday and Wednesday. On any other day the Review Quiz card should appear greyed out with a lock icon and a message showing when it next unlocks. The Preview Quiz should remain locked to Thursday through Saturday. Here is the exact day logic to use:
+javascriptfunction getQuizMode() {
+  if (testModeOverride) return testModeOverride
+  const day = new Date().getDay()
+  // 0=Sunday 1=Monday 2=Tuesday 3=Wednesday 4=Thursday 5=Friday 6=Saturday
+  if (day === 2 || day === 3) return 'review'
+  if (day === 4 || day === 5 || day === 6) return 'preview'
+  return 'general'
+}
+
+function getReviewUnlockMessage() {
+  const day = new Date().getDay()
+  if (day === 0) return 'Unlocks Tuesday — 2 days away'
+  if (day === 1) return 'Unlocks tomorrow — Tuesday'
+  if (day === 2 || day === 3) return 'Available now!'
+  if (day === 4) return 'Unlocks next Tuesday — 4 days away'
+  if (day === 5) return 'Unlocks next Tuesday — 3 days away'
+  if (day === 6) return 'Unlocks next Tuesday — 2 days away'
+}
+
+function getPreviewUnlockMessage() {
+  const day = new Date().getDay()
+  if (day === 0) return 'Unlocks Thursday — 4 days away'
+  if (day === 1) return 'Unlocks Thursday — 3 days away'
+  if (day === 2) return 'Unlocks Thursday — 2 days away'
+  if (day === 3) return 'Unlocks tomorrow — Thursday'
+  if (day === 4 || day === 5 || day === 6) return 'Available now!'
+}
+When a quiz mode is locked show the card like this with a padlock and unlock message:
+javascriptfunction renderLockedQuizCard(title, icon, unlockMessage, color) {
+  return `
+    <div style='
+      opacity: 0.5;
+      pointer-events: none;
+      background: #111;
+      border: 0.5px solid #222;
+      border-top: 2px solid ${color};
+      border-radius: 12px;
+      padding: 14px 12px;
+      position: relative;
+    '>
+      <div style='font-size: 20px; margin-bottom: 8px;'>${icon}</div>
+      <div style='
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: ${color};
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      '>Locked</div>
+      <div style='
+        font-family: Barlow Condensed, sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        margin-bottom: 6px;
+      '>${title}</div>
+      <div style='font-size: 11px; color: #555; line-height: 1.35;'>
+        🔒 ${unlockMessage}
+      </div>
+    </div>
+  `
+}
+Apply this to the home screen so the Review Quiz card is greyed out and unclickable on any day that is not Tuesday or Wednesday, and the Preview Quiz card is greyed out on any day that is not Thursday, Friday or Saturday.
+Fix 2 — Slow down the 24-0 race simulation to 0.6 seconds per race
+Find the 24-0 simulation loop where each race result is revealed and change the delay between each race to exactly 600 milliseconds. The current delay is too fast to read. Here is the exact timing to use:
+javascriptasync function runSeasonSimulation(picks) {
+  const results = []
+  
+  for (let raceIndex = 0; raceIndex < 24; raceIndex++) {
+    const race = CIRCUITS[raceIndex]
+    const result = simulateRace(picks, raceIndex)
+    results.push(result)
+    
+    appendRaceResult(race, result, raceIndex + 1)
+    updateRunningTally(results)
+    
+    const container = document.getElementById('sim-results')
+    if (container) container.scrollTop = container.scrollHeight
+    
+    // Wait exactly 600ms before showing the next race
+    if (!skipSimulation) {
+      await new Promise(resolve => setTimeout(resolve, 600))
+    }
+  }
+  
+  // Brief pause before showing final results
+  await new Promise(resolve => setTimeout(resolve, skipSimulation ? 300 : 800))
+  showFinalResults(results)
+}
+If there is already a delay function in the simulation loop replace whatever value it currently has with 600. Do not change anything else about the simulation logic.
+Fix 3 — Make sure these two fixes do not break anything else
+After making both changes above check the following still work correctly:
+
+The dev bar Force Thursday, Force Tuesday and Force Other Day buttons still override the day detection correctly
+The general quiz still loads immediately on any day that is not Thursday through Wednesday
+The 24-0 skip button still skips to the end instantly when pressed
+The home screen quiz cards update their locked or unlocked state correctly based on the current day
+
+Fix 4 — Add a clear visual schedule to the quiz home screen
+Just below the quiz section header on the home screen add a small schedule strip so users always know when each quiz is available:
+html<div style='
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+'>
+  <div>
+    <div style='font-size: 10px; font-weight: 700; color: #1565c0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;'>Thu–Sat</div>
+    <div style='font-size: 11px; color: #aaa;'>🔭 Preview</div>
+  </div>
+  <div style='border-left: 0.5px solid #333; border-right: 0.5px solid #333;'>
+    <div style='font-size: 10px; font-weight: 700; color: #2e7d32; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;'>Any time</div>
+    <div style='font-size: 11px; color: #aaa;'>❓ General</div>
+  </div>
+  <div>
+    <div style='font-size: 10px; font-weight: 700; color: #e10600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;'>Tue–Wed</div>
+    <div style='font-size: 11px; color: #aaa;'>🏁 Review</div>
+  </div>
+</div>
+After making all these changes click Run and test the following:
+
+Open the app and confirm the Review Quiz card shows as locked today since it is not Tuesday or Wednesday
+Use Force Tuesday in the dev bar and confirm the Review Quiz card unlocks and becomes clickable
+Start a 24-0 season simulation and confirm each race takes approximately 0.6 seconds to appear
+Press the skip button during simulation and confirm it jumps to the end immediately"

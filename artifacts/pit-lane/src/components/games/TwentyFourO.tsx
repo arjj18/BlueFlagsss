@@ -326,16 +326,22 @@ export function TwentyFourO() {
     setPhase("racing");
   };
 
-  // Auto-reveal races
+  // Auto-reveal races (600ms per race so results are readable)
   useEffect(() => {
     if (phase !== "racing") return;
     if (visibleCount >= 24) {
-      const t = setTimeout(() => setPhase("results"), 600);
+      const t = setTimeout(() => setPhase("results"), 800);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setVisibleCount(v => v + 1), 150);
+    const t = setTimeout(() => setVisibleCount(v => v + 1), 600);
     return () => clearTimeout(t);
   }, [phase, visibleCount]);
+
+  // Skip the reveal animation and jump straight to the final results
+  const skipSimulation = () => {
+    setVisibleCount(24);
+    setPhase("results");
+  };
 
   // Play again
   const reset = () => {
@@ -580,6 +586,15 @@ export function TwentyFourO() {
             </div>
           )}
         </div>
+
+        {visibleCount < 24 && (
+          <button
+            onClick={skipSimulation}
+            className="self-center text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 hover:text-white transition-colors"
+          >
+            Skip to results →
+          </button>
+        )}
       </div>
     );
   }

@@ -38,7 +38,7 @@ type AnswerRecord = {
 function getTodayMode(): QuizMode {
   const day = new Date().getDay();
   if (day === 4 || day === 5 || day === 6) return 'preview'; // Thursday–Saturday
-  if (day === 2) return 'review';                            // Tuesday only
+  if (day === 2 || day === 3) return 'review';               // Tuesday–Wednesday
   return 'general';
 }
 
