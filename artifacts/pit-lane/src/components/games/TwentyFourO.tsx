@@ -97,12 +97,14 @@ const CARS: PickItem[] = [
 
 export const BUDGET = 360;
 
+// Official 2026 calendar order (24 rounds). Two Spanish rounds:
+// R9 "Spanish GP" (Barcelona) and R16 "Madrid GP" (Madrid Street Circuit).
 const RACE_CALENDAR = [
-  "Australian GP", "Bahraini GP", "Saudi Arabian GP", "Japanese GP",
-  "Chinese GP", "Miami GP", "Emilia Romagna GP", "Monaco GP",
-  "Canadian GP", "Spanish GP", "Austrian GP", "British GP",
-  "Hungarian GP", "Belgian GP", "Dutch GP", "Italian GP",
-  "Azerbaijan GP", "Singapore GP", "United States GP", "Mexican GP",
+  "Australian GP", "Chinese GP", "Japanese GP", "Bahrain GP",
+  "Saudi Arabian GP", "Miami GP", "Canadian GP", "Monaco GP",
+  "Spanish GP", "Austrian GP", "British GP", "Belgian GP",
+  "Hungarian GP", "Dutch GP", "Italian GP", "Madrid GP",
+  "Azerbaijan GP", "Singapore GP", "United States GP", "Mexico City GP",
   "Brazilian GP", "Las Vegas GP", "Qatar GP", "Abu Dhabi GP",
 ];
 

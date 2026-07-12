@@ -62,38 +62,40 @@ const teams: string[] = [
 ];
 
 const circuits: string[] = [
-  // Current calendar circuits with full names
-  'Bahrain Grand Prix', 'Saudi Arabian Grand Prix', 'Australian Grand Prix',
-  'Japanese Grand Prix', 'Chinese Grand Prix', 'Miami Grand Prix',
-  'Emilia Romagna Grand Prix', 'Monaco Grand Prix', 'Canadian Grand Prix',
-  'Spanish Grand Prix', 'Austrian Grand Prix', 'British Grand Prix',
-  'Hungarian Grand Prix', 'Belgian Grand Prix', 'Dutch Grand Prix',
-  'Italian Grand Prix', 'Azerbaijan Grand Prix', 'Singapore Grand Prix',
+  // Current calendar Grands Prix (official 2026 — 24 rounds, two Spanish GPs:
+  // Barcelona in June and the Madrid Street Circuit in September)
+  'Australian Grand Prix', 'Chinese Grand Prix', 'Japanese Grand Prix',
+  'Bahrain Grand Prix', 'Saudi Arabian Grand Prix', 'Miami Grand Prix',
+  'Canadian Grand Prix', 'Monaco Grand Prix', 'Spanish Grand Prix',
+  'Austrian Grand Prix', 'British Grand Prix', 'Belgian Grand Prix',
+  'Hungarian Grand Prix', 'Dutch Grand Prix', 'Italian Grand Prix',
+  'Madrid Grand Prix', 'Azerbaijan Grand Prix', 'Singapore Grand Prix',
   'United States Grand Prix', 'Mexico City Grand Prix', 'Brazilian Grand Prix',
   'Las Vegas Grand Prix', 'Qatar Grand Prix', 'Abu Dhabi Grand Prix',
 
   // Circuit names as well as Grand Prix names
-  'Bahrain International Circuit', 'Jeddah Corniche Circuit',
-  'Albert Park Circuit', 'Suzuka International Racing Course',
-  'Shanghai International Circuit', 'Miami International Autodrome',
-  'Autodromo Enzo e Dino Ferrari', 'Circuit de Monaco',
-  'Circuit Gilles Villeneuve', 'Circuit de Barcelona-Catalunya',
-  'Red Bull Ring', 'Silverstone Circuit', 'Hungaroring',
-  'Circuit de Spa-Francorchamps', 'Circuit Zandvoort',
-  'Autodromo Nazionale Monza', 'Baku City Circuit',
-  'Marina Bay Street Circuit', 'Circuit of the Americas',
-  'Autodromo Hermanos Rodriguez', 'Autodromo Jose Carlos Pace',
-  'Las Vegas Strip Circuit', 'Losail International Circuit',
-  'Yas Marina Circuit',
+  'Albert Park Circuit', 'Shanghai International Circuit',
+  'Suzuka International Racing Course', 'Bahrain International Circuit',
+  'Jeddah Corniche Circuit', 'Miami International Autodrome',
+  'Circuit Gilles Villeneuve', 'Circuit de Monaco',
+  'Circuit de Barcelona-Catalunya', 'Red Bull Ring',
+  'Silverstone Circuit', 'Circuit de Spa-Francorchamps',
+  'Hungaroring', 'Circuit Zandvoort',
+  'Autodromo Nazionale Monza', 'Madrid Street Circuit',
+  'Baku City Circuit', 'Marina Bay Street Circuit',
+  'Circuit of the Americas', 'Autodromo Hermanos Rodriguez',
+  'Autodromo Jose Carlos Pace', 'Las Vegas Strip Circuit',
+  'Losail International Circuit', 'Yas Marina Circuit',
 
   // Common shorthand names fans use
-  'Bahrain', 'Jeddah', 'Melbourne', 'Suzuka', 'Shanghai', 'Miami',
-  'Imola', 'Monaco', 'Montreal', 'Barcelona', 'Spielberg', 'Silverstone',
-  'Budapest', 'Spa', 'Zandvoort', 'Monza', 'Baku', 'Singapore',
+  'Melbourne', 'Shanghai', 'Suzuka', 'Bahrain', 'Jeddah', 'Miami',
+  'Montreal', 'Monaco', 'Barcelona', 'Spielberg', 'Silverstone',
+  'Spa', 'Budapest', 'Zandvoort', 'Monza', 'Madrid', 'Baku', 'Singapore',
   'Austin', 'COTA', 'Mexico City', 'Sao Paulo', 'Interlagos',
   'Las Vegas', 'Lusail', 'Abu Dhabi', 'Yas Marina',
 
   // Historic circuits
+  'Imola', 'Autodromo Enzo e Dino Ferrari', 'Emilia Romagna Grand Prix',
   'Nurburgring', 'Hockenheim', 'Hockenheimring', 'Magny-Cours',
   'A1 Ring', 'Indianapolis Motor Speedway', 'Detroit Street Circuit',
   'Dallas Street Circuit', 'Long Beach Street Circuit', 'Watkins Glen',

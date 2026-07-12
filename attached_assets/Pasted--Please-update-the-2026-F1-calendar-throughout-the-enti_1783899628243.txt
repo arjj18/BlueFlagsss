@@ -1,0 +1,51 @@
+"Please update the 2026 F1 calendar throughout the entire app to match the correct official schedule. The current calendar in the app is wrong. Here is the complete and accurate 2026 F1 calendar to replace it with everywhere it appears in the code:
+javascriptconst F1_CALENDAR_2026 = [
+  { round: 1,  name: 'Australian Grand Prix',     circuit: 'Albert Park',           city: 'Melbourne',        country: 'Australia',    flag: '🇦🇺', dates: 'Mar 06-08' },
+  { round: 2,  name: 'Chinese Grand Prix',         circuit: 'Shanghai International', city: 'Shanghai',         country: 'China',        flag: '🇨🇳', dates: 'Mar 13-15' },
+  { round: 3,  name: 'Japanese Grand Prix',        circuit: 'Suzuka',                city: 'Suzuka',           country: 'Japan',        flag: '🇯🇵', dates: 'Mar 27-29' },
+  { round: 4,  name: 'Bahrain Grand Prix',         circuit: 'Bahrain International', city: 'Sakhir',           country: 'Bahrain',      flag: '🇧🇭', dates: 'Apr 10-12' },
+  { round: 5,  name: 'Saudi Arabian Grand Prix',   circuit: 'Jeddah Corniche',       city: 'Jeddah',           country: 'Saudi Arabia', flag: '🇸🇦', dates: 'Apr 17-19' },
+  { round: 6,  name: 'Miami Grand Prix',           circuit: 'Miami International',   city: 'Miami',            country: 'USA',          flag: '🇺🇸', dates: 'May 01-03' },
+  { round: 7,  name: 'Canadian Grand Prix',        circuit: 'Circuit Gilles Villeneuve', city: 'Montreal',     country: 'Canada',       flag: '🇨🇦', dates: 'May 22-24' },
+  { round: 8,  name: 'Monaco Grand Prix',          circuit: 'Circuit de Monaco',     city: 'Monaco',           country: 'Monaco',       flag: '🇲🇨', dates: 'Jun 05-07' },
+  { round: 9,  name: 'Spanish Grand Prix',         circuit: 'Circuit de Barcelona-Catalunya', city: 'Barcelona', country: 'Spain',     flag: '🇪🇸', dates: 'Jun 12-14' },
+  { round: 10, name: 'Austrian Grand Prix',        circuit: 'Red Bull Ring',         city: 'Spielberg',        country: 'Austria',      flag: '🇦🇹', dates: 'Jun 26-28' },
+  { round: 11, name: 'British Grand Prix',         circuit: 'Silverstone',           city: 'Silverstone',      country: 'Great Britain', flag: '🇬🇧', dates: 'Jul 03-05' },
+  { round: 12, name: 'Belgian Grand Prix',         circuit: 'Spa-Francorchamps',     city: 'Spa',              country: 'Belgium',      flag: '🇧🇪', dates: 'Jul 17-19' },
+  { round: 13, name: 'Hungarian Grand Prix',       circuit: 'Hungaroring',           city: 'Budapest',         country: 'Hungary',      flag: '🇭🇺', dates: 'Jul 24-26' },
+  { round: 14, name: 'Dutch Grand Prix',           circuit: 'Circuit Zandvoort',     city: 'Zandvoort',        country: 'Netherlands',  flag: '🇳🇱', dates: 'Aug 21-23' },
+  { round: 15, name: 'Italian Grand Prix',         circuit: 'Autodromo Nazionale Monza', city: 'Monza',        country: 'Italy',        flag: '🇮🇹', dates: 'Sep 04-06' },
+  { round: 16, name: 'Spanish Grand Prix',         circuit: 'Madrid Street Circuit', city: 'Madrid',           country: 'Spain',        flag: '🇪🇸', dates: 'Sep 11-13' },
+  { round: 17, name: 'Azerbaijan Grand Prix',      circuit: 'Baku City Circuit',     city: 'Baku',             country: 'Azerbaijan',   flag: '🇦🇿', dates: 'Sep 24-26' },
+  { round: 18, name: 'Singapore Grand Prix',       circuit: 'Marina Bay Street Circuit', city: 'Singapore',    country: 'Singapore',    flag: '🇸🇬', dates: 'Oct 09-11' },
+  { round: 19, name: 'United States Grand Prix',   circuit: 'Circuit of the Americas', city: 'Austin',         country: 'USA',          flag: '🇺🇸', dates: 'Oct 23-25' },
+  { round: 20, name: 'Mexico City Grand Prix',     circuit: 'Autodromo Hermanos Rodriguez', city: 'Mexico City', country: 'Mexico',    flag: '🇲🇽', dates: 'Oct 30 - Nov 01' },
+  { round: 21, name: 'Brazilian Grand Prix',       circuit: 'Autodromo Jose Carlos Pace', city: 'Sao Paulo',   country: 'Brazil',       flag: '🇧🇷', dates: 'Nov 06-08' },
+  { round: 22, name: 'Las Vegas Grand Prix',       circuit: 'Las Vegas Strip Circuit', city: 'Las Vegas',      country: 'USA',          flag: '🇺🇸', dates: 'Nov 19-21' },
+  { round: 23, name: 'Qatar Grand Prix',           circuit: 'Lusail International Circuit', city: 'Lusail',    country: 'Qatar',        flag: '🇶🇦', dates: 'Nov 27-29' },
+  { round: 24, name: 'Abu Dhabi Grand Prix',       circuit: 'Yas Marina Circuit',    city: 'Yas Island',       country: 'UAE',          flag: '🇦🇪', dates: 'Dec 04-06' },
+]
+Important notes about this calendar:
+There are TWO Spanish Grand Prix races in 2026. Round 9 is at Barcelona-Catalunya in June and Round 16 is at the new Madrid Street Circuit in September. Make sure both appear correctly and are not confused with each other. The Madrid circuit is marked with an asterisk on the official calendar as it is subject to FIA circuit homologation.
+There is no Imola, no Emilia Romagna, no French GP, no Turkish GP and no Dutch GP at Zandvoort is Round 14 in August. Make sure none of these appear in the calendar.
+Where to update this calendar in the app:
+
+The race predictor — update the list of races it references for predictions
+The header race badge — update the current race name and round number to reflect where we are in the 2026 season right now. Today is July 2026 so the next race is Round 12 Belgian Grand Prix at Spa on July 17-19
+The 24-0 simulation CIRCUITS array — update all 24 circuits to match this calendar in the correct order
+The countdown timer on the home screen — update the next race date to July 17 2026 for the Belgian Grand Prix
+The championship standings meta — update the last race and round number to reflect the current point in the season
+Any hardcoded race names in the bingo suggestion cards that reference specific races
+The autocomplete database circuits list — make sure all 24 circuits from this calendar are included with their common shorthand names
+
+Update the home screen race badge specifically to show:
+javascript// Current race info - July 2026
+const CURRENT_RACE = {
+  round: 12,
+  name: 'Belgian Grand Prix',
+  shortName: 'Belgian GP',
+  circuit: 'Spa-Francorchamps',
+  dates: 'Jul 17-19',
+  raceDay: new Date('2026-07-19T13:00:00Z')
+}
+After making all these changes search the entire codebase for any remaining references to the old wrong calendar — things like Imola, Emilia Romagna, or incorrect round numbers — and replace them with the correct 2026 information."

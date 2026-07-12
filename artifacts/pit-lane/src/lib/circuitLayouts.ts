@@ -381,7 +381,7 @@ export const CIRCUIT_LAYOUTS: Record<string, CircuitLayout> = {
 
   Imola: {
     viewBox: "0 0 200 160",
-    // Emilia Romagna GP: undulating circuit, Tamburello chicane area
+    // Historic circuit (used in trivia, not on the 2026 calendar): Tamburello chicane area
     d: `M 100,10 L 160,10 Q 175,10 178,24
         L 180,48 Q 181,62 168,67
         L 150,72 Q 138,75 135,88
