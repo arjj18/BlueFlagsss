@@ -4,7 +4,7 @@
 // calendar, etc.) changes. On load, if the saved version doesn't match,
 // stale calendar/standings-derived localStorage entries are wiped so every
 // user picks up the fresh data from the code on their next visit.
-export const APP_DATA_VERSION = "2026-07-13-v1";
+export const APP_DATA_VERSION = "2026-07-13-v2";
 
 const VERSION_KEY = "pitlane_data_version";
 
