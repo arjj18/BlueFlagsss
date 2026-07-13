@@ -1,0 +1,129 @@
+"The championship standings and calendar data are not updating on the live site even after the code has been changed. This is a localStorage caching problem — users who have visited before have old data saved in their browser that is overriding the new correct data. Please fix this permanently.
+The core problem
+When a user visits the site for the first time the app saves standings data to localStorage. Every subsequent visit loads from localStorage instead of the fresh data in the code. This means any time we update the standings or calendar in the code users never see the changes unless they manually clear their browser storage.
+The fix — implement a data version system
+Add a version number to all localStorage data. Every time we update the standings or calendar data we bump the version number. When the app loads it checks whether the saved version matches the current version. If they do not match it wipes the old data and loads fresh data from the code.
+Add this at the very top of your main app file or wherever the app initialises:
+javascript// Bump this number every time you update standings, calendar or any cached data
+// Current version reflects the correct 2026 calendar and standings
+const APP_DATA_VERSION = '2026-07-13-v1'
+const VERSION_KEY = 'pitlane_data_version'
+
+function checkAndClearStaleCache() {
+  const savedVersion = localStorage.getItem(VERSION_KEY)
+  
+  if (savedVersion !== APP_DATA_VERSION) {
+    console.log(`Data version mismatch: saved=${savedVersion} current=${APP_DATA_VERSION}`)
+    console.log('Clearing stale cached data and loading fresh data...')
+    
+    // Clear all app-related localStorage keys
+    const keysToRemove = [
+      'f1_driver_standings',
+      'f1_constructor_standings', 
+      'f1_standings_meta',
+      'f1_calendar',
+      'pitlane_standings',
+      'pitlane_calendar',
+      'generalQuizCompleted',
+      'generalQuizStreak',
+      'generalQuizLastScore',
+    ]
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key))
+    
+    // Save the new version so this only runs once per version
+    localStorage.setItem(VERSION_KEY, APP_DATA_VERSION)
+    
+    console.log('Cache cleared. Fresh data will now load.')
+  }
+}
+
+// Call this immediately when the app loads — before anything else renders
+checkAndClearStaleCache()
+Important — call this function before anything else
+Make sure checkAndClearStaleCache is the very first thing that runs when the app initialises. It must run before any component tries to read from localStorage. If components read localStorage before this runs they will still get the old stale data.
+In a React app call it before the root render:
+javascript// At the very top of main.tsx or index.tsx before ReactDOM.createRoot
+checkAndClearStaleCache()
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <App />
+)
+In a vanilla JS app call it at the very top of the script before any other code runs:
+javascript// First line of your main script
+checkAndClearStaleCache()
+Also fix the standings data loading logic
+Update the getDefaultDriverStandings and getDefaultConstructorStandings functions to always return the correct current 2026 data. Remove any logic that tries to merge or patch old localStorage data with new data — always start fresh from the hardcoded defaults when the version has changed:
+javascriptfunction loadDriverStandings() {
+  try {
+    const saved = localStorage.getItem('f1_driver_standings')
+    if (!saved) return getDefaultDriverStandings()
+    
+    const parsed = JSON.parse(saved)
+    
+    // Validate the saved data has the right number of drivers
+    // 2026 has 22 drivers across 11 teams
+    if (!Array.isArray(parsed) || parsed.length < 20) {
+      console.log('Standings data invalid or outdated, loading defaults')
+      return getDefaultDriverStandings()
+    }
+    
+    // Check for wrong drivers that indicate old data
+    const wrongDrivers = ['Tsunoda', 'Doohan', 'Herta', 'Armstrong', 'Magnussen as Red Bull']
+    const hasWrongData = parsed.some(d => 
+      wrongDrivers.some(wrong => d.driver && d.driver.includes(wrong))
+    )
+    
+    if (hasWrongData) {
+      console.log('Detected wrong driver data, loading correct 2026 defaults')
+      localStorage.removeItem('f1_driver_standings')
+      return getDefaultDriverStandings()
+    }
+    
+    return parsed
+  } catch (e) {
+    console.error('Error loading standings:', e)
+    return getDefaultDriverStandings()
+  }
+}
+Fix the calendar the same way
+If the calendar is also cached in localStorage add it to the keys to clear and make the calendar always load fresh from the hardcoded 2026 data:
+javascriptfunction loadCalendar() {
+  // Calendar should never come from localStorage
+  // Always use the hardcoded 2026 calendar from the code
+  // This ensures updates to the calendar are always reflected immediately
+  return F1_CALENDAR_2026
+}
+Add a way to force refresh in future without changing code
+Add a hidden keyboard shortcut that lets you force clear all localStorage data in production if needed. This is useful if data ever gets stuck again:
+javascript// Secret reset shortcut — press Shift + R + R on any screen to force reset
+let keyBuffer = []
+document.addEventListener('keydown', (e) => {
+  keyBuffer.push(e.key)
+  keyBuffer = keyBuffer.slice(-3)
+  
+  if (keyBuffer.join('') === 'RRR' && e.shiftKey) {
+    const confirmed = confirm('Reset all cached app data and reload?')
+    if (confirmed) {
+      localStorage.clear()
+      window.location.reload()
+    }
+  }
+})
+Verify the fix works by doing these checks after making the changes:
+
+Open the app in Chrome and open DevTools with F12
+Go to Application tab then Local Storage and note what version key is saved
+Hard refresh the page with Ctrl Shift R
+Check the console for the log messages from checkAndClearStaleCache
+Check that the standings now show the correct 2026 drivers including Sergio Perez and Valtteri Bottas at Cadillac
+Check that the calendar shows all 24 correct 2026 races
+Open an incognito window and visit the site — this simulates a brand new user and should show correct data immediately
+Go back to the regular window, check localStorage in DevTools and confirm the version key shows 2026-07-13-v1
+
+Going forward — how to update data without breaking users
+Every single time you update standings points after a race or change any hardcoded data simply increment the version string at the top of the file:
+javascript// Change this after every race weekend standings update
+const APP_DATA_VERSION = '2026-07-13-v1'  // Change to '2026-07-20-v1' after Belgian GP etc
+This one line change is all you need to do to guarantee every user gets fresh data on their next visit. They will lose their manually entered standings points but that is unavoidable — the alternative is they keep seeing wrong data forever.
+Please make all these changes and confirm the version system is working correctly before finishing."

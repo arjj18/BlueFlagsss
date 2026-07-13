@@ -38,7 +38,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Whenever hardcoded data changes in the Pit Lane app (2026 calendar, standings defaults, driver lineup), bump `APP_DATA_VERSION` in `artifacts/pit-lane/src/lib/dataVersion.ts` (e.g. `2026-07-13-v1` → `2026-07-20-v1`). This wipes stale localStorage for returning visitors so they see the new data. Users also have an escape hatch: pressing Shift+R three times force-clears all cached data and reloads.
+- `artifacts/pit-lane/src/main.tsx` must keep `import "./bootstrapCache"` as its FIRST import — it clears stale localStorage before other modules (like `App.tsx`) read it at import time.
 
 ## Pointers
 
