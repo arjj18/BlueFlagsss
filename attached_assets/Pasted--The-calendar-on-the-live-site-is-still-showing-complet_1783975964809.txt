@@ -1,0 +1,432 @@
+"The calendar on the live site is still showing completely wrong dates and round numbers even after previous attempts to fix it. The problem is the calendar data is hardcoded somewhere in the component files and the localStorage cache clear is not working because the wrong data is in the source code itself not just the cache. Please do a full search and replace of all calendar data.
+Step 1 — Find every single place the calendar is defined
+Search the entire codebase for every file that contains any of these strings and show me which files they appear in before changing anything:
+
+Australian Grand Prix
+Belgian GP
+CIRCUITS
+F1_CALENDAR
+raceCalendar
+calendarData
+races =
+schedule =
+round: 1
+round: 10
+
+List every file path where calendar data appears so we know exactly what needs updating.
+Step 2 — Replace the calendar data in every single file it appears
+In every file found above replace the entire calendar array with this exact correct data. Do not keep any old calendar data anywhere in the codebase:
+javascriptconst F1_CALENDAR_2026 = [
+  {
+    round: 1,
+    name: 'Australian Grand Prix',
+    shortName: 'Australian GP',
+    circuit: 'Albert Park Circuit',
+    city: 'Melbourne',
+    country: 'Australia',
+    countryCode: 'AU',
+    flag: '🇦🇺',
+    raceDate: '2026-03-08',
+    displayDate: '8',
+    displayMonth: 'MAR',
+    dates: 'Mar 06-08'
+  },
+  {
+    round: 2,
+    name: 'Chinese Grand Prix',
+    shortName: 'Chinese GP',
+    circuit: 'Shanghai International Circuit',
+    city: 'Shanghai',
+    country: 'China',
+    countryCode: 'CN',
+    flag: '🇨🇳',
+    raceDate: '2026-03-15',
+    displayDate: '15',
+    displayMonth: 'MAR',
+    dates: 'Mar 13-15'
+  },
+  {
+    round: 3,
+    name: 'Japanese Grand Prix',
+    shortName: 'Japanese GP',
+    circuit: 'Suzuka International Racing Course',
+    city: 'Suzuka',
+    country: 'Japan',
+    countryCode: 'JP',
+    flag: '🇯🇵',
+    raceDate: '2026-03-29',
+    displayDate: '29',
+    displayMonth: 'MAR',
+    dates: 'Mar 27-29'
+  },
+  {
+    round: 4,
+    name: 'Bahrain Grand Prix',
+    shortName: 'Bahrain GP',
+    circuit: 'Bahrain International Circuit',
+    city: 'Sakhir',
+    country: 'Bahrain',
+    countryCode: 'BH',
+    flag: '🇧🇭',
+    raceDate: '2026-04-12',
+    displayDate: '12',
+    displayMonth: 'APR',
+    dates: 'Apr 10-12'
+  },
+  {
+    round: 5,
+    name: 'Saudi Arabian Grand Prix',
+    shortName: 'Saudi Arabian GP',
+    circuit: 'Jeddah Corniche Circuit',
+    city: 'Jeddah',
+    country: 'Saudi Arabia',
+    countryCode: 'SA',
+    flag: '🇸🇦',
+    raceDate: '2026-04-19',
+    displayDate: '19',
+    displayMonth: 'APR',
+    dates: 'Apr 17-19'
+  },
+  {
+    round: 6,
+    name: 'Miami Grand Prix',
+    shortName: 'Miami GP',
+    circuit: 'Miami International Autodrome',
+    city: 'Miami',
+    country: 'USA',
+    countryCode: 'US',
+    flag: '🇺🇸',
+    raceDate: '2026-05-03',
+    displayDate: '3',
+    displayMonth: 'MAY',
+    dates: 'May 01-03'
+  },
+  {
+    round: 7,
+    name: 'Canadian Grand Prix',
+    shortName: 'Canadian GP',
+    circuit: 'Circuit Gilles Villeneuve',
+    city: 'Montreal',
+    country: 'Canada',
+    countryCode: 'CA',
+    flag: '🇨🇦',
+    raceDate: '2026-05-24',
+    displayDate: '24',
+    displayMonth: 'MAY',
+    dates: 'May 22-24'
+  },
+  {
+    round: 8,
+    name: 'Monaco Grand Prix',
+    shortName: 'Monaco GP',
+    circuit: 'Circuit de Monaco',
+    city: 'Monaco',
+    country: 'Monaco',
+    countryCode: 'MC',
+    flag: '🇲🇨',
+    raceDate: '2026-06-07',
+    displayDate: '7',
+    displayMonth: 'JUN',
+    dates: 'Jun 05-07'
+  },
+  {
+    round: 9,
+    name: 'Spanish Grand Prix',
+    shortName: 'Spanish GP',
+    circuit: 'Circuit de Barcelona-Catalunya',
+    city: 'Barcelona',
+    country: 'Spain',
+    countryCode: 'ES',
+    flag: '🇪🇸',
+    raceDate: '2026-06-14',
+    displayDate: '14',
+    displayMonth: 'JUN',
+    dates: 'Jun 12-14'
+  },
+  {
+    round: 10,
+    name: 'Austrian Grand Prix',
+    shortName: 'Austrian GP',
+    circuit: 'Red Bull Ring',
+    city: 'Spielberg',
+    country: 'Austria',
+    countryCode: 'AT',
+    flag: '🇦🇹',
+    raceDate: '2026-06-28',
+    displayDate: '28',
+    displayMonth: 'JUN',
+    dates: 'Jun 26-28'
+  },
+  {
+    round: 11,
+    name: 'British Grand Prix',
+    shortName: 'British GP',
+    circuit: 'Silverstone Circuit',
+    city: 'Silverstone',
+    country: 'Great Britain',
+    countryCode: 'GB',
+    flag: '🇬🇧',
+    raceDate: '2026-07-05',
+    displayDate: '5',
+    displayMonth: 'JUL',
+    dates: 'Jul 03-05'
+  },
+  {
+    round: 12,
+    name: 'Belgian Grand Prix',
+    shortName: 'Belgian GP',
+    circuit: 'Circuit de Spa-Francorchamps',
+    city: 'Spa',
+    country: 'Belgium',
+    countryCode: 'BE',
+    flag: '🇧🇪',
+    raceDate: '2026-07-19',
+    displayDate: '19',
+    displayMonth: 'JUL',
+    dates: 'Jul 17-19'
+  },
+  {
+    round: 13,
+    name: 'Hungarian Grand Prix',
+    shortName: 'Hungarian GP',
+    circuit: 'Hungaroring',
+    city: 'Budapest',
+    country: 'Hungary',
+    countryCode: 'HU',
+    flag: '🇭🇺',
+    raceDate: '2026-07-26',
+    displayDate: '26',
+    displayMonth: 'JUL',
+    dates: 'Jul 24-26'
+  },
+  {
+    round: 14,
+    name: 'Dutch Grand Prix',
+    shortName: 'Dutch GP',
+    circuit: 'Circuit Zandvoort',
+    city: 'Zandvoort',
+    country: 'Netherlands',
+    countryCode: 'NL',
+    flag: '🇳🇱',
+    raceDate: '2026-08-23',
+    displayDate: '23',
+    displayMonth: 'AUG',
+    dates: 'Aug 21-23'
+  },
+  {
+    round: 15,
+    name: 'Italian Grand Prix',
+    shortName: 'Italian GP',
+    circuit: 'Autodromo Nazionale Monza',
+    city: 'Monza',
+    country: 'Italy',
+    countryCode: 'IT',
+    flag: '🇮🇹',
+    raceDate: '2026-09-06',
+    displayDate: '6',
+    displayMonth: 'SEP',
+    dates: 'Sep 04-06'
+  },
+  {
+    round: 16,
+    name: 'Spanish Grand Prix',
+    shortName: 'Madrid GP',
+    circuit: 'Madrid Street Circuit',
+    city: 'Madrid',
+    country: 'Spain',
+    countryCode: 'ES',
+    flag: '🇪🇸',
+    raceDate: '2026-09-13',
+    displayDate: '13',
+    displayMonth: 'SEP',
+    dates: 'Sep 11-13',
+    note: 'Subject to FIA homologation'
+  },
+  {
+    round: 17,
+    name: 'Azerbaijan Grand Prix',
+    shortName: 'Azerbaijan GP',
+    circuit: 'Baku City Circuit',
+    city: 'Baku',
+    country: 'Azerbaijan',
+    countryCode: 'AZ',
+    flag: '🇦🇿',
+    raceDate: '2026-09-26',
+    displayDate: '26',
+    displayMonth: 'SEP',
+    dates: 'Sep 24-26'
+  },
+  {
+    round: 18,
+    name: 'Singapore Grand Prix',
+    shortName: 'Singapore GP',
+    circuit: 'Marina Bay Street Circuit',
+    city: 'Singapore',
+    country: 'Singapore',
+    countryCode: 'SG',
+    flag: '🇸🇬',
+    raceDate: '2026-10-11',
+    displayDate: '11',
+    displayMonth: 'OCT',
+    dates: 'Oct 09-11'
+  },
+  {
+    round: 19,
+    name: 'United States Grand Prix',
+    shortName: 'US GP',
+    circuit: 'Circuit of the Americas',
+    city: 'Austin',
+    country: 'USA',
+    countryCode: 'US',
+    flag: '🇺🇸',
+    raceDate: '2026-10-25',
+    displayDate: '25',
+    displayMonth: 'OCT',
+    dates: 'Oct 23-25'
+  },
+  {
+    round: 20,
+    name: 'Mexico City Grand Prix',
+    shortName: 'Mexico GP',
+    circuit: 'Autodromo Hermanos Rodriguez',
+    city: 'Mexico City',
+    country: 'Mexico',
+    countryCode: 'MX',
+    flag: '🇲🇽',
+    raceDate: '2026-11-01',
+    displayDate: '1',
+    displayMonth: 'NOV',
+    dates: 'Oct 30 - Nov 01'
+  },
+  {
+    round: 21,
+    name: 'Brazilian Grand Prix',
+    shortName: 'Brazilian GP',
+    circuit: 'Autodromo Jose Carlos Pace',
+    city: 'Sao Paulo',
+    country: 'Brazil',
+    countryCode: 'BR',
+    flag: '🇧🇷',
+    raceDate: '2026-11-08',
+    displayDate: '8',
+    displayMonth: 'NOV',
+    dates: 'Nov 06-08'
+  },
+  {
+    round: 22,
+    name: 'Las Vegas Grand Prix',
+    shortName: 'Las Vegas GP',
+    circuit: 'Las Vegas Strip Circuit',
+    city: 'Las Vegas',
+    country: 'USA',
+    countryCode: 'US',
+    flag: '🇺🇸',
+    raceDate: '2026-11-21',
+    displayDate: '21',
+    displayMonth: 'NOV',
+    dates: 'Nov 19-21'
+  },
+  {
+    round: 23,
+    name: 'Qatar Grand Prix',
+    shortName: 'Qatar GP',
+    circuit: 'Lusail International Circuit',
+    city: 'Lusail',
+    country: 'Qatar',
+    countryCode: 'QA',
+    flag: '🇶🇦',
+    raceDate: '2026-11-29',
+    displayDate: '29',
+    displayMonth: 'NOV',
+    dates: 'Nov 27-29'
+  },
+  {
+    round: 24,
+    name: 'Abu Dhabi Grand Prix',
+    shortName: 'Abu Dhabi GP',
+    circuit: 'Yas Marina Circuit',
+    city: 'Yas Island',
+    country: 'UAE',
+    countryCode: 'AE',
+    flag: '🇦🇪',
+    raceDate: '2026-12-06',
+    displayDate: '6',
+    displayMonth: 'DEC',
+    dates: 'Dec 04-06'
+  },
+]
+Step 3 — Fix the next race detection logic
+The app needs to automatically detect which race is next based on today's date. Replace any hardcoded current race with this dynamic detection:
+javascriptfunction getNextRace() {
+  const today = new Date()
+  const next = F1_CALENDAR_2026.find(race => new Date(race.raceDate) >= today)
+  return next || F1_CALENDAR_2026[F1_CALENDAR_2026.length - 1]
+}
+
+function getCurrentOrLastRace() {
+  const today = new Date()
+  const past = F1_CALENDAR_2026.filter(race => new Date(race.raceDate) < today)
+  return past.length > 0 ? past[past.length - 1] : null
+}
+
+// Use these everywhere instead of hardcoded race names
+const nextRace = getNextRace()
+const lastRace = getCurrentOrLastRace()
+Today is July 13 2026 so getNextRace should return Round 12 Belgian Grand Prix with race date July 19 2026 and getCurrentOrLastRace should return Round 11 British Grand Prix.
+Step 4 — Update the countdown timer to use dynamic next race
+Replace any hardcoded countdown date with the dynamic version:
+javascriptfunction updateCountdown() {
+  const nextRace = getNextRace()
+  if (!nextRace) return
+  
+  // Point countdown at race day at 13:00 UTC as a sensible default
+  const raceDateTime = new Date(nextRace.raceDate + 'T13:00:00Z')
+  const now = new Date()
+  const diff = raceDateTime - now
+  
+  if (diff <= 0) {
+    // Race is happening now or just finished
+    document.getElementById('cd-days').textContent = '00'
+    document.getElementById('cd-hours').textContent = '00'
+    document.getElementById('cd-mins').textContent = '00'
+    return
+  }
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  
+  const daysEl = document.getElementById('cd-days')
+  const hoursEl = document.getElementById('cd-hours')
+  const minsEl = document.getElementById('cd-mins')
+  
+  if (daysEl) daysEl.textContent = String(days).padStart(2, '0')
+  if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0')
+  if (minsEl) minsEl.textContent = String(mins).padStart(2, '0')
+}
+Step 5 — Update the header race badge to use dynamic next race
+Replace any hardcoded race badge text with:
+javascriptfunction updateRaceBadge() {
+  const next = getNextRace()
+  const badge = document.getElementById('rbadge') || document.querySelector('.race-badge')
+  if (badge && next) {
+    badge.textContent = `${next.shortName} · R${next.round}`
+  }
+}
+
+// Call on page load
+updateRaceBadge()
+Step 6 — Bump the localStorage version to force everyone to get fresh data
+Update the version string to force all existing users to get the correct calendar immediately:
+javascriptconst APP_DATA_VERSION = '2026-07-13-v3'
+The v3 suffix ensures anyone who visited before gets a fresh reload even if they already got the v1 or v2 cache clear.
+Step 7 — Delete any old calendar constants
+Search for and completely delete any of these old incorrect calendar arrays that might still exist anywhere in the codebase and are overriding the correct data:
+
+Any array with Belgian GP on July 26
+Any array with Hungarian GP on August 2
+Any array with Dutch GP on August 30
+Any CIRCUITS array used in the 24-0 simulation that does not match the 24 rounds above
+Any hardcoded string that says Round 10 Belgian
+
+After all changes are made click Run then open the live link in an incognito window to confirm the calendar shows the correct data for a brand new user with no cached data."
