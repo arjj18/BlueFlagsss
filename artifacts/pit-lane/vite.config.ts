@@ -4,27 +4,34 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+// PORT is only needed when running the dev/preview server (Replit workflows
+// provide it). Production builds (e.g. `pnpm run build`, Vercel) don't serve
+// anything, so we only enforce it when a server will actually start.
+function resolvePort(): number {
+  const rawPort = process.env.PORT;
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+  if (!rawPort) {
+    if (process.argv.some((a) => a === "build")) {
+      return 5173; // unused during build; vite still requires a valid value
+    }
+    throw new Error(
+      "PORT environment variable is required but was not provided.",
+    );
+  }
+
+  const parsed = Number(rawPort);
+
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    throw new Error(`Invalid PORT value: "${rawPort}"`);
+  }
+
+  return parsed;
 }
 
-const port = Number(rawPort);
+const port = resolvePort();
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
+// Replit workflows set BASE_PATH; standalone builds default to root.
+const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
   base: basePath,
