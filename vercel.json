@@ -1,0 +1,5 @@
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "PORT=5173 BASE_PATH=/ pnpm --filter @workspace/pit-lane run build",
+  "outputDirectory": "artifacts/pit-lane/dist/public"
+}
