@@ -2,3 +2,4 @@
 - [General Quiz weekly + images](general-quiz-weekly.md) — General Quiz is GeneralQuiz.tsx, once-per-week (Monday reset, lib/weeklyQuiz.ts); reused image components must reset failed-state on src change.
 - [Standings entry identity](standings-identity.md) — standings is client-only (RaceSchedule.tsx); constructors are keyed by name (no id), so reject duplicate team names; drivers use a generated unique code.
 - [Stale live site vs correct dev code](deployed-vs-dev-data.md) — if published app shows old hardcoded data but dev source is correct, the fix is republishing, not more edits.
+- [Vercel copy of Pit Lane](vercel-deployment.md) — AI endpoints need duplicate Vercel serverless mirrors of Express routes; never a raw Anthropic passthrough proxy.
