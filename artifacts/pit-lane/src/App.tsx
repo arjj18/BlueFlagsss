@@ -270,6 +270,15 @@ export default function App() {
           </div>
         </main>
       )}
+
+      <footer className="flex justify-center px-4 pb-4 pt-2">
+        <a
+          href="mailto:blueflagsgames@gmail.com"
+          className="text-[11px] tracking-[0.18em] uppercase text-[#6b7280] transition-colors hover:text-[#e10600] hover:underline"
+        >
+          blueflagsgames@gmail.com
+        </a>
+      </footer>
     </div>
   );
 }
