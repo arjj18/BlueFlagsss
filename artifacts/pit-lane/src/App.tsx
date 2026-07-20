@@ -76,8 +76,9 @@ export default function App() {
               </button>
             )}
             <div className="min-w-0">
-              <h1 className="font-['Barlow_Condensed'] font-extrabold text-[26px] tracking-[0.16em] leading-none text-white">
-                Blue Flags
+              <h1 className="font-['Barlow_Condensed'] font-extrabold text-[26px] tracking-[0.16em] leading-none text-white flex items-center gap-2">
+                <span>Blue Flags</span>
+                <span aria-hidden="true">🚩</span>
               </h1>
               <p className="text-[9px] font-bold text-[#e10600] uppercase tracking-[0.25em] leading-tight mt-0.5">
                 Fan Zone
