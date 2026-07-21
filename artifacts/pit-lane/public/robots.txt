@@ -1,2 +1,3 @@
 User-agent: *
-Allow: /
+Allow: /google-site-verification: google-site-verification: google2274442296fbef1e.html
+
