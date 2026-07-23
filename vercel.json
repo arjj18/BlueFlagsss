@@ -1,5 +1,9 @@
 {
+  "buildCommand": "cd artifacts/pit-lane && npm install && npm run build",
+  "outputDirectory": "artifacts/pit-lane/dist",
+  "installCommand": "npm install",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
