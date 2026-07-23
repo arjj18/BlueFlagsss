@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { saveScore } from '@/lib/scoreHistory';
 import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
 import { resolveQuestionImage } from '@/lib/teamLogos';
+import { getNextRace } from '@/lib/f1Calendar';
+import type { Race } from '@/lib/f1Calendar';
 import {
   hasCompletedReviewThisWeek,
   completeReviewQuiz,
@@ -15,7 +17,7 @@ import {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type QuizMode = 'preview' | 'review' | 'general';
-type Phase = 'input' | 'loading' | 'quiz' | 'done' | 'locked' | 'error';
+type Phase = 'preview-setup' | 'input' | 'loading' | 'quiz' | 'done' | 'preview-locked' | 'locked' | 'error';
 
 // `image` is optional on standard questions: either a `logo:<Team>` token (a
 // reliable bundled logo) or an https URL to a real photo. It renders above the
@@ -33,7 +35,7 @@ type AnswerRecord = {
   cluesUsed?: number;
 };
 
-// ── Day detection ────────────────────────────────────────────────────────────
+// ── Day detection ─────────────────────────────────────────────────────────────
 
 function getTodayMode(): QuizMode {
   const day = new Date().getDay();
@@ -46,32 +48,33 @@ function getTodayMode(): QuizMode {
 function initialPhaseFor(mode: QuizMode): Phase {
   if (mode === 'general') return 'quiz';
   if (mode === 'review') return hasCompletedReviewThisWeek() ? 'locked' : 'loading';
-  return 'input';
+  // Preview now starts with auto-detection screen
+  return 'preview-setup';
 }
 
 // ── Static questions (general mode) ─────────────────────────────────────────
 
 const GENERAL_QUESTIONS: StandardQ[] = [
-  { type:'standard', q:"Which driver has the most F1 World Championships?", opts:["Michael Schumacher","Lewis Hamilton","Sebastian Vettel","Ayrton Senna"], ans:1, fact:"Hamilton and Schumacher both won 7 titles — a record they share." },
-  { type:'standard', q:"What does DRS stand for?", opts:["Dynamic Race Speed","Drag Reduction System","Dual Rear Spoiler","Direct Racing System"], ans:1, fact:"DRS opens a flap in the rear wing, cutting drag on straights to aid overtaking." },
-  { type:'standard', q:"Which circuit is nicknamed the Cathedral of Speed?", opts:["Monaco","Spa","Monza","Silverstone"], ans:2, fact:"Monza in Italy is famous for its high-speed layout and passionate tifosi fans." },
+  { type:'standard', q:"Which driver has the most F1 World Championships?", opts:["Michael Schumacher","Lewis Hamilton","Sebastian Vettel","Ayrton Senna"], ans:1, fact:"Hamilton and Schumacher both hold 7 titles (Schumacher's record from 2003–2004 stood for 14 years)." },
+  { type:'standard', q:"What does DRS stand for?", opts:["Dynamic Race Speed","Drag Reduction System","Dual Rear Spoiler","Direct Racing System"], ans:1, fact:"DRS opens a flap in the rear wing, cutting drag and allowing overtaking on designated zones." },
+  { type:'standard', q:"Which circuit is nicknamed the Cathedral of Speed?", opts:["Monaco","Spa","Monza","Silverstone"], ans:2, fact:"Monza in Italy is famous for its high-speed layout and passionate Italian fans." },
   { type:'standard', q:"How many points does a race winner receive?", opts:["20","25","30","15"], ans:1, fact:"The 25-point win has been standard since the 2010 season." },
-  { type:'standard', q:"Which team has won the most Constructors' Championships?", opts:["McLaren","Mercedes","Williams","Ferrari"], ans:3, fact:"Ferrari leads with 16 Constructors' titles — more than any other team." },
+  { type:'standard', q:"Which team has won the most Constructors' Championships?", opts:["McLaren","Mercedes","Williams","Ferrari"], ans:3, fact:"Ferrari leads with 16 Constructors' titles — more than any other team in F1 history." },
   { type:'standard', q:"What colour flag signals the race has been stopped?", opts:["Yellow","Blue","Red","Black"], ans:2, fact:"A red flag immediately neutralises the race." },
-  { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool demeanour under pressure." },
-  { type:'standard', q:"How many cars start a Formula 1 race in 2026?", opts:["18","20","22","24"], ans:2, fact:"With 11 teams × 2 drivers there are 22 cars on the starting grid in 2026, after Cadillac joined as the 11th constructor." },
+  { type:'standard', q:"Which driver is nicknamed The Iceman?", opts:["Nico Rosberg","Alain Prost","Kimi Räikkönen","Jenson Button"], ans:2, fact:"Räikkönen earned the nickname for his cool demeanour and calm approach to racing." },
+  { type:'standard', q:"How many cars start a Formula 1 race in 2026?", opts:["18","20","22","24"], ans:2, fact:"With 11 teams × 2 drivers there are 22 cars on the starting grid in 2026, after Cadillac joined." },
   { type:'standard', q:"Which country hosts the Suzuka circuit?", opts:["South Korea","China","Singapore","Japan"], ans:3, fact:"Suzuka is in Japan's Mie Prefecture and has hosted the Japanese GP since 1987." },
-  { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver they are about to be lapped and must yield." },
+  { type:'standard', q:"What does a blue flag signal to a driver?", opts:["Caution ahead","Let a faster car pass","Pit stop required","Rain is coming"], ans:1, fact:"A blue flag tells a driver the car behind is faster and they should let it pass." },
   // ── Team-logo identification (real bundled logos, always reliable) ──────────
-  { type:'standard', q:"Which Formula 1 team does this logo belong to?", image:'logo:Ferrari', opts:["McLaren","Ferrari","Williams","Aston Martin"], ans:1, fact:"Ferrari is the oldest and most successful team in F1, racing since the championship began in 1950." },
-  { type:'standard', q:"Which team's logo is this?", image:'logo:Mercedes', opts:["Mercedes","Red Bull","Aston Martin","Williams"], ans:0, fact:"Mercedes won eight consecutive Constructors' titles from 2014 to 2021." },
-  { type:'standard', q:"Identify the team from its logo.", image:'logo:Red Bull', opts:["Ferrari","McLaren","Red Bull","Williams"], ans:2, fact:"Red Bull entered F1 in 2005 after buying the Jaguar team and have since won multiple titles." },
-  { type:'standard', q:"Which constructor uses this logo?", image:'logo:McLaren', opts:["McLaren","Mercedes","Aston Martin","Ferrari"], ans:0, fact:"McLaren is the second-oldest active team and has won the Constructors' title multiple times." },
+  { type:'standard', q:"Which Formula 1 team does this logo belong to?", image:'logo:Ferrari', opts:["McLaren","Ferrari","Williams","Aston Martin"], ans:1, fact:"Ferrari is the oldest and most successful team, founded in 1950." },
+  { type:'standard', q:"Which team's logo is this?", image:'logo:Mercedes', opts:["Mercedes","Red Bull","Aston Martin","Williams"], ans:0, fact:"Mercedes won eight consecutive Constructors' titles from 2014–2021." },
+  { type:'standard', q:"Identify the team from its logo.", image:'logo:Red Bull', opts:["Ferrari","McLaren","Red Bull","Williams"], ans:2, fact:"Red Bull entered F1 in 2005 after buying the Jaguar Racing team." },
+  { type:'standard', q:"Which constructor uses this logo?", image:'logo:McLaren', opts:["McLaren","Mercedes","Aston Martin","Ferrari"], ans:0, fact:"McLaren is the second-oldest active team and has won 8 Constructors' Championships." },
   { type:'standard', q:"Whose team logo is shown here?", image:'logo:Williams', opts:["Aston Martin","Williams","Red Bull","McLaren"], ans:1, fact:"Williams won nine Constructors' Championships between 1980 and 1997." },
-  { type:'standard', q:"Which team does this logo represent?", image:'logo:Aston Martin', opts:["Aston Martin","Ferrari","Mercedes","Williams"], ans:0, fact:"Aston Martin returned to F1 as a constructor in 2021, having last competed in 1960." },
+  { type:'standard', q:"Which team does this logo represent?", image:'logo:Aston Martin', opts:["Aston Martin","Ferrari","Mercedes","Williams"], ans:0, fact:"Aston Martin returned to F1 as a constructor team with the green and pink livery in 2021." },
   // ── Career-path questions ──────────────────────────────────────────────────
-  { type:'standard', q:"This driver's F1 path went Sauber → Ferrari → Lotus → Ferrari → Alfa Romeo. Who is it?", opts:["Fernando Alonso","Kimi Räikkönen","Felipe Massa","Sebastian Vettel"], ans:1, fact:"Kimi Räikkönen debuted with Sauber in 2001, won the 2007 title with Ferrari, and retired back at Sauber/Alfa Romeo in 2021." },
-  { type:'standard', q:"Which driver followed this team path: McLaren → Renault → Ferrari → McLaren → Alpine → Aston Martin?", opts:["Lewis Hamilton","Fernando Alonso","Sebastian Vettel","Jenson Button"], ans:1, fact:"Fernando Alonso's career has spanned six different constructors across more than two decades." },
+  { type:'standard', q:"This driver's F1 path went Sauber → Ferrari → Lotus → Ferrari → Alfa Romeo. Who is it?", opts:["Fernando Alonso","Kimi Räikkönen","Felipe Massa","Sebastian Vettel"], ans:1, fact:"Räikkönen is the oldest current driver and has competed in more F1 seasons than anyone." },
+  { type:'standard', q:"Which driver followed this team path: McLaren → Renault → Ferrari → McLaren → Alpine → Aston Martin?", opts:["Lewis Hamilton","Fernando Alonso","Sebastian Vettel","Max Verstappen"], ans:1, fact:"Alonso is a two-time World Champion known for his aggressive driving style." },
 ];
 
 // Build a fresh 10-question general quiz from the shuffled pool so scoring stays
@@ -140,7 +143,7 @@ const MODE_CONFIG = {
   },
 } as const;
 
-// ── Scoring helpers ──────────────────────────────────────────────────────────
+// ── Scoring helpers ────────────────────────────────────────────────────────────
 
 const WHOAMI_PTS = [40, 30, 20, 10];
 const MAX_SCORE = 100;
@@ -158,7 +161,7 @@ function getRating(score: number, mode: QuizMode) {
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────────────────────
 
 /**
  * Renders a question's optional image (bundled team logo or photo URL) with a
@@ -203,6 +206,9 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   const autoGenKey = useRef<string | null>(null);
   const [raceInput, setRaceInput] = useState('');
   const [raceName, setRaceName] = useState(() => startMode === 'general' ? 'General Quiz' : '');
+  const [nextRaceData, setNextRaceData] = useState<Race | null>(() =>
+    startMode === 'preview' ? getNextRace() : null
+  );
   const [questions, setQuestions] = useState<Question[]>(() =>
     startMode === 'general' ? pickGeneralQuestions() : []
   );
@@ -231,6 +237,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
     setCluesRevealed(1); setRaceInput(''); setError(null);
     setQuestions(mode === 'general' ? pickGeneralQuestions() : []);
+    setNextRaceData(mode === 'preview' ? getNextRace() : null);
   };
 
   const handleSetTestMode = (mode: QuizMode) => {
@@ -289,7 +296,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     return () => { if (stepTimer.current) clearInterval(stepTimer.current); };
   }, [phase, cfg.loadingSteps.length]);
 
-  // ── Generate ───────────────────────────────────────────────────────────────
+  // ── Generate ──────────────────────────────────────────────────────────────
 
   // `race` is the named circuit for the Preview quiz. The Review quiz omits it —
   // the backend web-searches and detects the most recent completed race itself.
@@ -319,15 +326,14 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
       setPhase('quiz');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn\'t generate quiz — please try again.');
-      // Preview can return to its input form; Review has no input, so show a
-      // dedicated error screen with a retry button.
-      setPhase(mode === 'review' ? 'error' : 'input');
+      // Preview can return to setup; Review has no setup so show error.
+      setPhase(mode === 'review' ? 'error' : 'preview-setup');
     }
   };
 
-  const handleGenerate = () => {
-    if (!raceInput.trim()) return;
-    void runGenerate('preview', raceInput);
+  const handleGeneratePreview = () => {
+    if (!nextRaceData) return;
+    void runGenerate('preview', nextRaceData.name);
   };
 
   // ── Review auto-generate ─────────────────────────────────────────────────────
@@ -345,7 +351,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizMode]);
 
-  // ── Answer ─────────────────────────────────────────────────────────────────
+  // ── Answer ──────────────────────────────────────────────────────────────────
 
   const handleAnswer = (idx: number) => {
     if (answered !== null) return;
@@ -390,7 +396,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     }
   };
 
-  // ── Share ──────────────────────────────────────────────────────────────────
+  // ── Share ───────────────────────────────────────────────────────────────────
 
   const handleShare = () => {
     const displayScore = Math.min(score, MAX_SCORE);
@@ -402,7 +408,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     });
   };
 
-  // ── Reset ──────────────────────────────────────────────────────────────────
+  // ── Reset ───────────────────────────────────────────────────────────────────
 
   const handleReset = () => {
     setCurrentIdx(0); setScore(0); setHistory([]); setAnswered(null);
@@ -416,11 +422,90 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
       setPhase('locked');
     } else {
       setQuestions([]);
-      setPhase('input');
+      setPhase('preview-setup');
     }
   };
 
-  // ── Render: input ──────────────────────────────────────────────────────────
+  // ── Render: preview setup (auto-detect race) ───────────────────────────────
+
+  if (phase === 'preview-setup') {
+    return (
+      <div className="space-y-5">
+        {devBar}
+        {nextRaceData && (
+          <>
+            <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-bold ${cfg.bannerBg} ${cfg.bannerText}`}>
+              {cfg.label}
+            </div>
+
+            <div className={`border-l-3 rounded-lg p-4 border border-border/40 bg-secondary/20`} style={{ borderLeftColor: cfg.accent, borderLeftWidth: '3px' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  This Weekend
+                </div>
+              </div>
+
+              <h3 className="text-3xl font-black text-white mb-1">{nextRaceData.name}</h3>
+
+              <p className="text-sm text-muted-foreground mb-3">
+                {nextRaceData.circuit}
+              </p>
+
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                10 questions about the history of this circuit — past winners, lap records, legendary moments and more.
+                Available Thursday to Saturday only.
+              </p>
+
+              <Button onClick={handleGeneratePreview} className={`w-full font-bold tracking-widest ${cfg.accentCls}`}>
+                Generate Preview Quiz →
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ── Render: preview locked (on days when preview is not available) ─────────
+
+  if (phase === 'preview-locked') {
+    return (
+      <div className="space-y-5">
+        {devBar}
+        <div className="flex flex-col items-center justify-center text-center py-12 gap-4">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${cfg.accent}22` }}>
+            <Lock className="w-7 h-7" style={{ color: cfg.accent }} />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-black">Preview Quiz Locked</h2>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+              Opens Thursday before the race weekend
+            </p>
+          </div>
+          {nextRaceData && (
+            <div className="bg-secondary/20 rounded-lg p-4 w-full text-left border border-border/40">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                Coming up
+              </div>
+              <div className="text-lg font-bold text-white mb-1">{nextRaceData.name}</div>
+              <div className="text-sm text-muted-foreground">Round {nextRaceData.round}</div>
+            </div>
+          )}
+          {onPlayGeneral && (
+            <Button
+              onClick={onPlayGeneral}
+              variant="outline"
+              className="font-bold mt-1"
+            >
+              ← Back to games
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render: input (review mode only) ───────────────────────────────────────
 
   if (phase === 'input') {
     return (
@@ -435,12 +520,12 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
             value={raceInput}
             onChange={setRaceInput}
             categories={['circuits']}
-            onSubmit={handleGenerate}
+            onSubmit={() => void runGenerate('review', raceInput)}
             placeholder={cfg.inputPlaceholder}
             className="bg-secondary/50 border-border"
             autoFocus
           />
-          <Button onClick={handleGenerate} disabled={!raceInput.trim()} className={`font-bold px-5 shrink-0 ${cfg.accentCls}`}>
+          <Button onClick={() => void runGenerate('review', raceInput)} disabled={!raceInput.trim()} className={`font-bold px-5 shrink-0 ${cfg.accentCls}`}>
             Generate →
           </Button>
         </div>
@@ -450,7 +535,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-bold">
-                  Couldn't generate the {quizMode === 'preview' ? 'Preview' : 'Review'} Quiz right now.
+                  Couldn't generate the Review Quiz right now.
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">{error}</p>
                 <p className="text-xs text-muted-foreground/70 mt-1">
@@ -468,7 +553,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
                 </Button>
               )}
               <Button
-                onClick={handleGenerate}
+                onClick={() => void runGenerate('review', raceInput)}
                 variant="outline"
                 disabled={!raceInput.trim()}
                 className="flex-1 font-bold gap-2"
@@ -575,7 +660,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     );
   }
 
-  // ── Render: done ───────────────────────────────────────────────────────────
+  // ── Render: done ────────────────────────────────────────────────────────────
 
   if (phase === 'done') {
     const displayScore = Math.min(score, MAX_SCORE);
@@ -647,7 +732,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
     );
   }
 
-  // ── Render: quiz ───────────────────────────────────────────────────────────
+  // ── Render: quiz ────────────────────────────────────────────────────────────
 
   const q = questions[currentIdx];
   if (!q) return null;
