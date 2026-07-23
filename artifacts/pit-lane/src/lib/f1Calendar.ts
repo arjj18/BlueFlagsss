@@ -67,3 +67,20 @@ export function getCurrentRaceStatus(): RaceStatus {
 
   return { kind: "offseason" };
 }
+
+/**
+ * Get the next upcoming race (or the last race of the season if we're past the final race).
+ * Used for Preview Quiz auto-detection.
+ */
+export function getNextRace(): Race {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const next = CALENDAR_2026.find(race => {
+    const raceDay = new Date(race.date);
+    raceDay.setHours(0, 0, 0, 0);
+    return raceDay >= today;
+  });
+
+  return next || CALENDAR_2026[CALENDAR_2026.length - 1];
+}
