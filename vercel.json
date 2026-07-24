@@ -1,7 +1,7 @@
 {
-  "buildCommand": "pnpm --filter pit-lane build",
-  "outputDirectory": "artifacts/pit-lane/dist",
-  "installCommand": "npm install -g pnpm && pnpm install",
+  "buildCommand": "pnpm --filter @workspace/pit-lane run build",
+  "outputDirectory": "artifacts/pit-lane/dist/public",
+  "installCommand": "npm install -g pnpm@9 && pnpm install",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }

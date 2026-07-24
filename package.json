@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "pnpm --filter @workspace/pit-lane run build",
     "typecheck": "tsc --build"
   },
   "private": true,
