@@ -154,7 +154,7 @@ function getRating(score: number, mode: QuizMode) {
   return ratings.find(r => score >= r.min)?.msg ?? ratings[ratings.length - 1].msg;
 }
 
-// ── Option letter labels ─────────────────────────────────────────────────────
+
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
