@@ -398,7 +398,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   const handleShare = () => {
     const displayScore = Math.min(score, MAX_SCORE);
     const modeLabel = quizMode === 'preview' ? 'Preview' : quizMode === 'review' ? 'Review' : 'General';
-    const text = `I scored ${displayScore}/${MAX_SCORE} on the ${raceName} ${modeLabel} Quiz on Pit Lane Fan Zone — can you beat me?`;
+    const text = `I scored ${displayScore}/${MAX_SCORE} on the ${raceName} ${modeLabel} Quiz on Blue Flags — can you beat me?`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
