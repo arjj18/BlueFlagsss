@@ -145,12 +145,9 @@ const MODE_CONFIG = {
 
 // ── Scoring helpers ────────────────────────────────────────────────────────────
 
-const WHOAMI_PTS = [40, 30, 20, 10];
 const MAX_SCORE = 100;
-
 function whoamiPts(cluesRevealed: number) {
-  return WHOAMI_PTS[Math.min(cluesRevealed - 1, 3)];
-}
+  return 10;
 
 function getRating(score: number, mode: QuizMode) {
   const ratings = MODE_CONFIG[mode].ratings;
@@ -204,7 +201,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
   // Guards the auto-generate effect against React StrictMode's double-invoke and
   // against re-firing on unrelated re-renders within the same mode.
   const autoGenKey = useRef<string | null>(null);
-  const [raceInput, setRaceInput] = useState('');
+ const [raceInput, setRaceInput] = useState(() => getNextRace()?.name ?? '');
   const [raceName, setRaceName] = useState(() => startMode === 'general' ? 'General Quiz' : '');
   const [nextRaceData, setNextRaceData] = useState<Race | null>(() =>
     startMode === 'preview' ? getNextRace() : null
