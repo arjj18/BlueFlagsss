@@ -773,7 +773,7 @@ export function PostRaceQuiz({ initialMode, onPlayGeneral }: PostRaceQuizProps =
       {isWhoami && (
         <div className="bg-secondary/30 rounded-xl p-4 space-y-3 border border-border/30">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">
-            Who am I? — up to {whoamiPts(cluesRevealed)} pts
+            Who am I? — 10 pts
           </p>
           {(q as WhoAmIQ).clues.slice(0, cluesRevealed).map((clue, i) => (
             <div key={i} className="flex gap-2.5">
