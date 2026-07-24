@@ -148,7 +148,7 @@ const MODE_CONFIG = {
 const MAX_SCORE = 100;
 function whoamiPts(cluesRevealed: number) {
   return 10;
-
+}
 function getRating(score: number, mode: QuizMode) {
   const ratings = MODE_CONFIG[mode].ratings;
   return ratings.find(r => score >= r.min)?.msg ?? ratings[ratings.length - 1].msg;
