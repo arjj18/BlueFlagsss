@@ -602,7 +602,9 @@ const BANK: Question[] = [
   },
   {
     type: 'standard',
-    q: 'Which race incident led to the introduction of the halo cockpit protection device in 2018?',
+    q: 'Which race incident led to the introduction of the halo cockpit protection device in 2018
+  }
+]?',
     opts: ['Jules Bianchi\'s 2014 crash', 'Felipe Massa\'s 2009 spring strike', 'Ayrton Senna\'s 1994 crash', 'Both Bianchi and Massa incidents'],
     ans: 3,
     difficulty: 'hard',
