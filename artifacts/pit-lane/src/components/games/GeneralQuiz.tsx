@@ -494,6 +494,168 @@ const BANK: Question[] = [
     difficulty: 'medium',
     fact: 'The Red Bull Ring in Austria hosted two consecutive race weekends in July 2020 when the season was severely disrupted by the pandemic.',
   },
+  // ── Additional bank: lap records, team principal history, firsts,
+  // retirements, technical regulations, and driver nationality records.
+  {
+    type: 'standard',
+    q: 'Who holds the outright lap record around Monza, F1\'s fastest circuit?',
+    opts: ['Rubens Barrichello', 'Lewis Hamilton', 'Kimi Räikkönen', 'Juan Pablo Montoya'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Barrichello\'s 2004 pole lap (264.362 km/h average) remains the fastest average-speed lap in F1 history.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win a Grand Prix in a turbocharged engine car?',
+    opts: ['Niki Lauda', 'Nelson Piquet', 'René Arnoux', 'Alain Prost'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Piquet won the 1980 United States GP West at Long Beach in a Brabham-BMW turbo — the first turbo victory in F1.',
+  },
+  {
+    type: 'standard',
+    q: 'How many races did Michael Schumacher win in the 2002 season, finishing on the podium in every single race?',
+    opts: ['9', '10', '11', '12'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Schumacher won 11 of 17 races in 2002 and stood on the podium in all 17 — a record for a single season.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team principal led Ferrari to six consecutive constructors\' titles from 1999 to 2004?',
+    opts: ['Stefano Domenicali', 'Luca di Montezemolo', 'Jean Todt', 'Ross Brawn'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Jean Todt ran the Scuderia through its dominant Schumacher era before moving to the FIA as president.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win the World Championship in a rear-engined car?',
+    opts: ['Jack Brabham', 'Phil Hill', 'Stirling Moss', 'Bruce McLaren'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Phil Hill won the 1961 title in a rear-engined Ferrari 156 — the first rear-engined championship car.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver\'s retirement at the 1976 Japanese GP handed James Hunt the title by a single point?',
+    opts: ['Niki Lauda', 'Clay Regazzoni', 'Jody Scheckter', 'Mario Andretti'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Lauda withdrew from the rain-soaked Fuji race on safety grounds, allowing Hunt to clinch the title by 1 point.',
+  },
+  {
+    type: 'standard',
+    q: 'In what year were DRS zones first introduced to F1?',
+    opts: ['2009', '2010', '2011', '2012'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'The Drag Reduction System debuted in 2011 to encourage overtaking after the 2010 no-refuelling rules.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first Japanese driver to score a Formula 1 podium?',
+    opts: ['Takuma Sato', 'Aguri Suzuki', 'Kamui Kobayashi', 'Ukyo Katayama'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Aguri Suzuki finished third at the 1990 Japanese GP for Larrousse — the first Japanese driver on an F1 podium.',
+  },
+  {
+    type: 'standard',
+    q: 'Which Grand Prix saw the infamous 2005 United States GP where only six cars started due to tyre safety concerns?',
+    opts: ['Detroit', 'Phoenix', 'Indianapolis', 'Watkins Glen'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'After Ralf Schumacher\'s crash in practice, the Michelin-shod cars withdrew on the formation lap at Indianapolis.',
+  },
+  {
+    type: 'standard',
+    q: 'Who holds the record for the most consecutive race wins in a single season?',
+    opts: ['Sebastian Vettel', 'Max Verstappen', 'Nico Rosberg', 'Alberto Ascari'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'Max Verstappen won 10 consecutive races across 2023, breaking Sebastian Vettel\'s previous record of 9.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver\'s DNF at the 1994 Australian GP cost him the title in his debut season?',
+    opts: ['Damon Hill', 'Rubens Barrichello', 'Mika Häkkinen', 'Jean Alesi'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Hill retired from the season finale in Adelaide, handing the 1994 title to Michael Schumacher by a single point.',
+  },
+  {
+    type: 'standard',
+    q: 'When were refuelling stops banned in F1 (before their brief 2010-2024 absence)?',
+    opts: ['1983', '1994', '2009', 'They were never banned'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'Refuelling was banned from 2010 on safety grounds, returning only as a never-implemented proposal in later years.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver from New Zealand to win a Formula 1 race?',
+    opts: ['Denny Hulme', 'Bruce McLaren', 'Chris Amon', 'Mike Thackwell'],
+    ans: 1,
+    difficulty: 'expert',
+    fact: 'Bruce McLaren won the 1959 United States GP — the first New Zealander to win an F1 race, before founding his eponymous team.',
+  },
+  {
+    type: 'standard',
+    q: 'Which race incident led to the introduction of the halo cockpit protection device in 2018?',
+    opts: ['Jules Bianchi\'s 2014 crash', 'Felipe Massa\'s 2009 spring strike', 'Ayrton Senna\'s 1994 crash', 'Both Bianchi and Massa incidents'],
+    ans: 3,
+    difficulty: 'hard',
+    fact: 'Bianchi\'s fatal 2014 Suzuka crash drove the halo\'s adoption; Massa\'s 2009 spring injury had earlier highlighted cockpit vulnerability.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win a race for Williams in the team\'s debut 1977 season?',
+    opts: ['Alan Jones', 'Clay Regazzoni', 'Carlos Reutemann', 'Keke Rosberg'],
+    ans: 1,
+    difficulty: 'expert',
+    fact: 'Clay Regazzoni won the 1979 British GP — Williams\' first victory, at Silverstone.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver was the first to be disqualified from a race for using a "double diffuser" concept later ruled legal?',
+    opts: ['Jenson Button', 'Rubens Barrichello', 'No one — it was legal from the start', 'Sebastian Vettel'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'Brawn GP\'s double diffuser was protested but ruled legal in 2009 — no driver was ever disqualified for it.',
+  },
+  {
+    type: 'standard',
+    q: 'Who is the only driver to win the Indianapolis 500, F1 World Championship, and the Le Mans 24 Hours?',
+    opts: ['A.J. Foyt', 'Graham Hill', 'Mario Andretti', 'Bruce McLaren'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Graham Hill completed the unofficial "Triple Crown of Motorsport" across his career — the only driver to do all three.',
+  },
+  {
+    type: 'standard',
+    q: 'Which race saw the first ever points-scoring finish for a Chinese driver in F1?',
+    opts: ['2008 Chinese GP', '2013 Chinese GP', '2021 Saudi Arabian GP', 'No Chinese driver has scored points'],
+    ans: 3,
+    difficulty: 'expert',
+    fact: 'As of the 2026 season, no Chinese driver has scored an F1 championship point; Zhou Guanyu raced without scoring.',
+  },
+  {
+    type: 'standard',
+    q: 'When were points for fastest lap reintroduced to F1, before being dropped again in 2025?',
+    opts: ['2018', '2019', '2020', '2021'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'The fastest-lap point returned in 2019 (for top-10 finishers) and was abolished mid-2024 after team-order controversies.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team principal famously led Benetton to titles before moving to Ferrari and then founding his own title-winning team?',
+    opts: ['Flavio Briatore', 'Ross Brawn', 'Rory Byrne', 'Pat Symonds'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Ross Brawn was technical director at Benetton and Ferrari, then led Brawn GP to both 2009 titles in its only season.',
+  },
 ];
 
 // Question bank last updated: June 2026
@@ -542,8 +704,35 @@ const TOTAL_QUESTIONS = 10;
 const POINTS_PER_QUESTION = 10;
 const MAX_SCORE = TOTAL_QUESTIONS * POINTS_PER_QUESTION;
 
-function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5);
+// Deterministic weekly question selection.
+//
+// The quiz rotates to a new set of 10 questions every Monday at midnight and
+// every user who plays in a given week sees the exact same 10 questions in the
+// exact same order. We derive a stable week key from the current date and use
+// it to seed a hash-based PRNG, which deterministically shuffles the bank. The
+// same week key always yields the same selection and order.
+
+function getWeekNumber(now: Date = new Date()): string {
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const weekNumber = Math.floor(
+    (now.getTime() - startOfYear.getTime()) / (7 * 24 * 60 * 60 * 1000),
+  );
+  return `${now.getFullYear()}-W${weekNumber}`;
+}
+
+function seededRandom(seed: string): () => number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return function () {
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+    hash = hash ^ (hash >>> 16);
+    return (hash >>> 0) / 0xffffffff;
+  };
 }
 
 // Difficulty curve: a 10-question quiz ramps from easy to expert —
@@ -556,17 +745,24 @@ const DIFFICULTY_PLAN: { tier: Difficulty; count: number }[] = [
 ];
 
 function pickQuestions(): Question[] {
-  const picked: Question[] = [];
+  const rng = seededRandom(getWeekNumber());
 
+  // Deterministic shuffle of the full bank — same seed ⇒ same order.
+  const shuffledBank = [...BANK]
+    .map((q) => ({ q, sort: rng() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((item) => item.q);
+
+  const picked: Question[] = [];
   for (const { tier, count } of DIFFICULTY_PLAN) {
-    const pool = shuffle(BANK.filter((q) => q.difficulty === tier && !picked.includes(q)));
+    const pool = shuffledBank.filter((q) => q.difficulty === tier && !picked.includes(q));
     picked.push(...pool.slice(0, count));
   }
 
-  // Backfill from the remaining bank if any tier was short, keeping the
+  // Backfill from the remaining shuffled bank if any tier was short, keeping the
   // easy→expert ordering by difficulty rank.
   if (picked.length < TOTAL_QUESTIONS) {
-    const rest = shuffle(BANK.filter((q) => !picked.includes(q)));
+    const rest = shuffledBank.filter((q) => !picked.includes(q));
     for (const q of rest) {
       if (picked.length >= TOTAL_QUESTIONS) break;
       picked.push(q);
