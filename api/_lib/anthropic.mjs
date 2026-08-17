@@ -6,6 +6,7 @@ export async function callAnthropic({ model, maxTokens, system, prompt, tools })
   if (!apiKey) {
     const err = new Error("ANTHROPIC_API_KEY is not configured.");
     err.statusCode = 503;
+    err.detail = "The ANTHROPIC_API_KEY environment variable is not set on the server.";
     throw err;
   }
 
@@ -17,13 +18,16 @@ export async function callAnthropic({ model, maxTokens, system, prompt, tools })
   if (system) body.system = system;
   if (tools) body.tools = tools;
 
+  const headers = {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "anthropic-version": "2023-06-01",
+  };
+  if (tools) headers["anthropic-beta"] = "web-search-2025-03-05";
+
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
+    headers,
     body: JSON.stringify(body),
   });
 
@@ -34,7 +38,11 @@ export async function callAnthropic({ model, maxTokens, system, prompt, tools })
       const detail = await response.json();
       err.detail = detail?.error?.message ?? "";
     } catch {
-      err.detail = "";
+      try {
+        err.detail = await response.text();
+      } catch {
+        err.detail = "";
+      }
     }
     throw err;
   }

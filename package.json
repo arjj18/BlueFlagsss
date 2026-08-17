@@ -4,11 +4,12 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "pnpm --filter @workspace/pit-lane run build",
     "typecheck": "tsc --build"
   },
   "private": true,
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3",
     "vite": "^8.1.5"

@@ -121,20 +121,41 @@ const BANK: Question[] = [
 
   // ── FINISHING GRAPH ──────────────────────────────────────────
   {
-    type: 'graph',
-    q: 'Which driver had these championship finishing positions across their career?',
-    positions: [
-      { year: '2015', pos: 3 },
-      { year: '2016', pos: 1 },
-      { year: '2017', pos: 2 },
-      { year: '2018', pos: 2 },
-      { year: '2019', pos: 5 },
-      { year: '2020', pos: 2 },
+    type: 'standard',
+    q: 'Nico Rosberg won the 2016 F1 World Championship and then did what?',
+    opts: [
+      'Stayed at Mercedes for one more season',
+      'Retired from Formula 1 within days of winning',
+      'Moved to Ferrari for 2017',
+      'Took a sabbatical and returned in 2018',
     ],
-    opts: ['Lewis Hamilton', 'Nico Rosberg', 'Sebastian Vettel', 'Valtteri Bottas'],
     ans: 1,
     difficulty: 'medium',
-    fact: 'Rosberg retired just five days after winning the 2016 World Championship, one of the most shocking retirements in F1 history.',
+    fact: 'Rosberg shocked the world by announcing his retirement just 5 days after winning the 2016 championship — one of the most surprising decisions in F1 history.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won the 2020 Italian Grand Prix from P10 on the grid?',
+    opts: ['Carlos Sainz', 'Lance Stroll', 'Pierre Gasly', 'Daniil Kvyat'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Gasly won from 10th on the grid at Monza 2020 for AlphaTauri in one of the most dramatic and unexpected results in recent F1 history.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won on their actual Formula 1 debut race?',
+    opts: ['Giancarlo Baghetti', 'Fernando Alonso', 'Max Verstappen', 'Charles Leclerc'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Giancarlo Baghetti won the 1961 French Grand Prix on his Formula 1 debut — the only driver in history to win on their very first F1 start.',
+  },
+  {
+    type: 'standard',
+    q: 'How many drivers have won on their Formula 1 debut in the modern era since 1980?',
+    opts: ['None', 'One', 'Three', 'Five'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'No driver has won on their Formula 1 debut in the modern era since 1980. The last and only driver to do so was Giancarlo Baghetti in 1961.',
   },
   {
     type: 'graph',
@@ -494,9 +515,652 @@ const BANK: Question[] = [
     difficulty: 'medium',
     fact: 'The Red Bull Ring in Austria hosted two consecutive race weekends in July 2020 when the season was severely disrupted by the pandemic.',
   },
+  // ── Additional bank: lap records, team principal history, firsts,
+  // retirements, technical regulations, and driver nationality records.
+  {
+    type: 'standard',
+    q: 'Who holds the outright lap record around Monza, F1\'s fastest circuit?',
+    opts: ['Rubens Barrichello', 'Lewis Hamilton', 'Kimi Räikkönen', 'Juan Pablo Montoya'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Barrichello\'s 2004 pole lap (264.362 km/h average) remains the fastest average-speed lap in F1 history.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win a Grand Prix in a turbocharged engine car?',
+    opts: ['Niki Lauda', 'Nelson Piquet', 'René Arnoux', 'Alain Prost'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Piquet won the 1980 United States GP West at Long Beach in a Brabham-BMW turbo — the first turbo victory in F1.',
+  },
+  {
+    type: 'standard',
+    q: 'How many races did Michael Schumacher win in the 2002 season, finishing on the podium in every single race?',
+    opts: ['9', '10', '11', '12'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Schumacher won 11 of 17 races in 2002 and stood on the podium in all 17 — a record for a single season.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team principal led Ferrari to six consecutive constructors\' titles from 1999 to 2004?',
+    opts: ['Stefano Domenicali', 'Luca di Montezemolo', 'Jean Todt', 'Ross Brawn'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Jean Todt ran the Scuderia through its dominant Schumacher era before moving to the FIA as president.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win the World Championship in a rear-engined car?',
+    opts: ['Jack Brabham', 'Phil Hill', 'Stirling Moss', 'Bruce McLaren'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Phil Hill won the 1961 title in a rear-engined Ferrari 156 — the first rear-engined championship car.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver\'s retirement at the 1976 Japanese GP handed James Hunt the title by a single point?',
+    opts: ['Niki Lauda', 'Clay Regazzoni', 'Jody Scheckter', 'Mario Andretti'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Lauda withdrew from the rain-soaked Fuji race on safety grounds, allowing Hunt to clinch the title by 1 point.',
+  },
+  {
+    type: 'standard',
+    q: 'In what year were DRS zones first introduced to F1?',
+    opts: ['2009', '2010', '2011', '2012'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'The Drag Reduction System debuted in 2011 to encourage overtaking after the 2010 no-refuelling rules.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first Japanese driver to score a Formula 1 podium?',
+    opts: ['Takuma Sato', 'Aguri Suzuki', 'Kamui Kobayashi', 'Ukyo Katayama'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Aguri Suzuki finished third at the 1990 Japanese GP for Larrousse — the first Japanese driver on an F1 podium.',
+  },
+  {
+    type: 'standard',
+    q: 'Which Grand Prix saw the infamous 2005 United States GP where only six cars started due to tyre safety concerns?',
+    opts: ['Detroit', 'Phoenix', 'Indianapolis', 'Watkins Glen'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'After Ralf Schumacher\'s crash in practice, the Michelin-shod cars withdrew on the formation lap at Indianapolis.',
+  },
+  {
+    type: 'standard',
+    q: 'Who holds the record for the most consecutive race wins in a single season?',
+    opts: ['Sebastian Vettel', 'Max Verstappen', 'Nico Rosberg', 'Alberto Ascari'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'Max Verstappen won 10 consecutive races across 2023, breaking Sebastian Vettel\'s previous record of 9.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver\'s DNF at the 1994 Australian GP cost him the title in his debut season?',
+    opts: ['Damon Hill', 'Rubens Barrichello', 'Mika Häkkinen', 'Jean Alesi'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Hill retired from the season finale in Adelaide, handing the 1994 title to Michael Schumacher by a single point.',
+  },
+  {
+    type: 'standard',
+    q: 'When were refuelling stops banned in F1 (before their brief 2010-2024 absence)?',
+    opts: ['1983', '1994', '2009', 'They were never banned'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'Refuelling was banned from 2010 on safety grounds, returning only as a never-implemented proposal in later years.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver from New Zealand to win a Formula 1 race?',
+    opts: ['Denny Hulme', 'Bruce McLaren', 'Chris Amon', 'Mike Thackwell'],
+    ans: 1,
+    difficulty: 'expert',
+    fact: 'Bruce McLaren won the 1959 United States GP — the first New Zealander to win an F1 race, before founding his eponymous team.',
+  },
+  {
+    type: 'standard',
+    q: 'Which race incident led to the introduction of the halo cockpit protection device in 2018?',
+    opts: ['Jules Bianchi\'s 2014 crash', 'Felipe Massa\'s 2009 spring strike', 'Ayrton Senna\'s 1994 crash', 'Both Bianchi and Massa incidents'],
+    ans: 3,
+    difficulty: 'hard',
+    fact: 'Bianchi\'s fatal 2014 Suzuka crash drove the halo\'s adoption; Massa\'s 2009 spring injury had earlier highlighted cockpit vulnerability.',
+  },
+  {
+    type: 'standard',
+    q: 'Who was the first driver to win a race for Williams in the team\'s debut 1977 season?',
+    opts: ['Alan Jones', 'Clay Regazzoni', 'Carlos Reutemann', 'Keke Rosberg'],
+    ans: 1,
+    difficulty: 'expert',
+    fact: 'Clay Regazzoni won the 1979 British GP — Williams\' first victory, at Silverstone.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver was the first to be disqualified from a race for using a "double diffuser" concept later ruled legal?',
+    opts: ['Jenson Button', 'Rubens Barrichello', 'No one — it was legal from the start', 'Sebastian Vettel'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'Brawn GP\'s double diffuser was protested but ruled legal in 2009 — no driver was ever disqualified for it.',
+  },
+  {
+    type: 'standard',
+    q: 'Who is the only driver to win the Indianapolis 500, F1 World Championship, and the Le Mans 24 Hours?',
+    opts: ['A.J. Foyt', 'Graham Hill', 'Mario Andretti', 'Bruce McLaren'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Graham Hill completed the unofficial "Triple Crown of Motorsport" across his career — the only driver to do all three.',
+  },
+  {
+    type: 'standard',
+    q: 'Which race saw the first ever points-scoring finish for a Chinese driver in F1?',
+    opts: ['2008 Chinese GP', '2013 Chinese GP', '2021 Saudi Arabian GP', 'No Chinese driver has scored points'],
+    ans: 3,
+    difficulty: 'expert',
+    fact: 'As of the 2026 season, no Chinese driver has scored an F1 championship point; Zhou Guanyu raced without scoring.',
+  },
+  {
+    type: 'standard',
+    q: 'When were points for fastest lap reintroduced to F1, before being dropped again in 2025?',
+    opts: ['2018', '2019', '2020', '2021'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'The fastest-lap point returned in 2019 (for top-10 finishers) and was abolished mid-2024 after team-order controversies.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team principal famously led Benetton to titles before moving to Ferrari and then founding his own title-winning team?',
+    opts: ['Flavio Briatore', 'Ross Brawn', 'Rory Byrne', 'Pat Symonds'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Ross Brawn was technical director at Benetton and Ferrari, then led Brawn GP to both 2009 titles in its only season.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won the inaugural Formula 1 World Championship race at Silverstone in 1950?',
+    opts: ['Juan Manuel Fangio', 'Nino Farina', 'Luigi Fagioli', 'Reg Parnell'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Giuseppe "Nino" Farina won the very first World Championship race at Silverstone on 13 May 1950, driving an Alfa Romeo 158.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit has hosted the most Formula 1 Grands Prix as of 2026?',
+    opts: ['Monza', 'Monaco', 'Silverstone', 'Spa-Francorchamps'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Monza has hosted the Italian Grand Prix every year since 1950 except 1980, making it the most-visited circuit on the calendar.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the maximum race distance allowed in Formula 1, excluding suspensions?',
+    opts: ['200 km', '305 km', '350 km', '400 km'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'The FIA Sporting Regulations cap race distance at 305 km, with a two-hour time limit and a three-hour overall window including suspensions.',
+  },
+  {
+    type: 'standard',
+    q: 'Which tyre manufacturer was the sole supplier in Formula 1 from 2011 to 2026?',
+    opts: ['Bridgestone', 'Michelin', 'Pirelli', 'Goodyear'],
+    ans: 2,
+    difficulty: 'easy',
+    fact: 'Pirelli became the single tyre supplier in 2011 after Bridgestone withdrew at the end of 2010.',
+  },
+  {
+    type: 'standard',
+    q: 'Which compound is the softest in Pirelli\'s 2026 dry-weather range?',
+    opts: ['Hard (C1)', 'Medium (C2)', 'Soft (C3)', 'Supersoft (C5)'],
+    ans: 3,
+    difficulty: 'medium',
+    fact: 'Pirelli\'s 2026 range runs from C1 (hardest) to C5 (softest); three compounds are nominated per weekend.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "graining" refer to in Formula 1 tyre terminology?',
+    opts: ['Tyre overheating', 'Rubber tearing into grain-like strips', 'Tyre pressure loss', 'Tyre blistering'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Graining occurs when the tyre surface tears into fine strips that re-adhere, usually under heavy cornering on a cold or overworked surface.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "blistering" refer to in Formula 1 tyre terminology?',
+    opts: ['Surface rubber lifting into bubbles', 'Tyre wear down to the canvas', 'Puncture from debris', 'Thermal degradation only'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Blistering occurs when the carcass overheats and trapped gases lift the surface rubber into bubbles that can detach.',
+  },
+  {
+    type: 'standard',
+    q: 'Which engine supplier returned to Formula 1 in 2026 with a works partnership alongside Cadillac?',
+    opts: ['Honda', 'Renault', 'Ford', 'Audi'],
+    ans: 3,
+    difficulty: 'medium',
+    fact: 'Audi entered Formula 1 in 2026 as a full works power unit manufacturer, partnering with the Cadillac-branded team.',
+  },
+  {
+    type: 'standard',
+    q: 'Which engine supplier powered Max Verstappen to all four of his world championships between 2021 and 2024?',
+    opts: ['Renault', 'Ferrari', 'Honda', 'Mercedes'],
+    ans: 2,
+    difficulty: 'easy',
+    fact: 'Honda\'s power unit propelled Verstappen to the 2021-2024 titles, initially badged as Honda then as RBPT after 2022.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team used Renault engines from 2016 to 2025 before switching to Mercedes for 2026?',
+    opts: ['Red Bull Racing', 'McLaren', 'Williams', 'Aston Martin'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'McLaren raced with Renault power from 2016 before switching to Mercedes power units in 2026.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored the first-ever pole position for Toro Rosso at the 2008 Italian Grand Prix?',
+    opts: ['Sebastian Vettel', 'Sebastien Bourdais', 'Jaime Alguersuari', 'Daniel Ricciardo'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Sebastian Vettel took pole and won at a wet Monza in 2008, giving Toro Rosso its first and only pole and victory.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Stewart Grand Prix\'s only victory at the 1999 European Grand Prix?',
+    opts: ['Rubens Barrichello', 'Johnny Herbert', 'Jan Magnussen', 'Jos Verstappen'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Johnny Herbert won the 1999 European GP at the Nürburgring, the sole win for the Stewart team before it became Jaguar and then Red Bull.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Jaguar Racing\'s only podium finish at the 2002 Malaysian Grand Prix?',
+    opts: ['Eddie Irvine', 'Pedro de la Rosa', 'Mark Webber', 'Luciano Burti'],
+    ans: 0,
+    difficulty: 'expert',
+    fact: 'Eddie Irvine finished third at Sepang in 2002, scoring Jaguar Racing\'s only podium in its five-year history.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team won the constructors\' championship in its debut season under the name "Brawn GP"?',
+    opts: ['Toyota', 'Brawn GP', 'Red Bull Racing', 'McLaren'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'Brawn GP won both titles in 2009, the only team to win the constructors\' championship in its debut season.',
+  },
+  {
+    type: 'standard',
+    q: 'Which team holds the record for most consecutive constructors\' championships with 8 titles from 2010 to 2017?',
+    opts: ['Ferrari', 'McLaren', 'Red Bull Racing', 'Mercedes'],
+    ans: 3,
+    difficulty: 'easy',
+    fact: 'Mercedes won 8 straight constructors\' titles from 2010 to 2017, a record streak for the sport.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver holds the record for most pole positions in a single season with 15 in 2016?',
+    opts: ['Ayrton Senna', 'Nigel Mansell', 'Lewis Hamilton', 'Sebastian Vettel'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'Lewis Hamilton took 15 pole positions in 2016, breaking the previous record of 14 set by Nigel Mansell in 1992.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver holds the record for most wins in a single season with 19 in 2023?',
+    opts: ['Sebastian Vettel', 'Michael Schumacher', 'Max Verstappen', 'Lewis Hamilton'],
+    ans: 2,
+    difficulty: 'easy',
+    fact: 'Max Verstappen won 19 of 22 races in 2023, breaking the previous record of 13 held jointly by Schumacher and Vettel.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver holds the record for most podium finishes in a single season with 21 in 2023?',
+    opts: ['Lewis Hamilton', 'Max Verstappen', 'Michael Schumacher', 'Sebastian Vettel'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Max Verstappen finished on the podium 21 times in 2023, breaking the record of 17 he had shared with Hamilton and Schumacher.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored the 100th win of his career at the 2021 Russian Grand Prix?',
+    opts: ['Lewis Hamilton', 'Sebastian Vettel', 'Max Verstappen', 'Fernando Alonso'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Lewis Hamilton took his 100th Grand Prix victory at Sochi in 2021, becoming the first driver to reach triple figures.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit features the famous "Wall of Champions" corner that has caught out many title contenders?',
+    opts: ['Monaco', 'Montréal', 'Baku', 'Singapore'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'The Wall of Champions at the final chicane of the Circuit Gilles Villeneuve in Montréal famously ended the races of Hill, Schumacher and Villeneuve in 1999.',
+  },
+  {
+    type: 'standard',
+    q: 'Which corner at Monaco is the slowest tightest turn on the track?',
+    opts: ['Casino Square', 'Loews Hairpin', 'Grand Hotel Hairpin', 'Fairmont Hairpin'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'The Loews Hairpin (also called the Grand Hotel Hairpin) is the slowest corner in Formula 1, taken at around 50 km/h.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit features the longest flat-out section in Formula 1?',
+    opts: ['Monza', 'Spa-Francorchamps', 'Baku', 'Jeddah'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'The Baku City Circuit\'s 2.2 km start-finish straight is the longest flat-out section on the F1 calendar.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit features the legendary Eau Rouge-Raidillon complex of corners?',
+    opts: ['Suzuka', 'Spa-Francorchamps', 'Silverstone', 'Hungaroring'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'Eau Rouge-Raidillon at Spa-Francorchamps is a steeply banked uphill sweeping complex taken flat-out in the dry.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit features the "S-Curves" that test driver precision through a flowing sequence of bends?',
+    opts: ['Suzuka', 'Imola', 'Monaco', 'Zandvoort'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Suzuka\'s S-Curves form a fast, flowing ess-bend sequence right after the first corner, rewarding a well-balanced car.',
+  },
+  {
+    type: 'standard',
+    q: 'Which circuit is famous for its "130R" corner, one of the fastest in Formula 1?',
+    opts: ['Suzuka', 'Monza', 'Spa-Francorchamps', 'Silverstone'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'The 130R at Suzuka is a sweeping left-hander historically taken flat-out, named after its 130-metre radius.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the purpose of the Virtual Safety Car (VSC) introduced in 2015?',
+    opts: ['To neutralise the race without a full safety car', 'To penalise drivers', 'To stop the race', 'To reset the grid'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'The VSC forces drivers to slow to a delta time, neutralising the race for clearances without deploying a physical safety car.',
+  },
+  {
+    type: 'standard',
+    q: 'How many points are awarded to the winner of a Grand Prix under the current points system?',
+    opts: ['10', '25', '26', '50'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'The winner receives 25 points, with 18 for second and 15 for third, under the system introduced in 2010.',
+  },
+  {
+    type: 'standard',
+    q: 'How many points were awarded for the fastest lap under the 2019-2024 rule (if finishing in the top 10)?',
+    opts: ['0', '1', '2', '5'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'From 2019 to mid-2024, one bonus point was awarded for the fastest lap, but only if the driver finished in the top 10.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the maximum number of power unit components allowed per driver per season before grid penalties apply (2026 rules)?',
+    opts: ['2', '3', '4', '5'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'Drivers are limited to 4 of each power unit component per season; exceeding this triggers grid penalties.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the purpose of the Drag Reduction System (DRS)?',
+    opts: ['To improve braking', 'To reduce drag and aid overtaking', 'To increase downforce', 'To save fuel'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'DRS opens the rear wing flap to reduce drag, allowing a following car to overtake more easily in designated zones.',
+  },
+  {
+    type: 'standard',
+    q: 'How many DRS zones are typically available at most circuits on the 2026 calendar?',
+    opts: ['1', '2', '3', '4'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Most circuits feature two DRS zones, though some like Bahrain and Albert Park have three.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the standard pit lane speed limit during a race?',
+    opts: ['60 km/h', '80 km/h', '100 km/h', '120 km/h'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'The standard pit lane speed limit is 80 km/h during races, though some circuits like Monaco use 60 km/h.',
+  },
+  {
+    type: 'standard',
+    q: 'What happens if a driver exceeds the pit lane speed limit?',
+    opts: ['A reprimand', 'A 5-second time penalty', 'A drive-through penalty', 'A grid drop'],
+    ans: 1,
+    difficulty: 'medium',
+    fact: 'Exceeding the pit lane speed limit typically results in a 5-second time penalty added to the driver\'s race time.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "undercut" mean in Formula 1 strategy?',
+    opts: ['Pitting after a rival to overtake on fresh tyres', 'Pitting before a rival to gain track position', 'Skipping a pit stop', 'Pitting during a safety car'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'The undercut involves pitting before a rival to use fresh-tyre pace to gain track position before they stop.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "overcut" mean in Formula 1 strategy?',
+    opts: ['Pitting after a rival to overtake on fresher tyres', 'Pitting before a rival', 'Staying out longer than a rival to gain track position', 'Skipping a pit stop entirely'],
+    ans: 2,
+    difficulty: 'hard',
+    fact: 'The overcut keeps a driver out longer than a rival, banking track position while the rival is on fresh but cold tyres.',
+  },
+  {
+    type: 'standard',
+    q: 'What is the fastest recorded pit stop time in Formula 1 history?',
+    opts: ['1.82 seconds', '1.91 seconds', '2.31 seconds', '1.95 seconds'],
+    ans: 1,
+    difficulty: 'expert',
+    fact: 'Red Bull Racing recorded a 1.91-second stop for Max Verstappen at the 2023 Saudi Arabian Grand Prix, the fastest verified time.',
+  },
+  {
+    type: 'standard',
+    q: 'How many crew members are typically involved in a Formula 1 pit stop?',
+    opts: ['12', '18', '20', '24'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'A standard F1 pit stop involves around 20 crew members: wheel gunners, jack operators, and support roles.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "graining" refer to in Formula 1 tyre terminology?',
+    opts: ['Tyre overheating', 'Rubber tearing into grain-like strips', 'Tyre pressure loss', 'Tyre blistering'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Graining occurs when the tyre surface tears into fine strips that re-adhere, usually under heavy cornering on a cold or overworked surface.',
+  },
+  {
+    type: 'standard',
+    q: 'What does "blistering" refer to in Formula 1 tyre terminology?',
+    opts: ['Surface rubber lifting into bubbles', 'Tyre wear down to the canvas', 'Puncture from debris', 'Thermal degradation only'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Blistering occurs when the carcass overheats and trapped gases lift the surface rubber into bubbles that can detach.',
+  },
+  {
+    type: 'standard',
+    q: 'Which tyre manufacturer was the sole supplier in Formula 1 from 2011 to 2026?',
+    opts: ['Bridgestone', 'Michelin', 'Pirelli', 'Goodyear'],
+    ans: 2,
+    difficulty: 'easy',
+    fact: 'Pirelli became the single tyre supplier in 2011 after Bridgestone withdrew at the end of 2010.',
+  },
+  // ── BATCH_INSERT_MARKER ──
+  {
+    type: 'standard',
+    q: 'Which driver famously overtook 12 cars on the first lap of the 1993 European Grand Prix at Donington Park?',
+    opts: ['Ayrton Senna', 'Alain Prost', 'Damon Hill', 'Michael Schumacher'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Ayrton Senna went from 5th to 1st in one lap at Donington in 1993, passing cars including Schumacher, Wendlinger, Hill and Prost.',
+  },
+  {
+    type: 'standard',
+    q: 'Which drivers were involved in the famous "Multi 21" team orders incident at the 2013 Malaysian Grand Prix?',
+    opts: ['Sebastian Vettel and Mark Webber', 'Fernando Alonso and Felipe Massa', 'Lewis Hamilton and Nico Rosberg', 'Max Verstappen and Sergio Pérez'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Sebastian Vettel ignored Red Bull\'s "Multi 21" instruction and passed teammate Mark Webber for the lead at Sepang.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won the 2008 Brazilian Grand Prix by overtaking Timo Glock on the final lap to clinch the title?',
+    opts: ['Felipe Massa', 'Lewis Hamilton', 'Kimi Räikkönen', 'Fernando Alonso'],
+    ans: 1,
+    difficulty: 'easy',
+    fact: 'Lewis Hamilton passed Toyota\'s Timo Glock on the last corner of the last lap at Interlagos to secure the 2008 title by one point.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Jordan Grand Prix\'s first-ever win at the 1998 Belgian Grand Prix in chaotic conditions?',
+    opts: ['Damon Hill', 'Ralf Schumacher', 'Heinz-Harald Frentzen', 'Giancarlo Fisichella'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Damon Hill won the rain-soaked 1998 Belgian GP at Spa, giving Eddie Jordan\'s team its maiden Formula 1 victory.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won his only race at the 1996 Monaco Grand Prix in torrential conditions where only 3 cars finished?',
+    opts: ['Olivier Panis', 'Eddie Irvine', 'Mika Salo', 'Giancarlo Fisichella'],
+    ans: 0,
+    difficulty: 'expert',
+    fact: 'Olivier Panis won the chaotic 1996 Monaco GP for Ligier — the only win of his career and Ligier\'s last victory.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver retired from the lead of the 1988 Monaco Grand Prix with a lap-and-a-half to go?',
+    opts: ['Ayrton Senna', 'Alain Prost', 'Nelson Piquet', 'Michele Alboreto'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Ayrton Senna crashed out of the lead at Portier in 1988, handing victory to teammate Alain Prost.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver retired from the lead of the 2006 Hungarian Grand Prix after a late-race downpour?',
+    opts: ['Kimi Räikkönen', 'Fernando Alonso', 'Michael Schumacher', 'Jenson Button'],
+    ans: 1,
+    difficulty: 'hard',
+    fact: 'Fernando Alonso retired from the lead at the Hungaroring in 2006 after a wheel nut failure following a late tyre stop for wets.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored the first win for Renault as a constructor since 2006 at the 2020 Eifel Grand Prix?',
+    opts: ['Daniel Ricciardo', 'Esteban Ocon', 'Fernando Alonso', 'Nico Hülkenberg'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Daniel Ricciardo won the 2020 Eifel GP at the Nürburgring, giving Renault its first win as a constructor since 2006.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored the first win for the Mercedes works team since its 2010 return at the 2012 Chinese Grand Prix?',
+    opts: ['Nico Rosberg', 'Michael Schumacher', 'Lewis Hamilton', 'Valtteri Bottas'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Nico Rosberg won the 2012 Chinese GP, Mercedes\' first victory since Juan Manuel Fangio in 1955.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won his first race at the 2006 Hungarian Grand Prix in his 113th attempt?',
+    opts: ['Jenson Button', 'Rubens Barrichello', 'Giancarlo Fisichella', 'Mark Webber'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Jenson Button won his first Grand Prix at the 2006 Hungarian GP after 113 starts, in a Honda RA106.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver won his first race at the 2020 Sakhir Grand Prix after 190 starts, the longest wait for a first win at the time?',
+    opts: ['Sergio Pérez', 'Esteban Ocon', 'Lance Stroll', 'Sebastian Vettel'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Sergio Pérez won his first Grand Prix at the 2020 Sakhir GP after 190 starts, driving for Racing Point.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Williams\' last victory to date at the 2012 Spanish Grand Prix?',
+    opts: ['Pastor Maldonado', 'Rubens Barrichello', 'Bruno Senna', 'Valtteri Bottas'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Pastor Maldonado won the 2012 Spanish GP at Barcelona — Williams\' most recent victory as of 2026.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored McLaren\'s first win since 2012 at the 2024 Miami Grand Prix?',
+    opts: ['Lando Norris', 'Oscar Piastri', 'Daniel Ricciardo', 'Carlos Sainz'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Lando Norris won the 2024 Miami GP, his first victory and McLaren\'s first since Jenson Button at Brazil 2012.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Ferrari\'s first win of the hybrid era at the 2015 Malaysian Grand Prix?',
+    opts: ['Sebastian Vettel', 'Kimi Räikkönen', 'Fernando Alonso', 'Charles Leclerc'],
+    ans: 0,
+    difficulty: 'medium',
+    fact: 'Sebastian Vettel won the 2015 Malaysian GP at Sepang, Ferrari\'s first victory of the V6 turbo-hybrid era.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Ferrari\'s first win at Monaco since 2001 by winning the 2017 Monaco Grand Prix?',
+    opts: ['Kimi Räikkönen', 'Sebastian Vettel', 'Charles Leclerc', 'Fernando Alonso'],
+    ans: 0,
+    difficulty: 'hard',
+    fact: 'Kimi Räikkönen won the 2017 Monaco GP, ending Ferrari\'s 16-year victory drought in the Principality.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Charles Leclerc\'s first career win at the 2019 Belgian Grand Prix?',
+    opts: ['Charles Leclerc', 'Max Verstappen', 'Lewis Hamilton', 'Sebastian Vettel'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Charles Leclerc won the 2019 Belgian GP at Spa, his first Formula 1 victory, a day after the death of friend Anthoine Hubert.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver scored Max Verstappen\'s first career win at the 2016 Spanish Grand Prix?',
+    opts: ['Max Verstappen', 'Daniel Ricciardo', 'Lewis Hamilton', 'Kimi Räikkönen'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Max Verstappen won the 2016 Spanish GP at Barcelona in his Red Bull debut, becoming the youngest ever Grand Prix winner at 18.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver became the youngest World Champion in Formula 1 history by clinching the 2010 title at 23?',
+    opts: ['Sebastian Vettel', 'Lewis Hamilton', 'Fernando Alonso', 'Max Verstappen'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Sebastian Vettel became the youngest World Champion in 2010 at 23 years and 134 days, a record that still stands.',
+  },
+  {
+    type: 'standard',
+    q: 'Which driver became the youngest Grand Prix winner in Formula 1 history at the 2016 Spanish Grand Prix?',
+    opts: ['Max Verstappen', 'Sebastian Vettel', 'Charles Leclerc', 'Lando Norris'],
+    ans: 0,
+    difficulty: 'easy',
+    fact: 'Max Verstappen won on his Red Bull debut at 18 years and 228 days, the youngest ever winner — a record that still stands.',
+  },
+  {
+    type: 'standard',
+    q: 'Which country has produced the most Formula 1 World Champions?',
+    opts: ['Brazil', 'Germany', 'United Kingdom', 'Argentina'],
+    ans: 2,
+    difficulty: 'medium',
+    fact: 'The UK has produced the most World Champions of any nation, including Hamilton, Stewart, Hunt, Mansell, Button and Clark.',
+  },
 ];
 
-// Question bank last updated: June 2026
+// ── BATCH_INSERT_MARKER ──
 // Season: 2026 F1 World Championship
 // Grid: 11 teams, 22 drivers
 
@@ -542,8 +1206,35 @@ const TOTAL_QUESTIONS = 10;
 const POINTS_PER_QUESTION = 10;
 const MAX_SCORE = TOTAL_QUESTIONS * POINTS_PER_QUESTION;
 
-function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5);
+// Deterministic weekly question selection.
+//
+// The quiz rotates to a new set of 10 questions every Monday at midnight and
+// every user who plays in a given week sees the exact same 10 questions in the
+// exact same order. We derive a stable week key from the current date and use
+// it to seed a hash-based PRNG, which deterministically shuffles the bank. The
+// same week key always yields the same selection and order.
+
+function getWeekNumber(now: Date = new Date()): string {
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const weekNumber = Math.floor(
+    (now.getTime() - startOfYear.getTime()) / (7 * 24 * 60 * 60 * 1000),
+  );
+  return `${now.getFullYear()}-W${weekNumber}`;
+}
+
+function seededRandom(seed: string): () => number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return function () {
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+    hash = hash ^ (hash >>> 16);
+    return (hash >>> 0) / 0xffffffff;
+  };
 }
 
 // Difficulty curve: a 10-question quiz ramps from easy to expert —
@@ -556,17 +1247,24 @@ const DIFFICULTY_PLAN: { tier: Difficulty; count: number }[] = [
 ];
 
 function pickQuestions(): Question[] {
-  const picked: Question[] = [];
+  const rng = seededRandom(getWeekNumber());
 
+  // Deterministic shuffle of the full bank — same seed ⇒ same order.
+  const shuffledBank = [...BANK]
+    .map((q) => ({ q, sort: rng() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((item) => item.q);
+
+  const picked: Question[] = [];
   for (const { tier, count } of DIFFICULTY_PLAN) {
-    const pool = shuffle(BANK.filter((q) => q.difficulty === tier && !picked.includes(q)));
+    const pool = shuffledBank.filter((q) => q.difficulty === tier && !picked.includes(q));
     picked.push(...pool.slice(0, count));
   }
 
-  // Backfill from the remaining bank if any tier was short, keeping the
+  // Backfill from the remaining shuffled bank if any tier was short, keeping the
   // easy→expert ordering by difficulty rank.
   if (picked.length < TOTAL_QUESTIONS) {
-    const rest = shuffle(BANK.filter((q) => !picked.includes(q)));
+    const rest = shuffledBank.filter((q) => !picked.includes(q));
     for (const q of rest) {
       if (picked.length >= TOTAL_QUESTIONS) break;
       picked.push(q);

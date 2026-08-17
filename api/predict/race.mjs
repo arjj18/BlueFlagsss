@@ -209,7 +209,24 @@ Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every positio
 
     res.status(200).json({ ...data, race, round, generatedAt: new Date().toISOString() });
   } catch (err) {
-    const status = err.statusCode === 503 ? 503 : 500;
-    res.status(status).json({ error: "Failed to generate prediction. Please try again." });
+    console.error("[predict/race] Prediction failed:", {
+      message: err.message,
+      statusCode: err.statusCode,
+      detail: err.detail,
+    });
+    if (err.statusCode === 429) {
+      res.status(429).json({ error: "Too many requests to the AI right now. Wait a moment and try again." });
+      return;
+    }
+    if (err.statusCode === 503 || /credit balance is too low/i.test(err.detail ?? "")) {
+      res.status(503).json({ error: "The AI service is temporarily unavailable (out of credits or API key not configured). Please try again later." });
+      return;
+    }
+    if (err.statusCode === 401) {
+      res.status(503).json({ error: "The AI API key is invalid or expired. Please check your configuration." });
+      return;
+    }
+    const detail = err.detail ? ` (${err.detail})` : "";
+    res.status(500).json({ error: `Failed to generate prediction${detail}. Please try again.` });
   }
 }

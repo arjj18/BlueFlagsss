@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, RefreshCw, Trophy, AlertCircle, TrendingUp, Star, Globe } from 'lucide-react';
-import { getCurrentRaceStatus } from '@/lib/f1Calendar';
+import { Zap, RefreshCw, Trophy, CircleAlert as AlertCircle, TrendingUp, Star, Globe } from 'lucide-react';
+import { getNextRace } from '@/lib/f1Calendar';
 import { colorForTeam } from '@/lib/f1Standings';
 
 type PodiumEntry = { pos: number; driver: string; team: string; note: string };
@@ -51,8 +51,7 @@ function formatTime(iso: string): string {
 }
 
 export function RacePredictor() {
-  const status = getCurrentRaceStatus();
-  const race = status.kind !== 'offseason' ? status.race : null;
+  const race = getNextRace();
 
   const [prediction, setPrediction] = useState<Prediction | null>(
     () => race ? loadCached(race.round) : null
@@ -108,16 +107,6 @@ export function RacePredictor() {
     }
   }
 
-  if (status.kind === 'offseason') {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-        <Trophy className="w-8 h-8 text-muted-foreground/30" />
-        <p className="text-muted-foreground/60 text-sm">The 2026 season has ended.</p>
-        <p className="text-xs text-muted-foreground/40">Come back in 2027!</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 py-2 animate-in fade-in">
 
@@ -125,7 +114,7 @@ export function RacePredictor() {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-wider text-[#7c3aed]/70 mb-1">
-            {status.kind === 'weekend' ? 'Race Weekend' : `Round ${race!.round} · ${race!.date}`}
+            Round {race!.round} · {race!.date}
           </div>
           <h2 className="text-xl font-black text-white leading-tight">{race!.name}</h2>
           <p className="text-xs text-muted-foreground/60 mt-0.5">{race!.circuit}</p>
@@ -170,9 +159,18 @@ export function RacePredictor() {
 
       {/* Error state */}
       {error && !loading && (
-        <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-          <AlertCircle className="w-4 h-4 text-destructive/70 shrink-0" />
-          <p className="text-sm text-destructive/80">{error}</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+            <AlertCircle className="w-4 h-4 text-destructive/70 shrink-0 mt-0.5" />
+            <p className="text-sm text-destructive/80">{error}</p>
+          </div>
+          <button
+            onClick={generate}
+            className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-[#7c3aed]/10 hover:bg-[#7c3aed]/20 text-[#7c3aed] text-sm font-medium transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try again
+          </button>
         </div>
       )}
 

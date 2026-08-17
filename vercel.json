@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd artifacts/pit-lane && npm install --legacy-peer-deps && npm run build",
-  "outputDirectory": "artifacts/pit-lane/dist",
-  "installCommand": "npm install --legacy-peer-deps",
+  "framework": null,
+  "buildCommand": "pnpm --filter @workspace/pit-lane run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install -g pnpm@10 && pnpm install",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }

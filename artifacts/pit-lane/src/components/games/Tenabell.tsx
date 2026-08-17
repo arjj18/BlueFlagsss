@@ -108,19 +108,44 @@ const NICKNAMES: Record<string, string> = {
   piastri: 'oscar piastri',
 };
 
+// Common country / circuit name alternatives — maps a normalised input to
+// a list of normalised equivalents that should also match.
+const INPUT_ALIASES: Record<string, string[]> = {
+  'uk': ['united kingdom', 'britain', 'great britain', 'england'],
+  'united kingdom': ['uk', 'britain', 'great britain', 'england'],
+  'great britain': ['uk', 'britain', 'england', 'united kingdom'],
+  'britain': ['uk', 'united kingdom', 'great britain', 'england'],
+  'england': ['uk', 'united kingdom', 'britain', 'great britain'],
+  'usa': ['america', 'united states', 'us'],
+  'america': ['usa', 'united states', 'us'],
+  'united states': ['usa', 'america', 'us'],
+  'holland': ['netherlands'],
+  'netherlands': ['holland'],
+  'sao paulo': ['interlagos', 'brazil circuit'],
+  'interlagos': ['sao paulo'],
+  'cota': ['austin', 'circuit of the americas'],
+  'austin': ['cota', 'circuit of the americas'],
+  'spa': ['belgium circuit', 'spa francorchamps'],
+  'silverstone': ['british circuit'],
+};
+
 function fuzzyMatch(guess: string, target: string): boolean {
   const g = normalize(guess);
   const t = normalize(target);
+  if (!g || g.length < 2) return false;
   if (g === t) return true;
   // nickname / abbreviation match
   const nick = NICKNAMES[g];
   if (nick && normalize(nick) === t) return true;
+  // input alias match (country / circuit alternatives)
+  const aliases = INPUT_ALIASES[g];
+  if (aliases && aliases.some(a => normalize(a) === t)) return true;
   // surname-only match (last word of target)
   const surname = t.split(/[\s/-]+/).pop() ?? "";
   if (g === surname) return true;
   if (surname.startsWith(g) && g.length >= 3) return true;
-  // substring match
-  if (t.includes(g) && g.length >= 3) return true;
+  // substring match (at least 4 chars to avoid false positives)
+  if (t.includes(g) && g.length >= 4) return true;
   if (g.includes(t) && t.length >= 4) return true;
   return false;
 }
