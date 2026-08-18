@@ -4,6 +4,7 @@ import { RaceBingo } from './components/games/RaceBingo';
 import { WheelKnowledgeQuiz } from './components/games/WheelKnowledgeQuiz';
 import { Tenabell } from './components/games/Tenabell';
 import { TwentyFourO, BUDGET as TWENTYFOURO_BUDGET } from './components/games/TwentyFourO';
+import { F1Grid } from './components/games/F1Grid';
 import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
 import { RacePredictor } from './components/games/RacePredictor';
@@ -23,7 +24,7 @@ const tenabellStreakActive =
   streakState.current >= 2 &&
   (streakState.lastDate === todayKeyHub || streakState.lastDate === yesterdayKey);
 
-type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "history" | "schedule" | "predictor" | null;
+type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "f1grid" | "history" | "schedule" | "predictor" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
@@ -38,6 +39,7 @@ export default function App() {
       case "wheel":      return <WheelKnowledgeQuiz />;
       case "tenabell":   return <Tenabell />;
       case "twentyfour": return <TwentyFourO />;
+      case "f1grid":     return <F1Grid />;
       case "history":    return <ScoreHistory onClose={() => setActiveGame(null)} />;
       case "schedule":   return <RaceSchedule onClose={() => setActiveGame(null)} />;
       case "predictor":  return <RacePredictor />;
@@ -51,6 +53,7 @@ export default function App() {
       case "wheel":      return "F1 WHEEL KNOWLEDGE";
       case "tenabell":   return "TENABELL";
       case "twentyfour": return "24-0";
+      case "f1grid":     return "F1 GRID";
       case "history":    return "SCORE HISTORY";
       case "schedule":   return "2026 SCHEDULE";
       case "predictor":  return "RACE PREDICTOR";
@@ -202,6 +205,28 @@ export default function App() {
                 <div className="mt-auto text-[10px] font-semibold text-[#2e7d32]/80">3 modes · Daily picks</div>
               </button>
             </div>
+
+            {/* F1 Grid — featured NEW */}
+            <button
+              onClick={() => setActiveGame("f1grid")}
+              className="group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.98] bg-gradient-to-br from-[#1a0a0a] to-[#111] border border-[#2a1a1a] border-l-[3px] border-l-[#e10600] hover:border-[#e10600]"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-bold tracking-[0.15em] text-[#e10600] uppercase mb-1.5 flex items-center gap-1.5">
+                    <span className="w-[5px] h-[5px] rounded-full bg-[#e10600]" />
+                    NEW · Multiplayer
+                  </div>
+                  <div className="font-['Barlow_Condensed'] text-[28px] font-extrabold text-white leading-none tracking-wide mb-1.5">
+                    F1 Grid
+                  </div>
+                  <div className="text-[12px] text-[#777] leading-relaxed">
+                    Name a driver fitting both criteria — play vs AI or challenge a friend online.
+                  </div>
+                </div>
+                <div className="text-[32px] ml-3 opacity-80 shrink-0">⊞</div>
+              </div>
+            </button>
 
             {/* 24-0 — featured */}
             <button
