@@ -1,0 +1,32 @@
+.f1-grid-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.f1-grid-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.f1-grid-cell {
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  padding: 8px;
+  border-radius: 6px;
+  color: #fff;
+}
+
+/* Responsive layout helpers used by the component */
+.f1-grid-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.f1-grid-header {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
