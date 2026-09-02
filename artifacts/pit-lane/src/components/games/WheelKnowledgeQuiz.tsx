@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Lock, Flame } from 'lucide-react';
 import { GeneralQuiz } from './GeneralQuiz';
-import { PostRaceQuiz } from './PostRaceQuiz';
+import PostRaceQuiz from './PostRaceQuiz';
 import {
   hasCompletedThisWeek,
   getWeeklyStreak,
@@ -40,7 +40,7 @@ function getReviewUnlockMessage(day: number) {
   return 'Available now!'; // Tuesday–Wednesday
 }
 
-// ── Card ─────────────────────────────────────────────────────────────────────
+// ── Card ────────────────────────────────────────────────────────────
 
 type CardProps = {
   emoji: string;
@@ -100,7 +100,7 @@ function QuizModeCard({
   );
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────────────
 
 export function WheelKnowledgeQuiz() {
   const [view, setView] = useState<View>('home');
