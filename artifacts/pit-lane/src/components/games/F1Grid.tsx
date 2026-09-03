@@ -222,11 +222,11 @@ function GameOverScreen({ result, myPlayer, onPlayAgain, onBackToMenu }: {
   return (
     <div className="flex flex-col items-center text-center py-8 animate-in fade-in">
       <div className="text-5xl mb-3">{isDraw ? "🤝" : isWinner ? "🏆" : "😔"}</div>
-      <div className="font-['Barlow_Condensed'] text-4xl font-black mb-2" style={{ color: isDraw ? "white" : isWinner ? "#e10600" : "#555" }}>{isDraw ? "Draw!" : isWinner ? "You Win!" : "Opponent Wins!"}</div>
+      <div className="font-['Barlow_Condensed'] text-4xl font-black mb-2" style={{ color: isDraw ? "white" : isWinner ? "#e10600" : "#555" }}>{isDraw ? "Draw!" : isWinner ? "You Win!" : "Opponent..."}</div>
       <p className="text-sm text-[#555] mb-6">{isDraw ? "A perfectly matched game" : isWinner ? "Excellent F1 knowledge!" : "Better luck next time"}</p>
       <div className="flex flex-col gap-2 w-full max-w-xs">
         <button onClick={onPlayAgain} className="py-3.5 bg-[#e10600] rounded-xl text-sm font-bold text-white hover:bg-[#e10600]/90 transition-colors">Play again</button>
-        <button onClick={share} className="py-3.5 border border-[#333] rounded-xl text-sm font-semibold text-[#666] hover:bg-[#1a1a1a] transition-colors flex items-center justify-center gap-2">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? "Copied!" : "Share result"}</button>
+        <button onClick={share} className="py-3.5 border border-[#333] rounded-xl text-sm font-semibold text-[#666] hover:bg-[#1a1a1a] transition-colors flex items-center justify-center gap-2">{copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />} {copied ? 'Copied!' : 'Share result'}</button>
         <button onClick={onBackToMenu} className="py-3.5 border border-[#222] rounded-xl text-sm font-semibold text-[#444] hover:bg-[#1a1a1a] transition-colors">Back to menu</button>
       </div>
     </div>
@@ -403,8 +403,8 @@ export function F1Grid() {
         <div>
           <label className="text-[11px] font-bold text-[#555] uppercase tracking-wider block mb-1.5">Enter room code</label>
           <div className="flex gap-2">
-            <input type="text" value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase().slice(0,6)); setJoinError(""); }} onKeyDown={e => e.key === "Enter" && joinOnlineRoom()} placeholder="ABC123" maxLength={6}
-              className="flex-1 px-3.5 py-3 bg-[#1a1a1a] border border-[#333] rounded-lg text-white text-base font-mono font-bold tracking-widest uppercase outline-none focus:border-[#e10600]/50 transition-colors" />
+            <input type="text" value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase().slice(0,6)); setJoinError(""); }} onKeyDown={e => e.key === "Enter" && joinOnlineRoom()}
+              className="flex-1 px-3.5 py-3 bg-[#1a1a1a] border border-[#333] rounded-lg text-white text-base font-mono font-bold tracking-widest uppercase outline-none focus:border-[#e10600]/50" />
             <button onClick={joinOnlineRoom} className="px-5 py-3 bg-[#e10600] rounded-lg text-sm font-bold text-white hover:bg-[#e10600]/90 transition-colors">Join →</button>
           </div>
           {joinError && <div className="flex items-center gap-2 mt-2 text-sm text-[#e10600]"><AlertCircle className="w-4 h-4 shrink-0" /><span>{joinError}</span></div>}
@@ -425,7 +425,7 @@ export function F1Grid() {
         </button>
         <div className="text-sm text-[#555]">Waiting for opponent to join...</div>
         <Loader2 className="w-6 h-6 text-[#e10600] animate-spin mt-4" />
-        <button onClick={() => { if (pollRef.current) clearInterval(pollRef.current); localStorage.removeItem(`f1grid-room-${roomCode}`); setScreen("menu"); }} className="mt-6 text-sm text-[#555] hover:text-[#777] transition-colors">Cancel</button>
+        <button onClick={() => { if (pollRef.current) clearInterval(pollRef.current); localStorage.removeItem(`f1grid-room-${roomCode}`); setScreen("menu"); }} className="mt-6 text-sm text-[#555]">Cancel</button>
       </div>
     );
   }
@@ -458,3 +458,5 @@ export function F1Grid() {
     </div>
   );
 }
+
+export default F1Grid;
