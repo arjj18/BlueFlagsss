@@ -23,7 +23,6 @@ export async function callAnthropic({ model, maxTokens, system, prompt, tools })
     "x-api-key": apiKey,
     "anthropic-version": "2023-06-01",
   };
-  if (tools) headers["anthropic-beta"] = "web-search-2025-03-05";
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",

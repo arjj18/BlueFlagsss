@@ -8,6 +8,7 @@ import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
 import { resolveQuestionImage } from '@/lib/teamLogos';
 import { getNextRace } from '@/lib/f1Calendar';
 import type { Race } from '@/lib/f1Calendar';
+import { trackApiCall } from '@/lib/apiUsage';
 import {
   hasCompletedReviewThisWeek,
   completeReviewQuiz,
@@ -186,24 +187,24 @@ async function generateReviewQuizClient(raceName, showLoadingFn, startQuizFn) {
         .map(p => `P${p.position}: ${p.driver} (${p.team})`)
         .join(', ');
 
-      raceContext = `\nREAL RACE RESULTS FROM ${raceName.toUpperCase()} ${currentYear}:\n- Race Winner: ${raceData.winner.driver} (${raceData.winner.team})\n- Podium: ${podiumText}\n- Top 10 Fini...`;
+      raceContext = `\nREAL RACE RESULTS FROM ${raceName.toUpperCase()} ${currentYear}:\n- Race Winner: ${raceData.winner.driver} (${raceData.winner.team})\n- Podium: ${podiumText}\n- Top 10 Finishes: ${top10Text}`;
 
       console.log('Real race data loaded successfully:', raceData.winner.driver, 'won');
 
     } else {
-      raceContext = `\nNote: Real-time race data could not be fetched. Generate questions based on your knowledge of the ${raceName} ${currentYear}. \nIf you do not have reliable information abou...`;
+      raceContext = `\nNote: Real-time race data could not be fetched. Generate questions based on your knowledge of the ${raceName} ${currentYear}. \nIf you do not have reliable information about the result, be conservative and label questions as "based on typical historical scenarios".`;
 
       console.log('OpenF1 data unavailable — using AI knowledge fallback');
     }
 
-    const reviewPrompt = `You are an F1 quiz master creating a post-race review quiz.\n\n${raceContext}\n\nGenerate exactly 6 multiple choice quiz questions about the ${raceName} ${currentYear}.[...]`;
+    const reviewPrompt = `You are an F1 quiz master creating a post-race review quiz.\n\n${raceContext}\n\nGenerate exactly 6 multiple choice quiz questions about the ${raceName} ${currentYear}. Return ONLY a JSON array with no additional text. Each question should have keys: q, opts (array of 4), ans (index 0-3), fact (brief supporting fact). The last question may be of type 'whoami' with a clues array instead of opts/ans.`;
 
     const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 900,
+        max_tokens: 800,
         messages: [{ role: 'user', content: reviewPrompt }]
       })
     });
@@ -229,6 +230,8 @@ async function generateReviewQuizClient(raceName, showLoadingFn, startQuizFn) {
 
     cacheReviewQuiz(raceName, currentYear, questions, dataSource);
 
+    trackApiCall(1);
+
     startQuizFn(questions, raceName, dataSource);
 
   } catch (error) {
@@ -251,7 +254,6 @@ export default function PostRaceQuiz() {
     }
     setLoading(true);
     try {
-      // Use the client generator to create quiz (UI handlers omitted for brevity)
       await generateReviewQuizClient(nextRace.name, () => {}, () => {});
     } catch (e) {
       console.error(e);

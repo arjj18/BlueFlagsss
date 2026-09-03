@@ -53,19 +53,11 @@ ANSWER QUALITY — apply to EVERY question:
 async function generateQuiz(
   anthropic: Anthropic,
   prompt: string,
-  useWebSearch: boolean,
+  _useWebSearch: boolean,
 ): Promise<string> {
   const resp = (await anthropic.messages.create({
-    // 10 detailed questions + facts (+ web-search tokens for review) easily
-    // exceed a small budget; too low a limit truncates the JSON mid-string and
-    // breaks parsing. Keep this generous.
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192,
-    // Review (post-race) needs live results, so it searches the web. Preview is
-    // history-based and runs from the model's own knowledge — no web search.
-    ...(useWebSearch
-      ? { tools: [{ type: "web_search_20250305", name: "web_search" }] as unknown as Anthropic.Tool[] }
-      : {}),
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: useWebSearch ? 800 : 8192,
     messages: [{ role: "user", content: prompt }],
   } as Parameters<typeof anthropic.messages.create>[0])) as Anthropic.Message;
 
@@ -157,60 +149,19 @@ const REVIEW_PROMPT = () => {
   });
   return `You are an F1 quiz master. Today's date is ${currentDate}. The current F1 season is ${currentYear}.
 
-STEP 1 — IDENTIFY THE RACE: First, search the web to determine the SINGLE most recent Formula 1 Grand Prix that has ALREADY been completed as of today (${currentDate}). This is the last race weekend that has actually finished on or before today — never an upcoming race that has not happened yet, and never an older race if a more recent one has already finished.
+Identify the SINGLE most recent Formula 1 Grand Prix that has ALREADY been completed as of today (${currentDate}). Use ${currentYear} season data only — never ${currentYear - 1} or earlier.
 
-Useful searches for step 1:
-- "F1 ${currentYear} most recent race result"
-- "F1 ${currentYear} last Grand Prix result"
-- "Formula 1 ${currentYear} calendar results so far"
+Generate exactly 6 multiple choice questions about that race. Cover: winner, podium, fastest lap, key incident, strategy, championship impact.
 
-IMPORTANT: Use ${currentYear} season data only. Do not use ${currentYear - 1} or any previous season data under any circumstances. If a search returns results from ${currentYear - 1} or earlier, ignore them and search again with different terms.
-
-STEP 2 — RESEARCH THAT RACE: Once you have identified the most recent completed Grand Prix, search the web thoroughly for that exact race: full qualifying results, full race results including winner podium finishing order DNFs, all pit stop data including laps compounds and number of stops, fastest lap holder and which lap, safety car or red flag periods and which laps, key overtakes and incidents, championship standings before and after this race, practice session highlights.
-
-STEP 3 — BUILD THE QUIZ: You are creating a Tuesday review quiz about that most recent ${currentYear} Grand Prix. Generate exactly 10 questions in this exact order (all questions are about that single most recent race):
-
-Question 1 — QUALIFYING: Ask about pole position — who took it, the margin over P2, or which big name was eliminated in Q1. Use actual results.
-
-Question 2 — PRACTICE: Ask about something specific from practice sessions — fastest time in FP1, unexpected pace from a team, or a notable incident in practice.
-
-Question 3 — RACE START: Ask about the opening lap — who led into turn 1, positions gained or lost by the winner at the start, or a specific lap 1 incident.
-
-Question 4 — SAFETY CAR OR INCIDENT: Ask about a safety car period, red flag, or notable crash — which lap it was deployed, what caused it, how it affected the outcome. If no safety car ask about a notable incident instead.
-
-Question 5 — TYRE STRATEGY: Ask about strategy — which compound the race winner started on, which driver made the most pit stops, or the boldest one-stop vs two-stop call.
-
-Question 6 — MID RACE BATTLE: Ask about a specific overtake or battle for position — which lap, which corner, what the outcome was.
-
-Question 7 — POSITION CHART: Describe one driver's race trajectory through their positions at key laps and ask which driver this describes. Give four driver options.
-
-Question 8 — FASTEST LAP: Who set the fastest lap of the race, on which lap was it set, and did they collect the bonus championship point.
-
-Question 9 — FINAL RESULT: Ask about the race finish — exact winning margin in seconds, who completed the podium in P3, or how many drivers finished on the lead lap.
-
-Question 10 — CHAMPIONSHIP IMPLICATIONS: Ask about how this race changed the championship — how many points the leader now leads by, which driver closed the gap most, or what needs to happen at the next race.
-
-${DIFFICULTY_GUIDANCE}
-
-Return ONLY a JSON object with no other text in this exact shape:
+Return ONLY a JSON object with no other text:
 {
-  "race": "Full Grand Prix name you identified, e.g. British Grand Prix",
+  "race": "Full Grand Prix name, e.g. British Grand Prix",
   "questions": [
-    {
-      "q": "Question text here",
-      "type": "standard",
-      "opts": ["Option A", "Option B", "Option C", "Option D"],
-      "ans": 0,
-      "fact": "Brief interesting fact about the correct answer"
-    }
+    {"q":"Question?","type":"standard","opts":["A","B","C","D"],"ans":0,"fact":"Brief fact."}
   ]
 }
 
-The "race" field MUST be the official name of the single most recent completed Grand Prix you identified in step 1 (for example "British Grand Prix", "Italian Grand Prix").
-
-A question MAY optionally include an "image" field — a direct, real, publicly hosted https URL to a relevant photo from this race weekend. The client shows it above the question and hides it gracefully if it fails to load. Only include "image" when you are confident the URL is real and working; otherwise omit it entirely. Never fabricate a URL.
-
-Every question must use real accurate data from your ${currentYear} web search. Do not guess or use outdated information or any data from ${currentYear - 1} or earlier.`;
+No markdown. No extra text.`;
 };
 
 router.post("/quiz/generate", async (req, res) => {

@@ -55,7 +55,7 @@ Return ONLY a JSON array of exactly 16 short strings, no markdown, no other text
 
   try {
     const text = await callAnthropic({
-      model: "claude-haiku-4-5",
+      model: "claude-haiku-4-5-20251001",
       maxTokens: 600,
       prompt,
     });

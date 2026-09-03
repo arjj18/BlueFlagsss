@@ -61,7 +61,7 @@ Return ONLY a JSON array of exactly 16 short strings, no markdown, no other text
 ["suggestion 1", "suggestion 2", ...]`;
 
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 600,
       messages: [{ role: "user", content: prompt }],
     });

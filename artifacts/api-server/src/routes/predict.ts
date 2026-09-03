@@ -3,7 +3,7 @@ import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router: IRouter = Router();
 
-const SYSTEM_PROMPT = `You are an F1 race prediction model. Use ONLY the information below to generate realistic, data-driven predictions for the 2026 Formula 1 season. Do not use outdated drivers, invent standings, or hallucinate results. Where appropriate use the web_search tool to fetch live, authoritative data before composing the JSON output.`;
+const SYSTEM_PROMPT = `You are an F1 race prediction model. Use ONLY the information below to generate realistic, data-driven predictions for the 2026 Formula 1 season. Do not use outdated drivers, invent standings, or hallucinate results. Base your prediction on your knowledge of recent F1 form, historical performance at this circuit, and current championship dynamics. State your assumptions clearly.`;
 
 function joinTextBlocks(resp: any): string {
   try {
@@ -30,24 +30,18 @@ router.post("/predict/race", async (req, res) => {
   }
 
   try {
-    // NOTE: tools array enables the web search tool for live data retrieval
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1500,
       system: SYSTEM_PROMPT,
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
       messages: [
         {
           role: "user",
           content: `Generate a race prediction for the 2026 ${race} Grand Prix (Round ${round}).
 
-First: using the web_search tool, retrieve the most recent:
-1) current driver standings and constructor standings,
-2) confirmed driver line-ups for the season,
-3) the last 3 race results including winners/podiums and notable incidents,
-4) any driver/team news or penalties that could affect race weekend.
+Base your prediction on your knowledge of recent F1 form, historical performance at this circuit, and current championship dynamics. State your assumptions clearly.
 
-Then: produce ONLY valid JSON (no markdown/fences) that matches this schema exactly:
+Produce ONLY valid JSON (no markdown/fences) that matches this schema exactly:
 
 {
   "headline": "Bold punchy one-liner prediction (max 12 words)",
@@ -71,7 +65,7 @@ Then: produce ONLY valid JSON (no markdown/fences) that matches this schema exac
     const normalised = jsonText.replace(/Kick Sauber/g, "Audi").replace(/Sauber/g, "Audi");
 
     const data = JSON.parse(normalised);
-    const out = { ...data, race, round, generatedAt: new Date().toISOString(), dataSource: `Live web search: ${new Date().toISOString().slice(0,10)}` };
+    const out = { ...data, race, round, generatedAt: new Date().toISOString(), dataSource: `AI knowledge (no web search): ${new Date().toISOString().slice(0,10)}` };
 
     res.status(200).json(out);
   } catch (err: any) {

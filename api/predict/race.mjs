@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   try {
     const text = await callAnthropic({
       model: "claude-haiku-4-5-20251001",
-      maxTokens: 8192,
+      maxTokens: 1500,
       system: SYSTEM_PROMPT,
       prompt: `Generate a race prediction for the 2026 ${race} Grand Prix (Round ${round}).
 

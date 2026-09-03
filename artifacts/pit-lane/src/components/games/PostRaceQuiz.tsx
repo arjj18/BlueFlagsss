@@ -8,6 +8,7 @@ import { CircuitSilhouette } from '@/components/games/CircuitSilhouette';
 import { resolveQuestionImage } from '@/lib/teamLogos';
 import { getNextRace } from '@/lib/f1Calendar';
 import type { Race } from '@/lib/f1Calendar';
+import { trackApiCall } from '@/lib/apiUsage';
 import {
   hasCompletedReviewThisWeek,
   completeReviewQuiz,
@@ -203,7 +204,7 @@ async function generateReviewQuizClient(raceName, showLoadingFn, startQuizFn) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 900,
+        max_tokens: 800,
         messages: [{ role: 'user', content: reviewPrompt }]
       })
     });
@@ -228,6 +229,8 @@ async function generateReviewQuizClient(raceName, showLoadingFn, startQuizFn) {
       : `⚠️ Live data unavailable — questions based on AI knowledge`;
 
     cacheReviewQuiz(raceName, currentYear, questions, dataSource);
+
+    trackApiCall(1);
 
     startQuizFn(questions, raceName, dataSource);
 
