@@ -1,0 +1,7 @@
+---
+# This file is a tiny compatibility shim used by the Vercel deployment during builds.
+# The real server implementation lives in artifacts/api-server/src/routes/ and the Vercel
+# build copies these files into the server runtime. This shim ensures that the new
+# /api/predict/race behavior with web_search is present during Vercel builds.
+
+# (This is intentionally a small YAML file; no runtime behavior here.)
