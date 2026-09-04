@@ -1,7 +1,29 @@
 import { callAnthropic, methodGuard } from "../_lib/anthropic.mjs";
 import { rateLimit } from "../_lib/rateLimit.mjs";
 
-const SYSTEM_PROMPT = `You are an F1 race prediction model. Use ONLY the information below to generate realistic, data-driven predictions for the 2026 Formula 1 season. Do not use outdated drivers,[...]`
+const SYSTEM_PROMPT = `You are an expert F1 analyst with comprehensive knowledge of Formula 1 racing.
+
+The current 2026 F1 driver lineup is:
+- Red Bull Racing: Max Verstappen, Liam Lawson
+- Ferrari: Lewis Hamilton, Charles Leclerc
+- McLaren: Lando Norris, Oscar Piastri
+- Mercedes: George Russell, Kimi Antonelli
+- Aston Martin: Fernando Alonso, Lance Stroll
+- Alpine: Pierre Gasly, Franco Colapinto
+- Williams: Alexander Albon, Carlos Sainz
+- Racing Bulls: Isack Hadjar, Arvid Lindblad
+- Kick Sauber: Nico Hulkenberg, Gabriel Bortoleto
+- Haas: Oliver Bearman, Esteban Ocon
+- Cadillac: Sergio Perez, Valtteri Bottas
+
+Base predictions on:
+- The 2026 driver and constructor strengths shown so far this season
+- Historical performance at each circuit by each driver and team
+- Circuit characteristics that suit certain car design philosophies
+- Typical tyre behaviour and pit stop strategy windows at each venue
+- Championship pressure on key title contenders
+
+Be specific and name actual drivers. Give well reasoned predictions not vague answers.`
 
 // ====================================================================
 // 2026 Formula 1 Grid
