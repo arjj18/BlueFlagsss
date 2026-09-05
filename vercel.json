@@ -1,3 +1,6 @@
 {
-  "outputDirectory": "artifacts/pit-lane/dist"
+  "buildCommand": "cd artifacts/pit-lane && npm install && npm run build",
+  "outputDirectory": "artifacts/pit-lane/dist",
+  "installCommand": "npm install",
+  "framework": null
 }
