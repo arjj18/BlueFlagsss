@@ -8,6 +8,8 @@ import F1Grid from './components/games/F1Grid';
 import { ScoreHistory } from './components/ScoreHistory';
 import { RaceSchedule } from './components/RaceSchedule';
 import { RacePredictor } from './components/games/RacePredictor';
+import PostRaceQuiz from './components/games/PostRaceQuiz';
+import { GeneralQuiz } from './components/games/GeneralQuiz';
 import { getDailyCategory, loadStreak, getTodayKey } from './lib/tenabellCategories';
 import { RaceCountdown } from './components/RaceCountdown';
 import { getCurrentRaceStatus } from './lib/f1Calendar';
@@ -24,7 +26,7 @@ const tenabellStreakActive =
   streakState.current >= 2 &&
   (streakState.lastDate === todayKeyHub || streakState.lastDate === yesterdayKey);
 
-type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "f1grid" | "history" | "schedule" | "predictor" | null;
+type GameId = "bingo" | "wheel" | "tenabell" | "twentyfour" | "f1grid" | "history" | "schedule" | "predictor" | "postracequiz" | "generalquiz" | null;
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameId>(null);
@@ -43,6 +45,8 @@ export default function App() {
       case "history":    return <ScoreHistory onClose={() => setActiveGame(null)} />;
       case "schedule":   return <RaceSchedule onClose={() => setActiveGame(null)} />;
       case "predictor":  return <RacePredictor />;
+      case "postracequiz": return <PostRaceQuiz />;
+      case "generalquiz": return <GeneralQuiz />;
       default: return null;
     }
   };
@@ -57,6 +61,8 @@ export default function App() {
       case "history":    return "SCORE HISTORY";
       case "schedule":   return "2026 SCHEDULE";
       case "predictor":  return "RACE PREDICTOR";
+      case "postracequiz": return "POST RACE QUIZ";
+      case "generalquiz": return "GENERAL QUIZ";
       default: return "";
     }
   };
@@ -191,6 +197,83 @@ export default function App() {
                 </div>
               </button>
 
+              {/* F1 Wheel Knowledge */}
+              <button
+                onClick={() => setActiveGame("wheel")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#2e7d32] hover:border-[#2e7d32]"
+              >
+                <div className="text-[20px] mb-2">🎯</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#2e7d32] uppercase mb-1">Any time</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  F1 Wheel Knowledge
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">General trivia or AI race questions</div>
+              </button>
+
+              {/* Post Race Quiz */}
+              <button
+                onClick={() => setActiveGame("postracequiz")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#1565c0] hover:border-[#1565c0]"
+              >
+                <div className="text-[20px] mb-2">🏁</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#1565c0] uppercase mb-1">After Race</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  Post Race Quiz
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">AI quiz from the race you just watched</div>
+              </button>
+
+              {/* Race Predictor */}
+              <button
+                onClick={() => setActiveGame("predictor")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#2e7d32] hover:border-[#2e7d32]"
+              >
+                <div className="text-[20px] mb-2">🔮</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#2e7d32] uppercase mb-1">Next Race</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  Race Predictor
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">AI-powered predictions for the Grand Prix</div>
+              </button>
+
+              {/* 24-0 Season Simulator */}
+              <button
+                onClick={() => setActiveGame("twentyfour")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#7c3aed] hover:border-[#7c3aed]"
+              >
+                <div className="text-[20px] mb-2">🏆</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#7c3aed] uppercase mb-1">Season Sim</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  24-0
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">Build a constructor and simulate a season</div>
+              </button>
+
+              {/* F1 Grid */}
+              <button
+                onClick={() => setActiveGame("f1grid")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#e10600] hover:border-[#e10600]"
+              >
+                <div className="text-[20px] mb-2">🏎️</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#e10600] uppercase mb-1">Multiplayer</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  F1 Grid
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">Name a driver fitting both criteria</div>
+              </button>
+
+              {/* General Quiz */}
+              <button
+                onClick={() => setActiveGame("generalquiz")}
+                className="group flex flex-col rounded-xl p-3.5 text-left transition-all active:scale-[0.98] bg-[#111] border border-[#222] border-t-2 border-t-[#e65100] hover:border-[#e65100]"
+              >
+                <div className="text-[20px] mb-2">📝</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] text-[#e65100] uppercase mb-1">Weekly</div>
+                <div className="font-['Barlow_Condensed'] text-[20px] font-extrabold text-white leading-none mb-1.5">
+                  General Quiz
+                </div>
+                <div className="text-[11px] text-[#666] leading-snug">Weekly F1 trivia — new questions every Monday</div>
+              </button>
             </div>
           </div>
         </main>
