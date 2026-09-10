@@ -41,6 +41,10 @@ export default async function handler(req, res) {
     return;
   }
 
+  console.log('[predict/race] API called for race:', race, 'round:', round);
+  console.log('[predict/race] ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY);
+  console.log('[predict/race] Model being used: claude-haiku-4-5-20251001');
+
   try {
     const text = await callAnthropic({
       model: "claude-haiku-4-5-20251001",
@@ -63,6 +67,8 @@ Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every positio
   "championshipImpact": "What this race could mean for the title fight (max 20 words)"
 }`,
     });
+
+    console.log('[predict/race] Anthropic response received, parsing JSON...');
 
     const jsonText = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
     // Defensive guard: the team is "Audi", never "Sauber"/"Kick Sauber".

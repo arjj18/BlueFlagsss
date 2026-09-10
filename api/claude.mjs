@@ -17,10 +17,15 @@ export default async function handler(req, res) {
   const model = typeof body.model === 'string' ? body.model : 'claude-haiku-4-5-20251001';
   const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 1200;
 
+  console.log('[api/claude] Called with model:', model, '| max_tokens:', maxTokens, '| has tools:', !!(body.tools && body.tools.length > 0));
+
   try {
+    console.log('[api/claude] Calling Anthropic API...');
     const text = await callAnthropic({ model, maxTokens, prompt });
+    console.log('[api/claude] Anthropic response received, text length:', text?.length ?? 0);
     res.status(200).json({ content: text });
   } catch (err) {
+    console.error('[api/claude] Error:', err.message, '| status:', err.statusCode, '| detail:', err.detail);
     const status = err.statusCode || 502;
     res.status(status).json({ error: err.message ?? 'Anthropic proxy error', detail: err.detail ?? null });
   }
