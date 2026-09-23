@@ -3,8 +3,19 @@
   "outputDirectory": "artifacts/pit-lane/dist",
   "installCommand": "npm install",
   "framework": null,
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
-    { "source": "/api/claude", "destination": "/api/claude" },
-    { "source": "/api/predict/race", "destination": "/api/predict/race" }
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

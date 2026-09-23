@@ -1,20 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, RefreshCw, Trophy, CircleAlert as AlertCircle, TrendingUp, Star, Globe, Database } from 'lucide-react';
+import { Zap, RefreshCw, CircleAlert as AlertCircle, Database } from 'lucide-react';
 import { getNextRace } from '@/lib/f1Calendar';
-import { colorForTeam } from '@/lib/f1Standings';
 import { trackApiCall } from '@/lib/apiUsage';
 
-type PodiumEntry = { pos: number; driver: string; team: string; note: string };
-type Prediction = {
+type TextPrediction = {
+  prediction: string;
   race: string;
-  round: number;
-  headline: string;
-  winner: { driver: string; team: string; confidence: 'high' | 'medium' | 'low' };
-  podium: PodiumEntry[];
-  top10: string[];
-  factors: string[];
-  wildcard: string;
-  championshipImpact: string;
+  circuit: string;
   generatedAt: string;
 };
 
@@ -26,21 +18,15 @@ const LOADING_STEPS = [
   'Building your race prediction…',
 ];
 
-function loadCached(round: number): Prediction | null {
+function loadCached(round: number): TextPrediction | null {
   try {
     const raw = localStorage.getItem(`${LS_PREFIX}${round}`);
-    return raw ? (JSON.parse(raw) as Prediction) : null;
+    return raw ? (JSON.parse(raw) as TextPrediction) : null;
   } catch { return null; }
 }
 
-function saveCache(p: Prediction) {
-  localStorage.setItem(`${LS_PREFIX}${p.round}`, JSON.stringify(p));
-}
-
-function confidenceBadge(c: 'high' | 'medium' | 'low') {
-  if (c === 'high') return 'bg-emerald-500/20 text-emerald-400';
-  if (c === 'medium') return 'bg-amber-500/20 text-amber-400';
-  return 'bg-muted/40 text-muted-foreground';
+function saveCache(p: TextPrediction) {
+  localStorage.setItem(`${LS_PREFIX}${getNextRace()?.round ?? 0}`, JSON.stringify(p));
 }
 
 function formatDate(iso: string): string {
@@ -51,10 +37,32 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+function renderPredictionText(text: string) {
+  const sections = text.split(/(?=🥇|📋|⚙️|⚔️|🎲|🏆|📊|⚠️)/);
+  return sections.filter(s => s.trim()).map((section, i) => {
+    const lines = section.trim().split('\n');
+    const headerLine = lines[0];
+    const bodyLines = lines.slice(1).filter(l => l.trim());
+
+    const isDisclaimer = headerLine.startsWith('⚠️');
+
+    return (
+      <div key={i} className={isDisclaimer ? 'bg-secondary/20 rounded-lg p-3' : 'bg-secondary/30 rounded-lg p-3.5'}>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#7c3aed]/70 mb-2 whitespace-pre-wrap">{headerLine}</p>
+        <div className="flex flex-col gap-1">
+          {bodyLines.map((line, j) => (
+            <p key={j} className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">{line}</p>
+          ))}
+        </div>
+      </div>
+    );
+  });
+}
+
 export function RacePredictor() {
   const race = getNextRace();
 
-  const [prediction, setPrediction] = useState<Prediction | null>(
+  const [prediction, setPrediction] = useState<TextPrediction | null>(
     () => race ? loadCached(race.round) : null
   );
   const [loading, setLoading] = useState(false);
@@ -91,15 +99,40 @@ export function RacePredictor() {
       const res = await fetch('/api/predict/race', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ race: race.name, round: race.round }),
+        body: JSON.stringify({
+          raceName: race.name,
+          circuit: race.circuit,
+          country: race.country,
+          round: race.round
+        }),
       });
+
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+        const errorData = await res.json().catch(() => ({ error: { message: `HTTP ${res.status}` } }));
+        throw new Error(errorData?.error?.message || `HTTP error ${res.status}`);
       }
-      const data = await res.json() as Prediction;
-      saveCache(data);
-      setPrediction(data);
+
+      const data = await res.json() as TextPrediction;
+
+      if (data.error) {
+        throw new Error(data.error.message || 'Prediction failed');
+      }
+
+      const predictionText = data.prediction || '';
+
+      if (!predictionText.trim()) {
+        throw new Error('AI returned empty prediction');
+      }
+
+      const predictionData: TextPrediction = {
+        prediction: predictionText,
+        race: data.race || race.name,
+        circuit: data.circuit || race.circuit,
+        generatedAt: data.generatedAt || new Date().toISOString()
+      };
+
+      saveCache(predictionData);
+      setPrediction(predictionData);
       trackApiCall(2);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Prediction failed');
@@ -178,95 +211,17 @@ export function RacePredictor() {
 
       {/* Prediction */}
       {prediction && !loading && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
 
-          {/* Headline */}
-          <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/25 rounded-xl p-4">
-            <p className="text-base font-black text-white leading-snug">"{prediction.headline}"</p>
-            <p className="text-[10px] text-muted-foreground/40 mt-1.5 uppercase tracking-wider">
+          {/* Generated timestamp */}
+          <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/25 rounded-xl p-3">
+            <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">
               AI prediction · generated {formatTime(prediction.generatedAt)}
             </p>
           </div>
 
-          {/* Podium */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Trophy className="w-3.5 h-3.5 text-[#7c3aed]/60" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Predicted Podium</span>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {prediction.podium.map((p) => {
-                const teamColor = colorForTeam(p.team);
-                const posLabel = p.pos === 1 ? '1st' : p.pos === 2 ? '2nd' : '3rd';
-                const posAccent = p.pos === 1 ? 'text-yellow-400' : p.pos === 2 ? 'text-zinc-300' : 'text-amber-600';
-                return (
-                  <div key={p.pos} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg ${p.pos === 1 ? 'bg-yellow-400/5 ring-1 ring-yellow-400/20' : 'bg-secondary/30'}`}>
-                    <span className={`text-sm font-black w-6 shrink-0 ${posAccent}`}>{posLabel}</span>
-                    <div className="w-1 h-6 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white leading-tight">{p.driver}</p>
-                      <p className="text-[10px] text-muted-foreground/50">{p.note}</p>
-                    </div>
-                    {p.pos === 1 && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${confidenceBadge(prediction.winner.confidence)}`}>
-                        {prediction.winner.confidence}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Top 10 */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="w-3.5 h-3.5 text-[#7c3aed]/60" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Full Top 10</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1">
-              {prediction.top10.map((driver, i) => (
-                <div key={driver} className="flex items-center gap-2 py-1 px-2 rounded-md hover:bg-secondary/30 transition-colors">
-                  <span className="text-[10px] font-bold text-muted-foreground/40 w-4 tabular-nums text-right">{i + 1}</span>
-                  <span className="text-xs text-white/80 truncate">{driver}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Key factors */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Zap className="w-3.5 h-3.5 text-[#7c3aed]/60" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Key Factors</span>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {prediction.factors.map((f, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground/70">
-                  <span className="text-[#7c3aed]/50 shrink-0 mt-0.5">▸</span>
-                  <span>{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Wildcard + Championship impact */}
-          <div className="grid grid-cols-1 gap-3">
-            <div className="bg-secondary/30 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Star className="w-3 h-3 text-amber-400/70" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Wildcard</span>
-              </div>
-              <p className="text-xs text-white/80">{prediction.wildcard}</p>
-            </div>
-            <div className="bg-[#7c3aed]/5 border border-[#7c3aed]/15 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Trophy className="w-3 h-3 text-[#7c3aed]/60" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">Title Fight</span>
-              </div>
-              <p className="text-xs text-white/80">{prediction.championshipImpact}</p>
-            </div>
-          </div>
+          {/* Prediction sections */}
+          {renderPredictionText(prediction.prediction)}
 
           {/* Data source footnote */}
           <div className="flex items-center gap-1.5 pt-1 border-t border-white/5">

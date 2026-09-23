@@ -242,7 +242,7 @@ Only ask about facts you are highly confident are correct. Return ONLY a valid J
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: previewPrompt }]
       })
     });
@@ -253,7 +253,12 @@ Only ask about facts you are highly confident are correct. Return ONLY a valid J
     }
 
     const data = await response.json();
-    const text: string = data.content ?? '';
+    if (data.error) {
+      throw new Error(data.error.message || 'API returned an error');
+    }
+    const text: string = Array.isArray(data.content)
+      ? data.content.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('')
+      : (data.content ?? '');
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No valid JSON in response');
 
@@ -321,37 +326,41 @@ IMPORTANT: Base all questions about race results, winner, and podium ONLY on the
     } else {
       raceContext = `
 Note: Real-time race data from OpenF1 was not available for the ${raceName} ${currentYear}.
-Generate 6 general F1 knowledge questions about the ${raceName} circuit and its history instead.
+Generate 10 general F1 knowledge questions about the ${raceName} circuit and its history instead.
 Do not make up specific ${currentYear} race results. Focus on historical facts about this circuit.`;
 
       dataSource = '⚠️ Live data unavailable — questions based on circuit history';
       console.log('OpenF1 data unavailable, using circuit history questions');
     }
 
-    const reviewPrompt = `You are an F1 quiz master. Generate exactly 6 multiple choice quiz questions.
+    const reviewPrompt = `You are an F1 quiz master creating a post-race review quiz about the ${raceName} ${currentYear} Formula 1 Grand Prix.
 
 ${raceContext}
 
-Question requirements:
-1. Race winner question — who won this race and what was notable about their victory
-2. Podium question — who finished P2 or P3 and for which team
-3. Notable driver question — a driver who had a particularly good or bad race
-4. Strategy or tyres question — pit stops, compounds used, or key strategic decision
-5. Incident question — a safety car period, notable crash, or memorable moment during the race
-6. Championship impact question — how this result changed the title fight standings
+Generate exactly 10 multiple choice questions in this exact order:
 
-If real race data was provided above use it for questions 1 through 4 at minimum.
-Make all four answer options plausible — do not make wrong answers obviously wrong.
+Question 1 — QUALIFYING: Who took pole position and what was notable about qualifying
+Question 2 — PRACTICE: Something specific that happened in the practice sessions
+Question 3 — RACE START: What happened on the opening lap including any incidents at turn 1
+Question 4 — SAFETY CAR OR INCIDENT: A safety car period, virtual safety car, or notable crash during the race
+Question 5 — TYRE STRATEGY: Which compounds were used by the race winner and what strategy decisions were made
+Question 6 — MID RACE BATTLE: A specific overtake or battle for position during the race
+Question 7 — POSITION CHART: Describe one driver's race trajectory through positions at key moments without naming them — ask which driver this describes
+Question 8 — FASTEST LAP: Who set the fastest lap and on which lap number
+Question 9 — FINAL RESULT: A specific question about the race finish — winning margin, who completed the podium in P3, or how many drivers finished on the lead lap
+Question 10 — CHAMPIONSHIP IMPLICATIONS: How this race changed the Drivers World Championship standings — points leader, gaps, title fight implications
 
-Return ONLY a valid JSON array. No introduction. No explanation. No markdown. Just the raw JSON starting with [ and ending with ]:
-[{"q":"Question?","opts":["Option A","Option B","Option C","Option D"],"ans":0,"fact":"Brief interesting fact about the correct answer."}]`;
+Make all four answer options plausible and challenging. Do not make wrong answers obviously wrong.
+
+Return ONLY a valid JSON array with no other text no markdown no code blocks. Start directly with [ and end with ]:
+[{"q":"Question text here?","opts":["Option A","Option B","Option C","Option D"],"ans":0,"fact":"Brief interesting fact about the correct answer."}]`;
 
     const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 900,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: reviewPrompt }]
       })
     });
@@ -362,7 +371,12 @@ Return ONLY a valid JSON array. No introduction. No explanation. No markdown. Ju
     }
 
     const data = await response.json();
-    const text: string = data.content ?? '';
+    if (data.error) {
+      throw new Error(data.error.message || 'API returned an error');
+    }
+    const text: string = Array.isArray(data.content)
+      ? data.content.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('')
+      : (data.content ?? '');
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No valid JSON in response');
 
@@ -416,7 +430,7 @@ export default function PostRaceQuiz({ initialMode = 'review', onPlayGeneral }: 
       <div className="text-sm text-[#666] mb-3">
         {initialMode === 'preview'
           ? `Generate a 10-question history quiz about ${nextRace?.circuit ?? 'this weekend\'s circuit'}.`
-          : 'Generate a short 6-question review for the latest race.'}
+          : 'Generate a 10-question review for the latest race.'}
       </div>
       {nextRace ? (
         <div className="flex items-center gap-3">

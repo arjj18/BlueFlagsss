@@ -2,7 +2,18 @@ export const config = {
   runtime: 'edge'
 }
 
-export default async function handler(request: Request) {
+export default async function handler(request: Request): Promise<Response> {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    })
+  }
+
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -13,97 +24,87 @@ export default async function handler(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
 
   if (!apiKey) {
-    console.error('[api/claude] ANTHROPIC_API_KEY is not set')
+    console.error('ANTHROPIC_API_KEY environment variable is not set')
     return new Response(JSON.stringify({
-      error: { message: 'API key not configured on server' }
+      error: {
+        type: 'api_key_missing',
+        message: 'ANTHROPIC_API_KEY is not configured on the server'
+      }
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
   }
 
-  let body
+  let body: any
   try {
     body = await request.json()
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+  } catch (e) {
+    return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     })
   }
 
-  const messages = Array.isArray(body.messages) ? body.messages : null
-  if (!messages || messages.length === 0) {
-    return new Response(JSON.stringify({ error: 'messages array required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    })
-  }
-
-  const lastUser = [...messages].reverse().find((m: any) => m.role === 'user')
-  const prompt = lastUser?.content ?? messages.map((m: any) => `${m.role}: ${m.content}`).join('\n\n')
-
-  const model = typeof body.model === 'string' ? body.model : 'claude-haiku-4-5-20251001'
-  const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 1200
-
-  console.log('[api/claude] model:', model, '| max_tokens:', maxTokens, '| has tools:', !!(body.tools && body.tools.length > 0))
-
-  const headers: Record<string, string> = {
+  const anthropicHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-api-key': apiKey,
     'anthropic-version': '2023-06-01'
   }
 
-  if (body.tools && body.tools.length > 0) {
-    headers['anthropic-beta'] = 'web-search-2025-03-05'
+  if (body.tools && Array.isArray(body.tools) && body.tools.length > 0) {
+    anthropicHeaders['anthropic-beta'] = 'web-search-2025-03-05'
   }
 
+  console.log('[api/claude] model:', body.model || 'claude-haiku-4-5-20251001', '| max_tokens:', body.max_tokens || 1200, '| has tools:', !!(body.tools && body.tools.length > 0))
+
   try {
-    console.log('[api/claude] Calling Anthropic API...')
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: anthropicHeaders,
+      body: JSON.stringify(body)
     })
 
-    console.log('[api/claude] Anthropic response status:', response.status)
+    const responseText = await anthropicResponse.text()
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[api/claude] Anthropic error:', errorText)
+    let responseData: any
+    try {
+      responseData = JSON.parse(responseText)
+    } catch {
       return new Response(JSON.stringify({
-        error: { message: `Anthropic API error (${response.status}): ${errorText}` }
+        error: { message: 'Invalid response from Anthropic API', raw: responseText.substring(0, 200) }
       }), {
-        status: response.status,
-        headers: { 'Content-Type': 'application/json' }
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
       })
     }
 
-    const data = await response.json()
+    console.log('[api/claude] Anthropic status:', anthropicResponse.status)
 
-    const text = (data.content || [])
-      .filter((b: any) => b.type === 'text')
-      .map((b: any) => b.text ?? '')
-      .join('')
-
-    console.log('[api/claude] Response text length:', text.length)
-
-    return new Response(JSON.stringify({ content: text }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
+    return new Response(JSON.stringify(responseData), {
+      status: anthropicResponse.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
 
   } catch (error: any) {
-    console.error('[api/claude] Route error:', error.message)
+    console.error('Error calling Anthropic API:', error)
     return new Response(JSON.stringify({
-      error: { message: error.message || 'Server error calling Anthropic' }
+      error: { message: error.message || 'Failed to call Anthropic API' }
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
   }
 }

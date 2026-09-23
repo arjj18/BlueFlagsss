@@ -2,31 +2,18 @@ export const config = {
   runtime: 'edge'
 }
 
-const SYSTEM_PROMPT = `You are an expert F1 analyst with comprehensive knowledge of Formula 1 racing.
+export default async function handler(request: Request): Promise<Response> {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    })
+  }
 
-The current 2026 F1 driver lineup is:
-- Red Bull Racing: Max Verstappen, Liam Lawson
-- Ferrari: Lewis Hamilton, Charles Leclerc
-- McLaren: Lando Norris, Oscar Piastri
-- Mercedes: George Russell, Kimi Antonelli
-- Aston Martin: Fernando Alonso, Lance Stroll
-- Alpine: Pierre Gasly, Franco Colapinto
-- Williams: Alexander Albon, Carlos Sainz
-- Racing Bulls: Isack Hadjar, Arvid Lindblad
-- Kick Sauber: Nico Hulkenberg, Gabriel Bortoleto
-- Haas: Oliver Bearman, Esteban Ocon
-- Cadillac: Sergio Perez, Valtteri Bottas
-
-Base predictions on:
-- The 2026 driver and constructor strengths shown so far this season
-- Historical performance at each circuit by each driver and team
-- Circuit characteristics that suit certain car design philosophies
-- Typical tyre behaviour and pit stop strategy windows at each venue
-- Championship pressure on key title contenders
-
-Be specific and name actual drivers. Give well reasoned predictions not vague answers.`
-
-export default async function handler(request: Request) {
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -37,16 +24,19 @@ export default async function handler(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
 
   if (!apiKey) {
-    console.error('[predict/race] ANTHROPIC_API_KEY is not set')
+    console.error('ANTHROPIC_API_KEY not set')
     return new Response(JSON.stringify({
-      error: 'API key not configured on server'
+      error: { message: 'API key not configured on server' }
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
   }
 
-  let body
+  let body: any
   try {
     body = await request.json()
   } catch {
@@ -56,39 +46,68 @@ export default async function handler(request: Request) {
     })
   }
 
-  const race = body.race
-  const round = body.round
+  const raceName = body.raceName || body.race || 'upcoming Grand Prix'
+  const circuit = body.circuit || 'the circuit'
+  const country = body.country || ''
+  const round = body.round || ''
+  const currentYear = new Date().getFullYear()
 
-  if (typeof race !== 'string' || !race.trim() || race.length > 100 || typeof round !== 'number') {
-    return new Response(JSON.stringify({ error: 'Invalid request body' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    })
-  }
+  console.log('[predict/race] race:', raceName, '| round:', round, '| model: claude-haiku-4-5-20251001')
 
-  console.log('[predict/race] API called for race:', race, 'round:', round)
-  console.log('[predict/race] Model: claude-haiku-4-5-20251001')
+  const prompt = `You are an expert F1 analyst with comprehensive knowledge of Formula 1 racing up to ${currentYear}.
 
-  const prompt = `Generate a race prediction for the 2026 ${race} Grand Prix (Round ${round}).
+Generate a detailed and confident race prediction for the ${raceName}${round ? ' (Round ' + round + ')' : ''} at ${circuit}${country ? ' in ' + country : ''} for the ${currentYear} Formula 1 World Championship season.
 
-Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every position claim in "wildcard" and "factors" must match the "top10" array exactly — do not say a driver finishes top 6 if they are not in the top 10.
-{
-  "headline": "Bold punchy one-liner prediction (max 12 words)",
-  "winner": { "driver": "Full Name", "team": "Team", "confidence": "high|medium|low" },
-  "podium": [
-    { "pos": 1, "driver": "Full Name", "team": "Team", "note": "One reason why (max 10 words)" },
-    { "pos": 2, "driver": "Full Name", "team": "Team", "note": "One reason why (max 10 words)" },
-    { "pos": 3, "driver": "Full Name", "team": "Team", "note": "One reason why (max 10 words)" }
-  ],
-  "top10": ["Driver 1", "Driver 2", "Driver 3", "Driver 4", "Driver 5", "Driver 6", "Driver 7", "Driver 8", "Driver 9", "Driver 10"],
-  "factors": ["Key factor 1 (max 12 words)", "Key factor 2", "Key factor 3", "Key factor 4"],
-  "wildcard": "One surprise or upset to watch (max 15 words)",
-  "championshipImpact": "What this race could mean for the title fight (max 20 words)"
-}`
+The complete ${currentYear} F1 driver lineup is:
+- Red Bull Racing: Max Verstappen (#1), Liam Lawson (#30)
+- Ferrari: Lewis Hamilton (#44), Charles Leclerc (#16)
+- McLaren: Lando Norris (#4), Oscar Piastri (#81)
+- Mercedes: George Russell (#63), Kimi Antonelli (#12)
+- Aston Martin: Fernando Alonso (#14), Lance Stroll (#18)
+- Alpine: Pierre Gasly (#10), Franco Colapinto (#43)
+- Williams: Alexander Albon (#23), Carlos Sainz (#55)
+- Racing Bulls: Isack Hadjar (#6), Arvid Lindblad (#5)
+- Kick Sauber: Nico Hulkenberg (#27), Gabriel Bortoleto (#7)
+- Haas: Oliver Bearman (#87), Esteban Ocon (#31)
+- Cadillac: Sergio Perez (#11), Valtteri Bottas (#77)
+
+Base your prediction on:
+- Known ${currentYear} constructor and driver performance levels
+- Historical race results at ${circuit} from previous seasons
+- The unique characteristics of ${circuit} that suit certain car designs
+- Current championship standings pressure on title contenders
+- Typical tyre degradation and pit stop strategy at this venue
+
+Be specific, name real drivers, and give confident well-reasoned predictions.
+
+Structure your response using EXACTLY these emoji headers with nothing before the first one:
+
+🥇 PREDICTED PODIUM
+List P1, P2, P3 with the driver name, team, confidence percentage out of 100, and two sentences of reasoning for each position.
+
+📋 PREDICTED TOP 10
+List the full predicted finishing order from P1 to P10. For each position give the driver name and one brief reason.
+
+⚙️ STRATEGY PREDICTION
+Describe the expected tyre strategy for the leading teams. Include which compounds you expect to be used, typical pit stop windows at this circuit, and any likely undercut or overcut opportunities.
+
+⚔️ KEY BATTLE
+Describe one specific on-track battle between two named drivers that will define the race outcome. Explain why this battle matters and how you expect it to play out.
+
+🎲 WILDCARD PREDICTION
+Give one specific surprise prediction that most fans would not expect. Name the driver or team involved and give clear reasoning for why this could happen.
+
+🏆 CHAMPIONSHIP IMPACT
+Explain how different possible race outcomes could affect the Drivers World Championship and Constructors Championship standings. Be specific about gaps and scenarios.
+
+📊 CONFIDENCE RATING
+Give your overall confidence in this prediction out of 10. Explain what factors increase your confidence and what unknowns could change the outcome.
+
+⚠️ Disclaimer: This prediction is based on historical data and known form up to ${currentYear}. Check the latest news for any grid penalties, mechanical issues, or weather forecasts before the race.`
 
   try {
     console.log('[predict/race] Calling Anthropic API...')
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,55 +116,85 @@ Return ONLY valid JSON with no markdown or code fences. IMPORTANT: every positio
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
-        system: SYSTEM_PROMPT,
+        max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
     })
 
-    console.log('[predict/race] Anthropic response status:', response.status)
+    console.log('[predict/race] Anthropic response status:', anthropicResponse.status)
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[predict/race] Anthropic error:', errorText)
+    const responseText = await anthropicResponse.text()
+    let data: any
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
       return new Response(JSON.stringify({
-        error: `Anthropic API error (${response.status}): ${errorText}`
+        error: { message: 'Invalid response from AI service' }
       }), {
-        status: response.status,
-        headers: { 'Content-Type': 'application/json' }
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
       })
     }
 
-    const data = await response.json()
+    if (!anthropicResponse.ok || data.error) {
+      console.error('[predict/race] Anthropic API error:', data.error)
+      return new Response(JSON.stringify({
+        error: data.error || { message: `API returned status ${anthropicResponse.status}` }
+      }), {
+        status: anthropicResponse.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+    }
 
-    const text = (data.content || [])
-      .filter((b: any) => b.type === 'text')
-      .map((b: any) => b.text ?? '')
-      .join('')
+    const predictionText = data.content
+      ?.filter((b: any) => b.type === 'text')
+      ?.map((b: any) => b.text)
+      ?.join('') || ''
 
-    console.log('[predict/race] Response text length:', text.length)
+    if (!predictionText.trim()) {
+      return new Response(JSON.stringify({
+        error: { message: 'AI returned empty prediction' }
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+    }
 
-    const jsonText = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
-    const normalised = jsonText.replace(/Kick Sauber/g, 'Audi').replace(/Sauber/g, 'Audi')
-    const parsed = JSON.parse(normalised)
+    console.log('[predict/race] Prediction text length:', predictionText.length)
 
     return new Response(JSON.stringify({
-      ...parsed,
-      race,
-      round,
+      prediction: predictionText,
+      race: raceName,
+      circuit: circuit,
       generatedAt: new Date().toISOString()
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
 
   } catch (error: any) {
     console.error('[predict/race] Error:', error.message)
     return new Response(JSON.stringify({
-      error: error.message || 'Failed to generate prediction. Please try again.'
+      error: { message: error.message || 'Internal server error' }
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     })
   }
 }
